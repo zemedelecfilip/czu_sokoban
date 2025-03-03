@@ -28,22 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new Label();
             pictureBox2 = new PictureBox();
+            label1 = new Label();
+            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(743, 13);
-            label1.Margin = new Padding(5, 0, 5, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(161, 37);
-            label1.TabIndex = 0;
-            label1.Text = "Score: 0";
-            label1.TextAlign = ContentAlignment.TopRight;
-            label1.Click += label1_Click;
             // 
             // pictureBox2
             // 
@@ -56,6 +45,30 @@
             pictureBox2.TabIndex = 2;
             pictureBox2.TabStop = false;
             pictureBox2.Tag = "MyWarrior";
+            pictureBox2.Click += pictureBox2_Click;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Consolas", 8F, FontStyle.Bold);
+            label1.Location = new Point(5, 23);
+            label1.Margin = new Padding(5, 0, 5, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(81, 19);
+            label1.TabIndex = 0;
+            label1.Text = "Score: 0";
+            label1.TextAlign = ContentAlignment.TopRight;
+            label1.Click += label1_Click;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Consolas", 8F, FontStyle.Bold);
+            label2.Location = new Point(5, 54);
+            label2.Text = "KEY";
+            label2.Name = "label2";
+            label2.Size = new Size(0, 19);
+            label2.TabIndex = 3;
             // 
             // Form1
             // 
@@ -63,8 +76,9 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ActiveCaption;
             ClientSize = new Size(600, 600);
-            Controls.Add(pictureBox2);
+            Controls.Add(label2);
             Controls.Add(label1);
+            Controls.Add(pictureBox2);
             Font = new Font("Consolas", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
             Margin = new Padding(5, 4, 5, 4);
             Name = "Form1";
@@ -79,5 +93,6 @@
 
         private Label label1;
         private PictureBox pictureBox2;
+        private Label label2;
     }
 }

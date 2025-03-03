@@ -21,6 +21,7 @@ namespace UI_test
         //int verticalSpeed = 3;
         //int enemyOneSpeed = 5;
         //int enemyTwoSpeed = 3;
+        int num = 0;
 
         public Form1()
         {
@@ -37,9 +38,32 @@ namespace UI_test
 
         }
 
-        private void pictureBox2_Click(object sender, KeyEventArgs e)
+        public void key_listener(KeyEventArgs e)
         {
+            string key = e.ToString();
+            label2.Text = key;
+        }
 
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            Random rand = new Random();
+            int randomNumX = rand.Next(0, 450);
+            int randomNumY = rand.Next(0, 450);
+            if (num % 2 == 0)
+            {
+                pictureBox2.BackColor = Color.Blue;
+                num += 1;
+                label1.Text = "Score: " + num;
+            }
+            else
+            {
+                pictureBox2.BackColor = Color.Red;
+                num += 1;
+                label1.Text = "Score: " + num;
+
+
+            }
+            pictureBox2.Location = new Point(randomNumX, randomNumY);
         }
     }
 }
