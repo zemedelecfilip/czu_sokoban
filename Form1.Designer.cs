@@ -1,4 +1,6 @@
-﻿namespace czu_sokoban
+﻿using System.Runtime.CompilerServices;
+
+namespace czu_sokoban
 {
     partial class Form1
     {
@@ -6,7 +8,8 @@
         Player player = new Player(0, 0);
         Box box1 = new Box(100, 100);
         Box box2 = new Box(200, 200);
-        Maps map = new Maps();
+        Maps map = new Maps(); 
+        map.addToForm(this);
 
         protected override void Dispose(bool disposing)
         {
