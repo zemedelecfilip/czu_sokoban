@@ -2,13 +2,10 @@
 {
     partial class Form1
     {
-        
         private System.ComponentModel.IContainer components = null;
-        public Player player;
-        public Box box1;
-        public Box box2;
-        //Box [] arr = new Box[2];
-        //Box[] arr = { box1, box2 };
+        Player player = new Player(0, 0);
+        Box box1 = new Box(100, 100);
+        Box box2 = new Box(200, 200);
 
         protected override void Dispose(bool disposing)
         {
@@ -25,60 +22,42 @@
         {
             label1 = new Label();
             label2 = new Label();
-            player = new Player(0, 0);
-            box1 = new Box(100, 100);
-            box2 = new Box(150, 100);
-            ((System.ComponentModel.ISupportInitialize)box2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)box1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)player).BeginInit();
             SuspendLayout();
-            //
-            // box2
-            //
-            box2.BackColor = Color.Blue;
-            box2.Location = new Point(100, 100);
-            box2.Name = "box2";
-            box2.Size = new Size(50, 50);
-            //
-            // box1
-            //
-            box1.BackColor = Color.Blue;
-            box1.Location = new Point(100, 100);
-            box1.Name = "box1";
-            box1.Size = new Size(50, 50);
-            box1.TabStop = false;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.BackColor = SystemColors.Control;
             label1.Font = new Font("Segoe UI", 12F);
-            label1.Location = new Point(470, 0);
+            label1.Location = new Point(329, 0);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(100, 32);
-            label1.Text = "NASRAT";
-            // 
-            // player
-            // 
-            player.BackColor = Color.Red;
-            player.Location = new Point(0, 0);
-            player.Name = "player";
-            player.Size = new Size(50, 50);
-            player.TabStop = false;
+            label1.Size = new Size(53, 21);
+            label1.TabIndex = 1;
+            label1.Text = "nasrat";
             // 
             // label2
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(470, 51);
+            label2.Location = new Point(329, 31);
+            label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(113, 32);
-            label2.Text = "NASRAT2";
+            label2.Size = new Size(53, 21);
+            label2.TabIndex = 0;
+            label2.Text = "nasrat";
+
             // 
+            // player
+
+            // box1
+
+            // box2
+            // 
+
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             ClientSize = new Size(600, 600);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -91,9 +70,6 @@
             KeyDown += Form1_KeyDown;
             ResumeLayout(false);
             PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)box2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)player).EndInit();
-            ((System.ComponentModel.ISupportInitialize)box1).EndInit();
 
         }
 
@@ -143,10 +119,12 @@
                 Application.Exit();
             }
 
-            string gridPosStr = player.gridPos().ToString();
-            string gridPosStr2 = box1.gridPos().ToString();
-            label1.Text = gridPosStr;
-            label2.Text = gridPosStr2;
+            //string gridPosStr = player.gridPos().ToString();
+            //string gridPosStr2 = box1.gridPos().ToString();
+            string playerPos = player.Location.ToString();
+            string box1Pos = box1.Location.ToString();
+            label1.Text = playerPos;
+            label2.Text = box1Pos;
         }
 
         #endregion

@@ -6,6 +6,5 @@ namespace czu_sokoban
         {
             InitializeComponent();
         }
- 
     }
 }
