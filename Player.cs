@@ -13,25 +13,25 @@ public class Player: PictureBox
         this.BackColor = Color.Red;
     }
 
-	public void MoveLeft()
+	public void moveLeft()
 	{
 		this.Left -= playerSpeed;
 		this.x = this.Left;
     }
-
-	public void MoveRight()
+	
+	public void moveRight()
 	{
 		this.Left += playerSpeed;
 		this.x = this.Left;
     }
 
-	public void MoveUp()
+	public void moveUp()
 	{
 		this.Top -= playerSpeed;
 		this.y = this.Top;
     }
 
-	public void MoveDown()
+	public void moveDown()
 	{
 		this.Top += playerSpeed;
 		this.y = this.Top;

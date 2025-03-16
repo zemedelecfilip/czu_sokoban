@@ -7,13 +7,10 @@ public class Maps
     public const int Size = 50;
     public const int Width = 5;
     public const int Height = 5;
-    public List<PictureBox> pictureBoxes = new List<PictureBox>();
-    public PictureBox Wall = new PictureBox()
-    {
-        Size = new Size(Size, Size),
-        BackColor = Color.Black
-    };
-
+    public List<Box> boxes;
+    public List<Wall> walls;
+    public List<FinalDestination> finalDest;
+    public Player player;
     // 1 = wall, 0 = empty, 3 = player, 4+ = box
     public int[,] MapGrid = new int[Height, Width]
     {
@@ -27,34 +24,43 @@ public class Maps
     // Constructor
     public Maps()
     {
-        pictureBoxes = new List<PictureBox>();
+        boxes = new List<Box>();
+        walls = new List<Wall>();
+        finalDest = new List<FinalDestination>();
     }
     public void AddBox(int x, int y) //FIXME add picture path
     {
         Box newBox = new Box(x, y);
-        pictureBoxes.Add(newBox);
+        boxes.Add(newBox);
     }
     public void AddWall(int x, int y) //FIXME add picture path
     {
         Wall newBox = new Wall(x, y);
-        pictureBoxes.Add(newBox);
+        walls.Add(newBox);
     }
 
     public void AddPlayer(int x, int y) //FIXME add picture path
     {
-        Player newBox = new Player(x, y);
-        pictureBoxes.Add(newBox);
+        Player player = new Player(x, y);
     }
 
     public void AddFinalDestination(int x, int y) //FIXME add picture path
     {
         FinalDestination newBox = new FinalDestination(x, y);
-        pictureBoxes.Add(newBox);
+        finalDest.Add(newBox);
     }
 
     public void AddToForm(Form form)
     {
-        foreach (var box in pictureBoxes)
+        foreach (var box in boxes)
+        {
+            form.Controls.Add(box);
+        }
+        foreach (var box in walls)
+        {
+            form.Controls.Add(box);
+        }
+        foreach (var box in finalDest)
         {
             form.Controls.Add(box);
         }
@@ -90,5 +96,4 @@ public class Maps
             }
         }
     }
-    
 }

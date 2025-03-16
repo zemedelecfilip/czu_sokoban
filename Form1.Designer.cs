@@ -5,11 +5,8 @@ namespace czu_sokoban
     partial class Form1
     {
         private System.ComponentModel.IContainer components = null;
-        Player player = new Player(0, 0);
-        Box box1 = new Box(100, 100);
-        Box box2 = new Box(200, 200);
-        Maps map = new Maps(); 
-        map.addToForm(this);
+        Maps map = new Maps();
+        Player player = new Player(50, 50);
 
         protected override void Dispose(bool disposing)
         {
@@ -77,10 +74,8 @@ namespace czu_sokoban
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Controls.Add(player);
-            this.Controls.Add(box1);
-            this.Controls.Add(box2);
             map.drawMap(map.MapGrid);
+            map.AddToForm(this);
         }
 
         // Handle Key Events
@@ -88,45 +83,30 @@ namespace czu_sokoban
         {
             if (e.KeyCode == Keys.Left)
             {
-                if ((player.gridPos().X) == box1.gridPos().X + 1 && (player.gridPos().Y == box1.gridPos().Y))
-                {
-                    box1.MoveLeft();
-                }
-                player.MoveLeft();
+
             }
             else if (e.KeyCode == Keys.Right)
             {
-                if ((player.gridPos().X) == box1.gridPos().X - 1 && (player.gridPos().Y == box1.gridPos().Y))
-                {
-                    box1.MoveRight();
-                }
-                player.MoveRight();
+
             }
             else if (e.KeyCode == Keys.Up)
             {
-                if ((player.gridPos().Y) == box1.gridPos().Y + 1 && (player.gridPos().X == box1.gridPos().X))
-                {
-                    box1.MoveUp();
-                }
-                player.MoveUp();
+
             }
             else if (e.KeyCode == Keys.Down)
             {
-                if ((player.gridPos().Y) == box1.gridPos().Y - 1 && (player.gridPos().X == box1.gridPos().X))
-                {
-                    box1.MoveDown();
-                }
-                player.MoveDown();
+
             }
             else if (e.KeyCode == Keys.Escape)
             {
                 Application.Exit();
             }
 
-            string playerPos = player.Location.ToString();
-            string box1Pos = box1.Location.ToString();
-            label1.Text = playerPos;
-            label2.Text = box1Pos;
+            //string playerPos = player.Location.ToString();
+            //string box1Pos = box1.Location.ToString();
+            //label1.Text = playerPos;
+            //label2.Text = box1Pos;
+            
         }
 
         #endregion
