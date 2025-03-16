@@ -3,6 +3,7 @@ public class Box : PictureBox
     public int x, y;
     public int a = 50;
     public int boxSpeed = 50;
+
     public Box(int x, int y)
     {
         this.x = x;

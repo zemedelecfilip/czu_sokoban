@@ -6,6 +6,7 @@
         Player player = new Player(0, 0);
         Box box1 = new Box(100, 100);
         Box box2 = new Box(200, 200);
+        Maps map = new Maps();
 
         protected override void Dispose(bool disposing)
         {
@@ -61,9 +62,6 @@
             ClientSize = new Size(600, 600);
             Controls.Add(label2);
             Controls.Add(label1);
-            Controls.Add(player);
-            Controls.Add(box1);
-            Controls.Add(box2);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -76,7 +74,10 @@
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
-            //Maps.drawMap(Form1);
+            this.Controls.Add(player);
+            this.Controls.Add(box1);
+            this.Controls.Add(box2);
+            map.drawMap(map.MapGrid);
         }
 
         // Handle Key Events
@@ -119,8 +120,6 @@
                 Application.Exit();
             }
 
-            //string gridPosStr = player.gridPos().ToString();
-            //string gridPosStr2 = box1.gridPos().ToString();
             string playerPos = player.Location.ToString();
             string box1Pos = box1.Location.ToString();
             label1.Text = playerPos;
