@@ -11,4 +11,9 @@ public class Wall : PictureBox
         this.Size = new Size(a, a);
         this.BackColor = Color.Black;
     }
+
+    public Point gridPos()
+    {
+        return new Point(this.x / a, this.y / a);
+    }
 }

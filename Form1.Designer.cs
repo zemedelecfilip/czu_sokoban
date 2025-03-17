@@ -6,7 +6,10 @@ namespace czu_sokoban
     {
         private System.ComponentModel.IContainer components = null;
         Maps map = new Maps();
-        Player player = new Player(50, 50);
+        Player player;
+        List<Box> boxes;
+        List<Wall> walls;
+        List<FinalDestination> finalDest;
 
         protected override void Dispose(bool disposing)
         {
@@ -30,7 +33,7 @@ namespace czu_sokoban
             label1.AutoSize = true;
             label1.BackColor = SystemColors.Control;
             label1.Font = new Font("Segoe UI", 12F);
-            label1.Location = new Point(329, 0);
+            label1.Location = new Point(400, 0);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(53, 21);
@@ -41,7 +44,7 @@ namespace czu_sokoban
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(329, 31);
+            label2.Location = new Point(400, 30);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(53, 21);
@@ -76,37 +79,99 @@ namespace czu_sokoban
         {
             map.drawMap(map.MapGrid);
             map.AddToForm(this);
+            player = map.player;
+            boxes = map.boxes;
+            walls = map.walls;
+            finalDest = map.finalDest;
         }
 
-        // Handle Key Events
+        // Handle Key Events, Main for the game
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left)
             {
+                player.moveLeft();                          //player moved left
+                Box a = map.collided_pb(player, boxes);     //check if player collided with box
+
+                if (a != null)                              //yes they collided so they moved
+                {
+                    a.moveLeft();                           //box moved left
+                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
+
+                    if (b != null)                          //yes they collided so they moved back to the original position
+                    {
+                        a.moveRight();
+                        player.moveRight();
+                    }
+
+                }
 
             }
             else if (e.KeyCode == Keys.Right)
             {
+                player.moveRight();                         //player moved right
+                Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
+                if (a != null)                              //yes they collided so they moved
+                {
+                    a.moveRight();                          //box moved right
+                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
+
+                    if (b != null)                          //yes they collided so they moved back to the original position
+                    {
+                        a.moveLeft();
+                        player.moveLeft();
+                    }
+
+                }
             }
             else if (e.KeyCode == Keys.Up)
             {
+                player.moveUp();                            //player moved up
+                Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
+                if (a != null)                              //yes they collided so they moved
+                {
+                    a.moveUp();                             //box moved left
+                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
+
+                    if (b != null)                          //yes they collided so they moved back to the original position
+                    {
+                        a.moveDown();
+                        player.moveDown();
+                    }
+
+                }
             }
             else if (e.KeyCode == Keys.Down)
             {
+                player.moveDown();                          //player moved down
+                Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
+                if (a != null)                              //yes they collided so they moved
+                {
+                    a.moveDown();                           //box moved down
+                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
+
+                    if (b != null)                          //yes they collided so they moved back to the original position
+                    {
+                        a.moveUp();
+                        player.moveUp();
+                    }
+
+                }
             }
             else if (e.KeyCode == Keys.Escape)
             {
                 Application.Exit();
             }
 
-            //string playerPos = player.Location.ToString();
+            //string lab1Text = map.collided_bw(map.collided_pb(player, boxes), walls).ToString();
+            //string lab2Text = map.collided_pb(player, boxes)?.ToString() ?? "";
             //string box1Pos = box1.Location.ToString();
-            //label1.Text = playerPos;
-            //label2.Text = box1Pos;
-            
+            //label1.Text = lab1Text;
+            //label2.Text = lab2Text;
+
         }
 
         #endregion

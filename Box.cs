@@ -12,22 +12,22 @@ public class Box : PictureBox
         this.Size = new Size(a, a);
         this.BackColor = Color.Blue;
     }
-    public void MoveLeft()
+    public void moveLeft()
     {
         this.Left -= boxSpeed;
         this.x = this.Left;
     }
-    public void MoveRight()
+    public void moveRight()
     {
         this.Left += boxSpeed;
         this.x = this.Left;
     }
-    public void MoveUp()
+    public void moveUp()
     {
         this.Top -= boxSpeed;
         this.y = this.Top;
     }
-    public void MoveDown()
+    public void moveDown()
     {
         this.Top += boxSpeed;
         this.y = this.Top;

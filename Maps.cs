@@ -5,8 +5,8 @@ public class Maps
 {
     // Constants for grid size
     public const int Size = 50;
-    public const int Width = 5;
-    public const int Height = 5;
+    public const int Width = 8;
+    public const int Height = 8;
     public List<Box> boxes;
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
@@ -14,11 +14,14 @@ public class Maps
     // 1 = wall, 0 = empty, 3 = player, 4+ = box
     public int[,] MapGrid = new int[Height, Width]
     {
-        {1, 1, 1, 1, 1},
-        {1, 3, 0, 5, 1},
-        {1, 0, 4, 4, 1},
-        {1, 5, 0, 0, 1},
-        {1, 1, 1, 1, 1}
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 4, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 0, 0, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
     };
 
     // Constructor
@@ -42,6 +45,7 @@ public class Maps
     public void AddPlayer(int x, int y) //FIXME add picture path
     {
         Player player = new Player(x, y);
+        this.player = player;
     }
 
     public void AddFinalDestination(int x, int y) //FIXME add picture path
@@ -64,6 +68,7 @@ public class Maps
         {
             form.Controls.Add(box);
         }
+        form.Controls.Add(player);
     }
 
     public void drawMap(int [,] MapGrid)
@@ -95,5 +100,43 @@ public class Maps
                 }
             }
         }
+    }
+    public Box collided_pb(Player player, List<Box> boxes)
+    {
+        foreach (var box in boxes)
+        {
+            if (player.gridPos() == box.gridPos())
+            {
+                return box;
+            }
+        }
+        return null;
+    }
+
+    public Box collided_bb(Box bob, List<Box> boxes)
+    { 
+        foreach (var box in boxes)
+        {
+            if (bob.gridPos() == box.gridPos() && bob != box)
+            {
+                return box;
+            }
+        }
+        return null;
+    }
+    public bool collided_bw(Box box, List<Wall> walls)
+    {
+        if (box == null)
+        {
+            return false;
+        }
+        foreach (var wall in walls)
+        {
+            if (box.gridPos() == wall.gridPos())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
