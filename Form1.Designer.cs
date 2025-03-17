@@ -91,14 +91,18 @@ namespace czu_sokoban
             if (e.KeyCode == Keys.Left)
             {
                 player.moveLeft();                          //player moved left
+                if (map.collided_pw(player, walls))
+                {
+                    player.moveRight();                     //player moved back to the original position
+                }
                 Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
                 if (a != null)                              //yes they collided so they moved
                 {
                     a.moveLeft();                           //box moved left
                     Box b = map.collided_bb(a, boxes);      //check if box collided with box
-
-                    if (b != null)                          //yes they collided so they moved back to the original position
+                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                     {
                         a.moveRight();
                         player.moveRight();
@@ -109,15 +113,19 @@ namespace czu_sokoban
             }
             else if (e.KeyCode == Keys.Right)
             {
-                player.moveRight();                         //player moved right
+                player.moveRight();                          //player moved left
+                if (map.collided_pw(player, walls))
+                {
+                    player.moveLeft();                     //player moved back to the original position
+                }                       //player moved right
                 Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
                 if (a != null)                              //yes they collided so they moved
                 {
                     a.moveRight();                          //box moved right
                     Box b = map.collided_bb(a, boxes);      //check if box collided with box
-
-                    if (b != null)                          //yes they collided so they moved back to the original position
+                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                     {
                         a.moveLeft();
                         player.moveLeft();
@@ -127,15 +135,19 @@ namespace czu_sokoban
             }
             else if (e.KeyCode == Keys.Up)
             {
-                player.moveUp();                            //player moved up
+                player.moveUp();                          //player moved left
+                if (map.collided_pw(player, walls))
+                {
+                    player.moveDown();                     //player moved back to the original position
+                }                            //player moved up
                 Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
                 if (a != null)                              //yes they collided so they moved
                 {
                     a.moveUp();                             //box moved left
                     Box b = map.collided_bb(a, boxes);      //check if box collided with box
-
-                    if (b != null)                          //yes they collided so they moved back to the original position
+                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                     {
                         a.moveDown();
                         player.moveDown();
@@ -145,15 +157,19 @@ namespace czu_sokoban
             }
             else if (e.KeyCode == Keys.Down)
             {
-                player.moveDown();                          //player moved down
+                player.moveDown();                          //player moved left
+                if (map.collided_pw(player, walls))
+                {
+                    player.moveUp();                     //player moved back to the original position
+                }                         //player moved down
                 Box a = map.collided_pb(player, boxes);     //check if player collided with box
 
                 if (a != null)                              //yes they collided so they moved
                 {
                     a.moveDown();                           //box moved down
                     Box b = map.collided_bb(a, boxes);      //check if box collided with box
-
-                    if (b != null)                          //yes they collided so they moved back to the original position
+                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                     {
                         a.moveUp();
                         player.moveUp();
@@ -166,10 +182,10 @@ namespace czu_sokoban
                 Application.Exit();
             }
 
-            //string lab1Text = map.collided_bw(map.collided_pb(player, boxes), walls).ToString();
+            string lab1Text = map.checkWin(boxes, finalDest) ? "Finally my man" : "Makej";
             //string lab2Text = map.collided_pb(player, boxes)?.ToString() ?? "";
             //string box1Pos = box1.Location.ToString();
-            //label1.Text = lab1Text;
+            label1.Text = lab1Text;
             //label2.Text = lab2Text;
 
         }

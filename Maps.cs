@@ -1,4 +1,5 @@
 //vytvoøení všech objektù na základì mapy
+using System.Globalization;
 using System.Security;
 
 public class Maps
@@ -101,8 +102,14 @@ public class Maps
             }
         }
     }
+    //method for checking collision between player and box
+    //return value is box so it can be moved in main
     public Box collided_pb(Player player, List<Box> boxes)
     {
+        if (player == null)
+        {
+            return null;
+        }
         foreach (var box in boxes)
         {
             if (player.gridPos() == box.gridPos())
@@ -112,9 +119,16 @@ public class Maps
         }
         return null;
     }
+    //method for collision between box and box
+    //return value is box so it can be moved in main
+    //need for one more condition because box always collide with itself(same pos)
 
     public Box collided_bb(Box bob, List<Box> boxes)
     { 
+        if (bob == null)
+        {
+            return null;
+        }
         foreach (var box in boxes)
         {
             if (bob.gridPos() == box.gridPos() && bob != box)
@@ -124,19 +138,55 @@ public class Maps
         }
         return null;
     }
-    public bool collided_bw(Box box, List<Wall> walls)
+    //method for collision between box and wall
+    //return value is box so it can be moved in main
+    public Box collided_bw(Box box, List<Wall> walls)
     {
         if (box == null)
         {
-            return false;
+            return null;
         }
         foreach (var wall in walls)
         {
             if (box.gridPos() == wall.gridPos())
             {
+                return box;
+            }
+        }
+        return null;
+    }
+
+    //method for collision between player and wall
+    //return value is true or false - no need for exact object to be returned
+    public bool collided_pw(Player player, List<Wall> walls)
+    {
+        if (player == null)
+        {
+            return false;
+        }
+        foreach (var wall in walls)
+        {
+            if (player.gridPos() == wall.gridPos())
+            {
                 return true;
             }
         }
         return false;
+    }
+
+    public bool checkWin(List<Box> boxes, List<FinalDestination> finalDest)
+    {
+        int dests = finalDest.Count;
+        foreach (var box in boxes)
+        {
+            foreach (var dest in finalDest)
+            {
+                if (box.gridPos() == dest.gridPos())
+                {
+                    dests--;
+                }
+            }
+        }
+        return dests == 0 ? true : false;
     }
 }

@@ -10,4 +10,9 @@ public class FinalDestination : PictureBox
         this.Size = new Size(a, a);
         this.BackColor = Color.Green;
     }
+
+    public Point gridPos()
+    {
+        return new Point(this.x / a, this.y / a);
+    }
 }
