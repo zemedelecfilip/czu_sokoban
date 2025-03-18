@@ -38,7 +38,7 @@ namespace czu_sokoban
             label1.Name = "label1";
             label1.Size = new Size(53, 21);
             label1.TabIndex = 1;
-            label1.Text = "nasrat";
+            label1.Text = "zatím nic";
             // 
             // label2
             // 
@@ -49,7 +49,7 @@ namespace czu_sokoban
             label2.Name = "label2";
             label2.Size = new Size(53, 21);
             label2.TabIndex = 0;
-            label2.Text = "nasrat";
+            label2.Text = "nic";
 
             // 
             // player
@@ -182,7 +182,7 @@ namespace czu_sokoban
                 Application.Exit();
             }
 
-            string lab1Text = map.checkWin(boxes, finalDest) ? "Finally my man" : "Makej";
+            string lab1Text = map.checkWin(boxes, finalDest) ? "Finally my man" : "Dělej debile";
             //string lab2Text = map.collided_pb(player, boxes)?.ToString() ?? "";
             //string box1Pos = box1.Location.ToString();
             label1.Text = lab1Text;

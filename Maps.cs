@@ -12,18 +12,19 @@ public class Maps
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
-    // 1 = wall, 0 = empty, 3 = player, 4+ = box
+    // 1 = wall, 0 = empty, 3 = player, 5 = box
     public int[,] MapGrid = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
         {1, 3, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 4, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
         {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 4, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 5, 0, 0, 0, 0, 5, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
         {1, 1, 1, 1, 1, 1, 1, 1}
     };
+
 
     // Constructor
     public Maps()
