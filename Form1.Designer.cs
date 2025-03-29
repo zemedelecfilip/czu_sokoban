@@ -32,37 +32,31 @@ namespace czu_sokoban
             // label1
             // 
             label1.AutoSize = true;
-            label1.BackColor = SystemColors.Control;
+            label1.BackColor = SystemColors.ButtonHighlight;
             label1.Font = new Font("Segoe UI", 12F);
             label1.Location = new Point(400, 0);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(53, 21);
+            label1.Size = new Size(72, 21);
             label1.TabIndex = 1;
             label1.Text = "zatím nic";
             // 
             // label2
             // 
             label2.AutoSize = true;
+            label2.BackColor = SystemColors.Control;
             label2.Font = new Font("Segoe UI", 12F);
             label2.Location = new Point(400, 30);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(53, 21);
+            label2.Size = new Size(101, 21);
             label2.TabIndex = 0;
             label2.Text = "No debug str";
-
             // 
-            // player
-            
-            // box1
-
-            // box2
-            // 
-
             // Form1
             // 
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            AutoScaleMode = AutoScaleMode.None;
+            BackColor = SystemColors.AppWorkspace;
             ClientSize = new Size(600, 600);
             Controls.Add(label2);
             Controls.Add(label1);

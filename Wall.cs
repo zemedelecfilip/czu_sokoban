@@ -19,7 +19,7 @@ public class Wall : PictureBox
 
     public void getImage()
     {
-        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\Wall_gray.png");
+        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\Wall_Black.png");
         try
         {
             if (!File.Exists(path))

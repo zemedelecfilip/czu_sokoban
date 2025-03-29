@@ -31,12 +31,12 @@ public class FinalDestination : PictureBox
         }
         catch (FileNotFoundException ex)
         {
-            MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
             this.BackColor = Color.Green;
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             this.BackColor = Color.Green;
         }
     }
