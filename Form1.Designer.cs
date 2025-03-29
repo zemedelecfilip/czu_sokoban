@@ -49,7 +49,7 @@ namespace czu_sokoban
             label2.Name = "label2";
             label2.Size = new Size(53, 21);
             label2.TabIndex = 0;
-            label2.Text = "nic";
+            label2.Text = "No debug str";
 
             // 
             // player
@@ -182,7 +182,7 @@ namespace czu_sokoban
                 Application.Exit();
             }
 
-            string lab1Text = map.checkWin(boxes, finalDest) ? "Finally my man" : "Dělej debile";
+            string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
             //string lab2Text = map.collided_pb(player, boxes)?.ToString() ?? "";
             //string box1Pos = box1.Location.ToString();
             label1.Text = lab1Text;
