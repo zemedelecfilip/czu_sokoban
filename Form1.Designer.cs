@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -11,7 +12,8 @@ namespace czu_sokoban
         List<Box> boxes;
         List<Wall> walls;
         List<FinalDestination> finalDest;
-
+        public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
+        public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -57,7 +59,7 @@ namespace czu_sokoban
             // 
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.AppWorkspace;
-            ClientSize = new Size(600, 600);
+            ClientSize = new Size(screenWidth, screenHeight);
             Controls.Add(label2);
             Controls.Add(label1);
             Name = "Form1";

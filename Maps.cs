@@ -1,4 +1,5 @@
 //vytvoøení všech objektù na základì mapy
+using czu_sokoban;
 using System.Globalization;
 using System.Security;
 
@@ -12,6 +13,12 @@ public class Maps
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
+
+    public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
+    public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
+
+    //public int left_margin = screenWidth / 2 - (Width * Size) / 2;
+
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
     public int[,] MapGrid2 = new int[Height, Width]
     {
