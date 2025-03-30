@@ -46,7 +46,7 @@ namespace czu_sokoban
             label2.AutoSize = true;
             label2.BackColor = SystemColors.Control;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(400, 30);
+            label2.Location = new Point(2, 462);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(101, 21);
@@ -104,7 +104,7 @@ namespace czu_sokoban
                     }
 
                 }
-
+                map.checkWin(boxes, finalDest);
             }
             else if (e.KeyCode == Keys.Right)
             {
@@ -127,6 +127,7 @@ namespace czu_sokoban
                     }
 
                 }
+                map.checkWin(boxes, finalDest);
             }
             else if (e.KeyCode == Keys.Up)
             {
@@ -149,6 +150,7 @@ namespace czu_sokoban
                     }
 
                 }
+                map.checkWin(boxes, finalDest);
             }
             else if (e.KeyCode == Keys.Down)
             {
@@ -169,17 +171,18 @@ namespace czu_sokoban
                         a.moveUp();
                         player.moveUp(true);
                     }
-
                 }
+                map.checkWin(boxes, finalDest);
             }
             else if (e.KeyCode == Keys.Escape)
             {
                 Application.Exit();
             }
 
+            map.checkWin(boxes, finalDest);
+
+
             string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
-            //string lab2Text = map.collided_pb(player, boxes)?.ToString() ?? "";
-            //string box1Pos = box1.Location.ToString();
             label1.Text = lab1Text;
             //label2.Text = lab2Text;
 

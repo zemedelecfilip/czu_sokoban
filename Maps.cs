@@ -12,8 +12,8 @@ public class Maps
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
-    // 1 = wall, 0 = empty, 3 = player, 5 = box
-    public int[,] MapGrid = new int[Height, Width]
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid2 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
         {1, 3, 0, 0, 0, 0, 0, 1},
@@ -23,6 +23,30 @@ public class Maps
         {1, 0, 0, 0, 0, 0, 0, 1},
         {1, 5, 0, 0, 1, 1, 5, 1},
         {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid1 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
     };
     //export skore - cas
     //menu - import progressu
@@ -57,14 +81,16 @@ public class Maps
         FinalDestination newBox = new FinalDestination(x, y);
         finalDest.Add(newBox);
     }
-
+    //method for adding all objects to form, so can be moved / displayed
+    //player is added first so it is on top of all other objects, 2nd are boxes for same reason
     public void AddToForm(Form form)
     {
-        foreach (var box in boxes)
+        form.Controls.Add(player);
+        foreach (var box in walls)
         {
             form.Controls.Add(box);
         }
-        foreach (var box in walls)
+        foreach (var box in boxes)
         {
             form.Controls.Add(box);
         }
@@ -72,7 +98,6 @@ public class Maps
         {
             form.Controls.Add(box);
         }
-        form.Controls.Add(player);
     }
 
     public void drawMap(int [,] MapGrid)
@@ -186,7 +211,15 @@ public class Maps
             {
                 if (box.gridPos() == dest.gridPos())
                 {
+                    box.isThere = true;
                     dests--;
+                    box.getImage();
+                    break;
+                }
+                else
+                {
+                    box.isThere = false;
+                    box.getImage();
                 }
             }
         }

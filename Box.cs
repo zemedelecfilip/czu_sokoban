@@ -3,13 +3,14 @@ public class Box : PictureBox
     public int x, y;
     public int a = 50;
     public int boxSpeed = 50;
-
+    public bool isThere;
     public Box(int x, int y)
     {
         this.x = x;
         this.y = y;
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
+        this.isThere = false;
         this.getImage();
     }
     public void moveLeft()
@@ -34,21 +35,33 @@ public class Box : PictureBox
     }
     public Point gridPos()
     {
-        return new Point(this.x/ a, this.y / a);
+        return new Point(this.x / a, this.y / a);
+    }
+    public bool isThereBox()
+    {
+        return this.isThere;
     }
 
     public void getImage()
     {
-        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
+        string path;
+        if (isThere)
+        {
+            path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
+        }
+        else
+        {
+            path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\Crate_Blue.png");
+        }
         try
         {
             if (!File.Exists(path))
             {
                 this.BackColor = Color.Blue;
             }
-
             this.Image = Image.FromFile(path);
             this.SizeMode = PictureBoxSizeMode.CenterImage;
+
         }
         catch (FileNotFoundException ex)
         {
