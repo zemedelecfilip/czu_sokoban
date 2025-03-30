@@ -213,15 +213,14 @@ public class Maps
                 {
                     box.isThere = true;
                     dests--;
-                    box.getImage();
                     break;
                 }
                 else
                 {
                     box.isThere = false;
-                    box.getImage();
                 }
             }
+            box.getImage();
         }
         return dests == 0 ? true : false;
     }
