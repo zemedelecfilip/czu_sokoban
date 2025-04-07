@@ -14,6 +14,8 @@ namespace czu_sokoban
         List<FinalDestination> finalDest;
         public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
         public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
+        //menu, levels, level, my profile
+        public string scene = "menu";
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -29,6 +31,8 @@ namespace czu_sokoban
         {
             label1 = new Label();
             label2 = new Label();
+            pictureBox1 = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // label1
@@ -42,6 +46,7 @@ namespace czu_sokoban
             label1.Size = new Size(72, 21);
             label1.TabIndex = 1;
             label1.Text = "zatím nic";
+            label1.BringToFront();
             // 
             // label2
             // 
@@ -54,18 +59,30 @@ namespace czu_sokoban
             label2.Size = new Size(101, 21);
             label2.TabIndex = 0;
             label2.Text = "No debug str";
+            label2.BringToFront();
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.BackColor = Color.White;
+            pictureBox1.Location = new Point(0, 0);
+            pictureBox1.Name = "";
+            pictureBox1.Size = new Size(screenWidth, screenHeight / 10);
+            pictureBox1.TabIndex = 2;
+            pictureBox1.TabStop = false;
             // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.AppWorkspace;
             ClientSize = new Size(screenWidth, screenHeight);
+            Controls.Add(pictureBox1);
             Controls.Add(label2);
             Controls.Add(label1);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
             KeyDown += Form1_KeyDown;
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -74,16 +91,40 @@ namespace czu_sokoban
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
+            /*
             map.drawMap(map.MapGrid);
             map.AddToForm(this);
             player = map.player;
             boxes = map.boxes;
             walls = map.walls;
             finalDest = map.finalDest;
+            */
         }
 
         // Handle Key Events, Main for the game
         private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (this.scene == "level")
+            {
+                this.game_movement(sender, e);
+            } 
+
+            if (e.KeyCode == Keys.Escape)
+            {
+
+                Application.Exit();
+            }
+
+            //map.checkWin(boxes, finalDest);
+
+            string lab2Text = "Madar";
+            //string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
+            //label1.Text = lab1Text;
+            label2.Text = lab2Text;
+
+        }
+
+        public void game_movement(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left)
             {
@@ -183,10 +224,10 @@ namespace czu_sokoban
 
             map.checkWin(boxes, finalDest);
 
-
+            string lab2Text = "Madar";
             string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
             label1.Text = lab1Text;
-            //label2.Text = lab2Text;
+            label2.Text = lab2Text;
 
         }
 
@@ -194,5 +235,6 @@ namespace czu_sokoban
 
         private Label label1;
         private Label label2;
+        private PictureBox pictureBox1;
     }
 }
