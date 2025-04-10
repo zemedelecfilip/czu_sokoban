@@ -12,10 +12,11 @@ namespace czu_sokoban
         List<Box> boxes;
         List<Wall> walls;
         List<FinalDestination> finalDest;
+        
         public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
         public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
         //menu, levels, level, my profile
-        public string scene = "menu";
+        public string scene = "level";
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -32,6 +33,10 @@ namespace czu_sokoban
             label1 = new Label();
             label2 = new Label();
             pictureBox1 = new PictureBox();
+            button1 = new Button();
+            button2 = new Button();
+            button3 = new Button();
+            label3 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
@@ -40,41 +45,77 @@ namespace czu_sokoban
             label1.AutoSize = true;
             label1.BackColor = SystemColors.ButtonHighlight;
             label1.Font = new Font("Segoe UI", 12F);
-            label1.Location = new Point(400, 0);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(72, 21);
             label1.TabIndex = 1;
             label1.Text = "zatím nic";
-            label1.BringToFront();
             // 
             // label2
             // 
             label2.AutoSize = true;
             label2.BackColor = SystemColors.Control;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(2, 462);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(101, 21);
             label2.TabIndex = 0;
             label2.Text = "No debug str";
-            label2.BringToFront();
             // 
             // pictureBox1
             // 
-            pictureBox1.BackColor = Color.White;
-            pictureBox1.Location = new Point(0, 0);
-            pictureBox1.Name = "";
-            pictureBox1.Size = new Size(screenWidth, screenHeight / 10);
+            pictureBox1.BackColor = Color.Green;
+            pictureBox1.Name = "pictureBox1";
             pictureBox1.TabIndex = 2;
             pictureBox1.TabStop = false;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(135, 86);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 3;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
+            // button2
+            // 
+            button2.Location = new Point(108, 140);
+            button2.Name = "button2";
+            button2.Size = new Size(75, 23);
+            button2.TabIndex = 4;
+            button2.Text = "button2";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
+            // button3
+            // 
+            button3.Location = new Point(108, 187);
+            button3.Name = "button3";
+            button3.Size = new Size(75, 23);
+            button3.TabIndex = 5;
+            button3.Text = "button3";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            label3.Location = new Point(0, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(146, 37);
+            label3.TabIndex = 0;
+            label3.Text = "SOKOBAN";
             // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.AppWorkspace;
-            ClientSize = new Size(screenWidth, screenHeight);
+            ClientSize = new Size(284, 261);
+            Controls.Add(label3);
+            Controls.Add(button3);
+            Controls.Add(button2);
+            Controls.Add(button1);
             Controls.Add(pictureBox1);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -88,17 +129,38 @@ namespace czu_sokoban
 
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.scene = "level";
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
+
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
-            /*
-            map.drawMap(map.MapGrid);
-            map.AddToForm(this);
-            player = map.player;
-            boxes = map.boxes;
-            walls = map.walls;
-            finalDest = map.finalDest;
-            */
+            this.scene = "menu";
+            this.menu_draw(sender);
+            this.calculate_menu();
+
+            if (this.scene == "level")
+            {
+                pictureBox1.Visible = false;
+                map.drawMap(map.MapGrid);
+                map.AddToForm(this);
+                player = map.player;
+                boxes = map.boxes;
+                walls = map.walls;
+                finalDest = map.finalDest;
+            }
         }
 
         // Handle Key Events, Main for the game
@@ -107,13 +169,8 @@ namespace czu_sokoban
             if (this.scene == "level")
             {
                 this.game_movement(sender, e);
-            } 
-
-            if (e.KeyCode == Keys.Escape)
-            {
-
-                Application.Exit();
             }
+
 
             //map.checkWin(boxes, finalDest);
 
@@ -231,10 +288,52 @@ namespace czu_sokoban
 
         }
 
+        public void menu_draw(object sender)
+        {
+            if (this.scene == "menu") 
+            {
+                pictureBox1.Visible = true;
+                button1.Visible = true;
+                button2.Visible = true;
+                button3.Visible = true;
+            }
+            else
+            {
+                pictureBox1.Visible = false;
+                button1.Visible = false;
+                button2.Visible = false;
+                button3.Visible = false;
+            }
+        }
+
+        public void calculate_menu()
+        {
+            pictureBox1.Location = new Point(0, 0);
+            pictureBox1.Size = new Size(screenWidth, screenHeight / 10);
+
+            button1.Size = new Size(screenWidth / 5, screenHeight / 10);
+            button1.Location = new Point(screenWidth / 2 - button1.Width / 2, (screenHeight - pictureBox1.Height) / 4 - button1.Height / 2);
+           
+            button2.Size = new Size(screenWidth / 5, screenHeight / 10);
+            button2.Location = new Point(screenWidth / 2 - button2.Width / 2, (screenHeight * 2 - pictureBox1.Height) / 4 - button2.Height / 2);
+            
+            button3.Size = new Size(screenWidth / 5, screenHeight / 10);
+            button3.Location = new Point(screenWidth / 2 - button3.Width / 2, (screenHeight * 3 - pictureBox1.Height) / 4 - button3.Height / 2);
+
+            label3.Size = new Size(screenWidth / 5, screenHeight / 2);
+            label3.Location = new Point(screenWidth / 2 - label3.Width / 2, pictureBox1.Height / 2 - label3.Height / 2);
+
+            ClientSize = new Size(screenWidth, screenHeight);
+        }
+
         #endregion
 
         private Label label1;
         private Label label2;
         private PictureBox pictureBox1;
+        private Button button1;
+        private Button button2;
+        private Button button3;
+        private Label label3;
     }
 }
