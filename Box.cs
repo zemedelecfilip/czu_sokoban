@@ -1,8 +1,8 @@
 public class Box : PictureBox
 {
     public int x, y;
-    public int a = 50;
-    public int boxSpeed = 50;
+    public int a = Storage.size;
+    public int boxSpeed = Storage.playerSpeed;
     public bool isThere;
     public Box(int x, int y)
     {
@@ -60,7 +60,14 @@ public class Box : PictureBox
                 this.BackColor = Color.Blue;
             }
             this.Image = Image.FromFile(path);
-            this.SizeMode = PictureBoxSizeMode.CenterImage;
+            if (Storage.size > 50)
+            {
+                this.SizeMode = PictureBoxSizeMode.StretchImage;
+            }
+            else
+            {
+                this.SizeMode = PictureBoxSizeMode.CenterImage;
+            }
 
         }
         catch (FileNotFoundException ex)

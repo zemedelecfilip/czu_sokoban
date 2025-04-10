@@ -6,18 +6,19 @@ using System.Security;
 public class Maps
 {
     // Constants for grid size
-    public const int Size = 50;
-    public const int Width = 8;
-    public const int Height = 8;
+    public const int Size = Storage.size;
+    public const int Width = Storage.gridSize;
+    public const int Height = Storage.gridSize;
+    public static int leftMargin = Storage.leftMargin;
+    public static int topMargin = Storage.topMargin;
     public List<Box> boxes;
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
 
-    public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-    public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
+    public int screenWidth = Storage.screenWidth;
+    public int screenHeight = Storage.screenHeight;
 
-    //public int left_margin = screenWidth / 2 - (Width * Size) / 2;
 
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
     public int[,] MapGrid2 = new int[Height, Width]
@@ -117,18 +118,18 @@ public class Maps
                 switch (MapGrid[i, j])
                 {
                     case 1:
-                        AddWall((j * Size), (i * Size));
+                        AddWall((j * Size + leftMargin), (i * Size + topMargin));
                         break;
                     case 3:
-                        AddPlayer((j * Size), (i * Size)); 
+                        AddPlayer((j * Size + leftMargin), (i * Size + topMargin)); 
                         break;
                     
                     case 4:
-                        AddBox((j * Size), (i * Size));
+                        AddBox((j * Size + leftMargin), (i * Size + topMargin));
                         break;
 
                     case 5:
-                        AddFinalDestination((j * Size), (i * Size));
+                        AddFinalDestination((j * Size + leftMargin), (i * Size + topMargin));
                         break;
                     default:
                         // Empty

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using System.Windows.Forms.Design.Behavior;
+using System.Drawing.Drawing2D;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -50,6 +51,7 @@ namespace czu_sokoban
             label1.Name = "label1";
             label1.TabIndex = 1;
             label1.Text = "zatím nic";
+            label1.Location = new Point(0, 0);
             // 
             // label2
             // 
@@ -60,6 +62,7 @@ namespace czu_sokoban
             label2.Name = "label2";
             label2.TabIndex = 0;
             label2.Text = "No debug str";
+            label2.Location = new Point(0, label1.Height * 2);
             // 
             // pictureBox1
             // 
@@ -74,7 +77,8 @@ namespace czu_sokoban
             button1.Name = "button1";
             button1.Size = new Size(75, 23);
             button1.TabIndex = 3;
-            button1.Text = "button1";
+            button1.Text = "PLAY";
+            button1.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -84,7 +88,8 @@ namespace czu_sokoban
             button2.Name = "button2";
             button2.Size = new Size(75, 23);
             button2.TabIndex = 4;
-            button2.Text = "button2";
+            button2.Text = "STATS";
+            button2.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
@@ -94,19 +99,21 @@ namespace czu_sokoban
             button3.Name = "button3";
             button3.Size = new Size(75, 23);
             button3.TabIndex = 5;
-            button3.Text = "button3";
+            button3.Text = "EXIT";
+            button3.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
-            label3.Location = new Point(0, 0);
+            label3.Size = new Size(200, 100);
+            label3.Font = new Font("Segoe UI", 30F, FontStyle.Bold);
+            label3.Location = new Point(screenWidth / 2 - label3.Width / 2, 0);
             label3.Name = "label3";
-            label3.Size = new Size(146, 37);
             label3.TabIndex = 0;
             label3.Text = "SOKOBAN";
+            label3.BackColor = pictureBox1.BackColor;
             // 
             // Form1
             // 
@@ -130,56 +137,61 @@ namespace czu_sokoban
 
         }
 
+        //PLAY
         private void button1_Click(object sender, EventArgs e)
         {
-            this.scene = "level";
+            this.hide_menu();
+            Storage.scene = "level";
+            map.drawMap(map.MapGrid);
+            map.AddToForm(this);
+            player = map.player;
+            boxes = map.boxes;
+            walls = map.walls;
+            finalDest = map.finalDest;
         }
 
+        //STATS
         private void button2_Click(object sender, EventArgs e)
         {
 
         }
 
         
-
+        //EXIT
         private void button3_Click(object sender, EventArgs e)
         {
-
+            Application.Exit();
         }
 
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
             //this.scene = "menu";
-            this.calculate_menu();
-            this.menu_draw(sender);
-
-            if (this.scene == "level")
-            {
-                pictureBox1.Visible = false;
-                map.drawMap(map.MapGrid);
-                map.AddToForm(this);
-                player = map.player;
-                boxes = map.boxes;
-                walls = map.walls;
-                finalDest = map.finalDest;
-            }
+            //this.calculate_menu();
+            //this.menu_draw();
+            this.load_map();
         }
 
         // Handle Key Events, Main for the game
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (this.scene == "level")
+            label1.Text = e.KeyCode.ToString(); //debug
+            if (Storage.scene == "level")
             {
                 this.game_movement(sender, e);
+            }
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                Application.Exit();
             }
 
 
             //map.checkWin(boxes, finalDest);
 
-            string lab2Text = "Madar";
-            //string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
-            //label1.Text = lab1Text;
+            string lab2Text = Storage.scene;
+            string lab1Text = map.checkWin(boxes, finalDest) ? "Výhra" : "Bez výhry";
+            label1.Text = lab1Text;
             label2.Text = lab2Text;
 
         }
@@ -291,15 +303,16 @@ namespace czu_sokoban
 
         }
 
-        public void menu_draw(object sender)
+        public void menu_draw()
         {
             if (this.scene == "menu") 
             {
+                label1.BringToFront();
+                label2.BringToFront();
                 pictureBox1.Visible = true;
                 button1.Visible = true;
                 button2.Visible = true;
                 button3.Visible = true;
-                label1.Text = this.scene;
             }
             else
             {
@@ -315,19 +328,46 @@ namespace czu_sokoban
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = new Size(screenWidth, screenHeight / 10);
 
-            button1.Size = new Size(screenWidth / 5, screenHeight / 10);
+            button1.Size = new Size(screenWidth / 4, screenHeight / 7);
             button1.Location = new Point(screenWidth / 2 - button1.Width / 2, (screenHeight - pictureBox1.Height) / 4 - button1.Height / 2);
            
-            button2.Size = new Size(screenWidth / 5, screenHeight / 10);
+            button2.Size = new Size(screenWidth / 4, screenHeight / 7);
             button2.Location = new Point(screenWidth / 2 - button2.Width / 2, (screenHeight * 2 - pictureBox1.Height) / 4 - button2.Height / 2);
-            
-            button3.Size = new Size(screenWidth / 5, screenHeight / 10);
+
+            button3.Size = new Size(screenWidth / 4, screenHeight / 7);
             button3.Location = new Point(screenWidth / 2 - button3.Width / 2, (screenHeight * 3 - pictureBox1.Height) / 4 - button3.Height / 2);
 
-            label3.Size = new Size(screenWidth / 5, screenHeight / 2);
+
+            label3.Size = new Size(screenWidth / 5, screenHeight / 6);
             label3.Location = new Point(screenWidth / 2 - label3.Width / 2, pictureBox1.Height / 2 - label3.Height / 2);
 
             ClientSize = new Size(screenWidth, screenHeight);
+
+        }
+
+        public void hide_menu()
+        {
+            pictureBox1.Visible = false;
+            button1.Visible = false;
+            button2.Visible = false;
+            button3.Visible = false;
+        }
+
+        public void load_map()
+        {
+            this.hide_menu();
+            Storage.scene = "level";
+            map.drawMap(map.MapGrid);
+            map.AddToForm(this);
+            this.prepare_gamecomponents();
+        }
+
+        public void prepare_gamecomponents()
+        {
+            player = map.player;
+            boxes = map.boxes;
+            walls = map.walls;
+            finalDest = map.finalDest;
         }
 
         #endregion

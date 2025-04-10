@@ -1,7 +1,7 @@
 public class FinalDestination : PictureBox
 {
     public int x, y;
-    public int a = 50;
+    public int a = Storage.size;
     public FinalDestination(int x, int y)
     {
         this.x = x;
@@ -27,7 +27,14 @@ public class FinalDestination : PictureBox
             }
 
             this.Image = Image.FromFile(path);
-            this.SizeMode = PictureBoxSizeMode.CenterImage;
+            if (Storage.size > 50)
+            {
+                this.SizeMode = PictureBoxSizeMode.StretchImage;
+            }
+            else
+            {
+                this.SizeMode = PictureBoxSizeMode.CenterImage;
+            }
         }
         catch (FileNotFoundException ex)
         {

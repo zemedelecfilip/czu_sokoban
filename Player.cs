@@ -1,8 +1,8 @@
 
 public class Player: PictureBox
 {
-	public int a = 50;
-	public int playerSpeed = 50;
+	public int a = Storage.size;
+	public int playerSpeed = Storage.playerSpeed;
 	public int x, y;
     public string direction = "down";
 	public Player(int x, int y)
@@ -84,7 +84,14 @@ public class Player: PictureBox
             }
 
             this.Image = Image.FromFile(path);
-            this.SizeMode = PictureBoxSizeMode.CenterImage;
+            if (Storage.size > 50)
+            {
+                this.SizeMode = PictureBoxSizeMode.StretchImage;
+            }
+            else
+            {
+                this.SizeMode = PictureBoxSizeMode.CenterImage;
+            }
         }
         catch (FileNotFoundException ex)
         {
