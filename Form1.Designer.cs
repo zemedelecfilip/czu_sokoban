@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Windows.Forms;
+using System.Windows.Forms.Design.Behavior;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -111,7 +112,7 @@ namespace czu_sokoban
             // 
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.AppWorkspace;
-            ClientSize = new Size(284, 261);
+            ClientSize = new Size(screenWidth, screenHeight);
             Controls.Add(label3);
             Controls.Add(button3);
             Controls.Add(button2);
@@ -139,6 +140,8 @@ namespace czu_sokoban
 
         }
 
+        
+
         private void button3_Click(object sender, EventArgs e)
         {
 
@@ -147,9 +150,9 @@ namespace czu_sokoban
         // Correct Form1_Load
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.scene = "menu";
-            this.menu_draw(sender);
+            //this.scene = "menu";
             this.calculate_menu();
+            this.menu_draw(sender);
 
             if (this.scene == "level")
             {
@@ -296,6 +299,7 @@ namespace czu_sokoban
                 button1.Visible = true;
                 button2.Visible = true;
                 button3.Visible = true;
+                label1.Text = this.scene;
             }
             else
             {
@@ -330,10 +334,10 @@ namespace czu_sokoban
 
         private Label label1;
         private Label label2;
+        private Label label3;
         private PictureBox pictureBox1;
         private Button button1;
         private Button button2;
         private Button button3;
-        private Label label3;
     }
 }
