@@ -1,5 +1,6 @@
 //vytvoøení všech objektù na základì mapy
 using czu_sokoban;
+using System.ComponentModel;
 using System.Globalization;
 using System.Security;
 
@@ -91,21 +92,18 @@ public class Maps
     }
     //method for adding all objects to form, so can be moved / displayed
     //player is added first so it is on top of all other objects, 2nd are boxes for same reason
-    public void AddToForm(Form form)
+    public void AddToForm(Control container)
     {
-        form.Controls.Add(player);
+        container.Controls.Add(player);
+
         foreach (var box in walls)
-        {
-            form.Controls.Add(box);
-        }
+            container.Controls.Add(box);
+
         foreach (var box in boxes)
-        {
-            form.Controls.Add(box);
-        }
+            container.Controls.Add(box);
+
         foreach (var box in finalDest)
-        {
-            form.Controls.Add(box);
-        }
+            container.Controls.Add(box);
     }
 
     public void drawMap(int [,] MapGrid)
