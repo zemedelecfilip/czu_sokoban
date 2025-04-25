@@ -54,11 +54,13 @@ namespace czu_sokoban
             button5 = new Button();
             button4 = new Button();
             level = new TabPage();
+            button15 = new Button();
             stats = new TabPage();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             tabControl1.SuspendLayout();
             menu.SuspendLayout();
             levels.SuspendLayout();
+            level.SuspendLayout();
             SuspendLayout();
             // 
             // pictureBox1
@@ -78,7 +80,6 @@ namespace czu_sokoban
             button1.Size = new Size(84, 42);
             button1.TabIndex = 3;
             button1.Text = "PLAY";
-            button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
             // button2
@@ -89,7 +90,6 @@ namespace czu_sokoban
             button2.Size = new Size(84, 43);
             button2.TabIndex = 4;
             button2.Text = "STATS";
-            button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
             // button3
@@ -100,7 +100,6 @@ namespace czu_sokoban
             button3.Size = new Size(84, 53);
             button3.TabIndex = 5;
             button3.Text = "EXIT";
-            button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
             // 
             // label3
@@ -165,12 +164,9 @@ namespace czu_sokoban
             // 
             // button14
             // 
-            button14.Location = new Point(19, 22);
             button14.Name = "button14";
-            button14.Size = new Size(106, 46);
             button14.TabIndex = 10;
             button14.Text = "back to menu";
-            button14.UseVisualStyleBackColor = true;
             button14.Click += button14_Click;
             // 
             // button13
@@ -181,7 +177,7 @@ namespace czu_sokoban
             button13.Size = new Size(115, 99);
             button13.TabIndex = 9;
             button13.Text = "LEVEL 10";
-            button13.UseVisualStyleBackColor = true;
+            button13.Click += button13_Click;
             // 
             // button12
             // 
@@ -191,7 +187,7 @@ namespace czu_sokoban
             button12.Size = new Size(115, 99);
             button12.TabIndex = 8;
             button12.Text = "LEVEL 9";
-            button12.UseVisualStyleBackColor = true;
+            button12.Click += button12_Click;
             // 
             // button11
             // 
@@ -201,7 +197,7 @@ namespace czu_sokoban
             button11.Size = new Size(115, 99);
             button11.TabIndex = 7;
             button11.Text = "LEVEL 8";
-            button11.UseVisualStyleBackColor = true;
+            button11.Click += button11_Click;
             // 
             // button10
             // 
@@ -211,7 +207,7 @@ namespace czu_sokoban
             button10.Size = new Size(115, 99);
             button10.TabIndex = 6;
             button10.Text = "LEVEL 7";
-            button10.UseVisualStyleBackColor = true;
+            button10.Click += button10_Click;
             // 
             // button9
             // 
@@ -221,7 +217,7 @@ namespace czu_sokoban
             button9.Size = new Size(115, 99);
             button9.TabIndex = 5;
             button9.Text = "LEVEL 6";
-            button9.UseVisualStyleBackColor = true;
+            button9.Click += button9_Click;
             // 
             // button8
             // 
@@ -231,7 +227,7 @@ namespace czu_sokoban
             button8.Size = new Size(115, 99);
             button8.TabIndex = 4;
             button8.Text = "LEVEL 5";
-            button8.UseVisualStyleBackColor = true;
+            button8.Click += button8_Click;
             // 
             // button7
             // 
@@ -241,7 +237,7 @@ namespace czu_sokoban
             button7.Size = new Size(115, 99);
             button7.TabIndex = 3;
             button7.Text = "LEVEL 4";
-            button7.UseVisualStyleBackColor = true;
+            button7.Click += button7_Click;
             // 
             // button6
             // 
@@ -251,7 +247,7 @@ namespace czu_sokoban
             button6.Size = new Size(115, 99);
             button6.TabIndex = 2;
             button6.Text = "LEVEL 3";
-            button6.UseVisualStyleBackColor = true;
+            button6.Click += button6_Click;
             // 
             // button5
             // 
@@ -261,7 +257,7 @@ namespace czu_sokoban
             button5.Size = new Size(115, 99);
             button5.TabIndex = 1;
             button5.Text = "LEVEL 2";
-            button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click;
             // 
             // button4
             // 
@@ -271,17 +267,25 @@ namespace czu_sokoban
             button4.Size = new Size(115, 99);
             button4.TabIndex = 0;
             button4.Text = "LEVEL 1";
-            button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
             // level
             // 
+            level.Controls.Add(button15);
             level.Location = new Point(4, 24);
             level.Name = "level";
             level.Size = new Size(1412, 593);
             level.TabIndex = 2;
             level.Text = "level";
-            level.UseVisualStyleBackColor = true;
+            // 
+            // button15
+            // 
+            button15.Location = new Point(30, 34);
+            button15.Name = "button15";
+            button15.Size = new Size(107, 45);
+            button15.TabIndex = 0;
+            button15.Text = "BACK TO LEVELS";
+            button15.Click += button15_Click;
             // 
             // stats
             // 
@@ -290,7 +294,6 @@ namespace czu_sokoban
             stats.Size = new Size(1412, 593);
             stats.TabIndex = 3;
             stats.Text = "stats";
-            stats.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -306,6 +309,7 @@ namespace czu_sokoban
             menu.ResumeLayout(false);
             menu.PerformLayout();
             levels.ResumeLayout(false);
+            level.ResumeLayout(false);
             ResumeLayout(false);
 
         }
@@ -324,6 +328,10 @@ namespace czu_sokoban
             {
                 this.game_movement(sender, e);
             }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                Application.Exit();
+            }
         }
         //LEVEL 1
         private void button4_Click(object sender, EventArgs e)
@@ -332,6 +340,78 @@ namespace czu_sokoban
             current_map = map.MapGrid1;
             this.load_map(current_map);
             //tabControl1.Hide();
+        }
+        //LEVEL 2
+        private void button5_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid2;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 3
+        private void button6_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid3;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 4
+        private void button7_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid4;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 5
+        private void button8_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid5;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 6
+        private void button9_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid6;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 7
+        private void button10_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid7;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 8
+        private void button11_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid8;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 9
+        private void button12_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid9;
+            this.load_map(current_map);
+
+        }
+        //LEVEL 10
+        private void button13_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedTab = level;
+            current_map = map.MapGrid10;
+            this.load_map(current_map);
+
         }
         public void game_movement(object sender, KeyEventArgs e)
         {
@@ -445,7 +525,7 @@ namespace czu_sokoban
 
             ClientSize = new Size(screenWidth, screenHeight);
 
-            tabControl1.Location = new Point(0, 0);
+            tabControl1.Location = new Point(0, -40);
             tabControl1.Size = new Size(screenWidth, screenHeight);
             //
             // Buttons
@@ -492,6 +572,13 @@ namespace czu_sokoban
                 levelsButtons[i].Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             }
 
+
+            button14.Location = new Point(20, 20);
+            button14.Size = new Size(100, 50);
+
+            button15.Location = new Point(20, 20);
+            button15.Size = new Size(100, 50);
+
         }
 
         public void load_map(int[,] MapGrid)
@@ -509,6 +596,21 @@ namespace czu_sokoban
             boxes = map.boxes;
             walls = map.walls;
             finalDest = map.finalDest;
+        }
+
+        public void reset_map()
+        {
+            player = null;
+            boxes = null;
+            walls = null;
+            finalDest = null;
+            foreach (Control ctrl in level.Controls.OfType<Control>().ToList())
+            {
+                if (ctrl != button15)
+                {
+                    level.Controls.Remove(ctrl);
+                }
+            }
         }
 
         #endregion
@@ -534,5 +636,6 @@ namespace czu_sokoban
         private Button button6;
         private Button button5;
         private Button button4;
+        private Button button15;
     }
 }

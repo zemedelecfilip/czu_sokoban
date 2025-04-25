@@ -32,52 +32,12 @@ namespace czu_sokoban
         {
             tabControl1.SelectedTab = menu;
         }
-        //LEVEL 2
-        private void button5_Click(object sender, EventArgs e)
+        
+        //BACK TO LEVELS
+        private void button15_Click(object sender, EventArgs e)
         {
-
+            tabControl1.SelectedTab = levels;
+            this.reset_map();
         }
-        //LEVEL 3
-        private void button6_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 4
-        private void button7_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 5
-        private void button8_Click(object sender, EventArgs e)
-        { 
-
-        }
-
-        //LEVEL 6
-        private void button9_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 7
-        private void button10_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 8
-        private void button11_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 9
-        private void button12_Click(object sender, EventArgs e)
-        {
-
-        }
-        //LEVEL 10
-        private void button13_Click(object sender, EventArgs e)
-        {
-
-        }
-
     }
 }

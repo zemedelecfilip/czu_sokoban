@@ -23,7 +23,7 @@ public class Maps
 
 
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid2 = new int[Height, Width]
+    public int[,] MapGrid1 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
         {1, 3, 0, 0, 0, 0, 0, 1},
@@ -35,7 +35,7 @@ public class Maps
         {1, 1, 1, 1, 1, 1, 1, 1}
     };
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid = new int[Height, Width]
+    public int[,] MapGrid2 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
         {1, 1, 0, 1, 1, 0, 1, 1},
@@ -47,7 +47,89 @@ public class Maps
         {1, 1, 1, 1, 1, 1, 1, 1}
     };
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid1 = new int[Height, Width]
+    public int[,] MapGrid3 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    public int[,] MapGrid4 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid5 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid6 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    public int[,] MapGrid7 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid8 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid9 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid10 = new int[Height, Width]
     {
         {0, 1, 1, 1, 1, 1, 0, 0},
         {0, 1, 0, 3, 0, 1, 1, 1},
