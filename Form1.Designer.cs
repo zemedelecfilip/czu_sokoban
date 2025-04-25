@@ -314,6 +314,7 @@ namespace czu_sokoban
         private void Form1_Load(object sender, EventArgs e)
         {
             this.calculate_components();
+            this.prepare_gamecomponents();
         }
 
         // Handle Key Events, Main for the game
@@ -329,7 +330,8 @@ namespace czu_sokoban
         {
             tabControl1.SelectedTab = level;
             current_map = map.MapGrid1;
-            this.load_map();
+            this.load_map(current_map);
+            //tabControl1.Hide();
         }
         public void game_movement(object sender, KeyEventArgs e)
         {
@@ -492,14 +494,15 @@ namespace czu_sokoban
 
         }
 
-        public void load_map()
+        public void load_map(int[,] MapGrid)
         {
             //tabControl1.Hide();
             this.prepare_gamecomponents();
-            map.drawMap(map.MapGrid);
-            map.AddToForm(level);
+            map.drawMap(MapGrid);
+            map.AddToForm(tabControl1.SelectedTab);
         }
 
+        //load components from a map file
         public void prepare_gamecomponents()
         {
             player = map.player;

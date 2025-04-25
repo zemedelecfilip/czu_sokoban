@@ -3,6 +3,7 @@ using czu_sokoban;
 using System.ComponentModel;
 using System.Globalization;
 using System.Security;
+using System.Windows.Forms;
 
 public class Maps
 {
@@ -92,20 +93,41 @@ public class Maps
     }
     //method for adding all objects to form, so can be moved / displayed
     //player is added first so it is on top of all other objects, 2nd are boxes for same reason
-    public void AddToForm(Control container)
+    public void AddToForm(TabPage form1)
     {
-        container.Controls.Add(player);
+        if (form1 == null) return;
 
-        foreach (var box in walls)
-            container.Controls.Add(box);
+        if (player != null)
+        {
+            form1.Controls.Add(player);
+        }
 
-        foreach (var box in boxes)
-            container.Controls.Add(box);
+        if (walls != null)
+        {
+            foreach (var box in walls)
+            {
+                 form1.Controls.Add(box);
+            }
+        }
 
-        foreach (var box in finalDest)
-            container.Controls.Add(box);
+        if (boxes != null)
+        {
+            foreach (var box in boxes)
+            {
+                 form1.Controls.Add(box);
+            }
+        }
+
+        if (finalDest != null)
+        {
+            foreach (var box in finalDest)
+            {
+                 form1.Controls.Add(box);
+            }
+        }
     }
 
+    //create and add all objects to lists
     public void drawMap(int [,] MapGrid)
     {
         for (int i = 0; i < Height; i++)
