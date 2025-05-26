@@ -24,10 +24,22 @@ namespace czu_sokoban
         private System.Windows.Forms.Label label1;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
+        public Color btnColor = Color.LightSkyBlue;
 
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
+
+            Button backToMenu = new Button
+            {
+                Text = "Back To Menu",
+                Font = btnFont,
+                Size = new Size(200, 100),
+                Location = new Point(100, 125),
+                BackColor = btnColor
+            };
+            backToMenu.Click += (s, e) => ShowPanel(homePanel);
+
             this.SuspendLayout();
             // 
             // Form1
@@ -45,6 +57,7 @@ namespace czu_sokoban
             InitializePanels();
 
             this.ResumeLayout(false);
+
         }
         #endregion
         private void Form1_Load(object sender, EventArgs e)
@@ -54,8 +67,36 @@ namespace czu_sokoban
             this.WindowState = FormWindowState.Maximized;
             this.ShowPanel(homePanel);
         }
+
+        private void AddGlobalButtonToPanel(Panel targetPanel)
+        {
+            // Avoid adding multiple times
+           
+                Button backToMenu = new Button
+                {
+                    Text = "Back To Menu",
+                    Font = btnFont,
+                    Size = new Size(200, 100),
+                    Location = new Point(100, 125),
+                    BackColor = btnColor
+                };
+                backToMenu.Click += (s, e) => ShowPanel(homePanel);
+                targetPanel.Controls.Add(backToMenu);
+                backToMenu.BringToFront();
+        }
         private void InitializePanels()
         {
+            Button backToMenu = new Button
+            {
+                Text = "Back To Menu",
+                Font = btnFont,
+                Size = new Size(200, 100),
+                Location = new Point(100, 125),
+                BackColor = btnColor
+            };
+            backToMenu.Click += (s, e) => ShowPanel(homePanel);
+
+
             // Home, Levels, Level, Endlevel, profile, shop
 
             // Home Panel
@@ -119,20 +160,22 @@ namespace czu_sokoban
             InitializeEndLevelScreen();
             InitializeProfileScreen();
             InitializeShopScreen();
+
+            AddHeaderToPanel(homePanel);
+            AddHeaderToPanel(levelsPanel);
+            AddHeaderToPanel(profilePanel);
+            AddHeaderToPanel(shopPanel);
+
+            homePanel.Controls.Add(backToMenu);
+            levelsPanel.Controls.Add(backToMenu);
+            levelPanel.Controls.Add(backToMenu);
+            endLevelPanel.Controls.Add(backToMenu);
+            profilePanel.Controls.Add(backToMenu);
+            shopPanel.Controls.Add(backToMenu);
         }
 
         private void InitializeHomeScreen()
         {
-            homeScreenRect = new PictureBox
-            {
-                Width = screenW,
-                Height = screenH / 10,
-                Location = new Point(0, 0),
-                BackColor = Color.LightBlue
-            };
-            homePanel.Controls.Add(homeScreenRect);
-
-            
             // Button styles
             Size buttonSize = new Size(screenW / 5, screenH / 10);
             int spacing = screenH / 10;
@@ -191,125 +234,149 @@ namespace czu_sokoban
 
             this.Controls.Add(homePanel);
         }
+
+        private void AddHeaderToPanel(Panel parentPanel)
+        {
+
+            // Create the header rectangle as a panel
+            Panel headerPanel = new Panel
+            {
+                Location = new Point(0, 0),
+                Width = screenW,
+                Height = screenH / 10, // Adjust as needed
+                Dock = DockStyle.Top,
+                BackColor = Color.LightBlue // Choose your color
+            };
+
+            // Create the label
+            System.Windows.Forms.Label headerLabel = new System.Windows.Forms.Label();
+            {
+                Text = "SOKOBAN";
+                ForeColor = Color.Black;
+                //Font = btnFont;
+                AutoSize = false;
+                //TextAlign = ContentAlignment.MiddleCenter;
+                Dock = DockStyle.Fill;
+            };
+
+            // Add label to header, header to parent panel
+            parentPanel.Controls.Add(headerPanel);
+            headerPanel.Controls.Add(headerLabel);
+            // Ensure header is at the front
+            headerPanel.BringToFront();
+            headerLabel.BringToFront();
+
+        }
+
         private void InitializeLevelsScreen()
         {
             Size btnSize = new Size(screenW / 8, screenH / 8);
             int spacing = screenH / 8;
             int startX = screenH / 7;
             int centerX = (this.ClientSize.Width - btnSize.Width) / 2;
-            Color btnColor = Color.LightSkyBlue;
 
-            Button btnBackToMenu = new Button
+            Button level1 = new Button
             {
                 Text = "LEVEL 1",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point(startX + spacing, screenH / 4),
-                BackColor = btnColor
-            };
-            btnBackToMenu.Click += (s, e) => ShowPanel(homePanel);
-
-            Button level1 = new Button
-            {
-                Text = "LEVEL 2",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 2, screenH / 4),
+                // H / 4 + H / 10
+                Location = new Point(startX + spacing, 7 * screenH / 20),
                 BackColor = btnColor
             };
             level1.Click += (s, e) => ShowPanel(homePanel);
 
             Button level2 = new Button
             {
-                Text = "LEVEL 3",
+                Text = "LEVEL 2",
                 Font = btnFont,
-                Size = btnSize  ,
-                Location = new Point((startX + spacing) * 3, screenH / 4),
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 2, 7 * screenH / 20),
                 BackColor = btnColor
             };
             level2.Click += (s, e) => ShowPanel(homePanel);
 
             Button level3 = new Button
             {
-                Text = "LEVEL 4",
+                Text = "LEVEL 3",
                 Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 4, screenH / 4),
+                Size = btnSize  ,
+                Location = new Point((startX + spacing) * 3, 7 * screenH / 20),
                 BackColor = btnColor
             };
             level3.Click += (s, e) => ShowPanel(homePanel);
 
             Button level4 = new Button
             {
-                Text = "LEVEL 5",
+                Text = "LEVEL 4",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing) * 5, screenH / 4),
+                Location = new Point((startX + spacing) * 4, 7 * screenH / 20),
                 BackColor = btnColor
             };
             level4.Click += (s, e) => ShowPanel(homePanel);
 
             Button level5 = new Button
             {
-                Text = "LEVEL 6",
+                Text = "LEVEL 5",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing), screenH / 2),
+                Location = new Point((startX + spacing) * 5, 7 * screenH / 20),
                 BackColor = btnColor
             };
             level5.Click += (s, e) => ShowPanel(homePanel);
 
             Button level6 = new Button
             {
-                Text = "LEVEL 7",
+                Text = "LEVEL 6",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing) * 2, screenH / 2),
+                // H / 2 + H / 10 = 3 H / 5
+                Location = new Point((startX + spacing), 3 * screenH / 5),
                 BackColor = btnColor
             };
             level6.Click += (s, e) => ShowPanel(homePanel);
 
             Button level7 = new Button
             {
-                Text = "LEVEL 8",
+                Text = "LEVEL 7",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing) * 3, screenH / 2),
+                Location = new Point((startX + spacing) * 2, 3 * screenH / 5),
                 BackColor = btnColor
             };
             level7.Click += (s, e) => ShowPanel(homePanel);
 
             Button level8 = new Button
             {
-                Text = "LEVEL 9",
+                Text = "LEVEL 8",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing) * 4, screenH / 2),
+                Location = new Point((startX + spacing) * 3, 3 * screenH / 5),
                 BackColor = btnColor
             };
             level8.Click += (s, e) => ShowPanel(homePanel);
 
             Button level9 = new Button
             {
-                Text = "LEVEL 10",
+                Text = "LEVEL 9",
                 Font = btnFont,
                 Size = btnSize,
-                Location = new Point((startX + spacing) * 5, screenH / 2),
+                Location = new Point((startX + spacing) * 4, 3 * screenH / 5),
                 BackColor = btnColor
             };
             level9.Click += (s, e) => ShowPanel(homePanel);
 
             Button level10 = new Button
             {
-                Text = "Back To Menu",
+                Text = "LEVEL 10",
                 Font = btnFont,
-                Size = new Size (200, 100),
-                Location = new Point(100, 50),
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 5, 3 * screenH / 5),
                 BackColor = btnColor
             };
             level10.Click += (s, e) => ShowPanel(homePanel);
 
-            levelsPanel.Controls.Add(btnBackToMenu);
             levelsPanel.Controls.Add(level1);
             levelsPanel.Controls.Add(level2);
             levelsPanel.Controls.Add(level3);
@@ -320,28 +387,26 @@ namespace czu_sokoban
             levelsPanel.Controls.Add(level8);
             levelsPanel.Controls.Add(level9);
             levelsPanel.Controls.Add(level10);
+            AddGlobalButtonToPanel(levelsPanel);
             //levelsPanel.Controls.Add();
             this.Controls.Add(levelsPanel);
         }
 
         private void InitializeLevelScreen()
         {
-
+            AddGlobalButtonToPanel(levelPanel);
         }
         private void InitializeEndLevelScreen()
         {
-            // Add your Sokoban game elements here
-            
+            AddGlobalButtonToPanel(endLevelPanel);
         }
         private void InitializeProfileScreen()
         {
-            // Add your Sokoban game elements here
-            
+            AddGlobalButtonToPanel(profilePanel);
         }
         private void InitializeShopScreen()
         {
-            // Add your Sokoban game elements here
-            
+            AddGlobalButtonToPanel(shopPanel);
         }
 
         private void ShowPanel(Panel targetPanel)
