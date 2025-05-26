@@ -30,7 +30,7 @@ public class Wall : PictureBox
             this.Image = Image.FromFile(path);
             if (Storage.size > 50)
             {
-                this.SizeMode = PictureBoxSizeMode.StretchImage;
+                this.SizeMode = PictureBoxSizeMode.Zoom;
             }
             else
             {

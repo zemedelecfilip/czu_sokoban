@@ -2,640 +2,370 @@
 using System.Windows.Forms;
 using System.Windows.Forms.Design.Behavior;
 using System.Drawing.Drawing2D;
+using System.Reflection.Emit;
+using static System.Windows.Forms.AxHost;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
 {
     partial class Form1
     {
-        private System.ComponentModel.IContainer components = null;
-        Maps map = new Maps();
-        Player player;
-        List<Box> boxes;
-        List<Wall> walls;
-        List<FinalDestination> finalDest;
-        public int[,] current_map;
+        public int screenW = Storage.screenWidth;
+        public int screenH = Storage.screenHeight;
 
-
-        public int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-        public int screenHeight = Screen.PrimaryScreen.Bounds.Height;
-        //menu, levels, level, my profile
-        public string tabPage = Storage.tabPage;
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        // deklarování panelů pro různé obrazovky
+        // Home, Levels, Level, Endlevel, profile, shop
+        private Panel homePanel;
+        private Panel levelsPanel;
+        private Panel levelPanel;
+        private Panel endLevelPanel;
+        private Panel profilePanel;
+        private Panel shopPanel;
+        private System.Windows.Forms.Label label1;
+        public PictureBox homeScreenRect;
+        public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
 
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
-            pictureBox1 = new PictureBox();
-            button1 = new Button();
-            button2 = new Button();
-            button3 = new Button();
-            label3 = new Label();
-            tabControl1 = new TabControl();
-            menu = new TabPage();
-            levels = new TabPage();
-            button14 = new Button();
-            button13 = new Button();
-            button12 = new Button();
-            button11 = new Button();
-            button10 = new Button();
-            button9 = new Button();
-            button8 = new Button();
-            button7 = new Button();
-            button6 = new Button();
-            button5 = new Button();
-            button4 = new Button();
-            level = new TabPage();
-            button15 = new Button();
-            stats = new TabPage();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            tabControl1.SuspendLayout();
-            menu.SuspendLayout();
-            levels.SuspendLayout();
-            level.SuspendLayout();
-            SuspendLayout();
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.BackColor = Color.Green;
-            pictureBox1.Location = new Point(0, 0);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(100, 50);
-            pictureBox1.TabIndex = 5;
-            pictureBox1.TabStop = false;
-            // 
-            // button1
-            // 
-            button1.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
-            button1.Location = new Point(120, 108);
-            button1.Name = "button1";
-            button1.Size = new Size(84, 42);
-            button1.TabIndex = 3;
-            button1.Text = "PLAY";
-            button1.Click += button1_Click;
-            // 
-            // button2
-            // 
-            button2.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
-            button2.Location = new Point(120, 166);
-            button2.Name = "button2";
-            button2.Size = new Size(84, 43);
-            button2.TabIndex = 4;
-            button2.Text = "STATS";
-            button2.Click += button2_Click;
-            // 
-            // button3
-            // 
-            button3.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
-            button3.Location = new Point(120, 235);
-            button3.Name = "button3";
-            button3.Size = new Size(84, 53);
-            button3.TabIndex = 5;
-            button3.Text = "EXIT";
-            button3.Click += button3_Click;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.BackColor = Color.Green;
-            label3.Font = new Font("Segoe UI", 30F, FontStyle.Bold);
-            label3.Location = new Point(0, 0);
-            label3.Name = "label3";
-            label3.Size = new Size(216, 54);
-            label3.TabIndex = 0;
-            label3.Text = "SOKOBAN";
-            // 
-            // tabControl1
-            // 
-            tabControl1.Controls.Add(menu);
-            tabControl1.Controls.Add(levels);
-            tabControl1.Controls.Add(level);
-            tabControl1.Controls.Add(stats);
-            tabControl1.Location = new Point(0, 0);
-            tabControl1.Name = "tabControl1";
-            tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(1420, 621);
-            tabControl1.TabIndex = 6;
-            tabControl1.KeyDown += Form1_KeyDown;
-            // 
-            // menu
-            // 
-            menu.Controls.Add(button2);
-            menu.Controls.Add(pictureBox1);
-            menu.Controls.Add(label3);
-            menu.Controls.Add(button3);
-            menu.Controls.Add(button1);
-            menu.Location = new Point(4, 24);
-            menu.Name = "menu";
-            menu.Padding = new Padding(3);
-            menu.Size = new Size(1412, 593);
-            menu.TabIndex = 0;
-            menu.Text = "Menu";
-            menu.UseVisualStyleBackColor = true;
-            // 
-            // levels
-            // 
-            levels.Controls.Add(button14);
-            levels.Controls.Add(button13);
-            levels.Controls.Add(button12);
-            levels.Controls.Add(button11);
-            levels.Controls.Add(button10);
-            levels.Controls.Add(button9);
-            levels.Controls.Add(button8);
-            levels.Controls.Add(button7);
-            levels.Controls.Add(button6);
-            levels.Controls.Add(button5);
-            levels.Controls.Add(button4);
-            levels.Location = new Point(4, 24);
-            levels.Name = "levels";
-            levels.Padding = new Padding(3);
-            levels.Size = new Size(1412, 593);
-            levels.TabIndex = 1;
-            levels.Text = "levels";
-            levels.UseVisualStyleBackColor = true;
-            // 
-            // button14
-            // 
-            button14.Name = "button14";
-            button14.TabIndex = 10;
-            button14.Text = "back to menu";
-            button14.Click += button14_Click;
-            // 
-            // button13
-            // 
-            button13.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 238);
-            button13.Location = new Point(884, 302);
-            button13.Name = "button13";
-            button13.Size = new Size(115, 99);
-            button13.TabIndex = 9;
-            button13.Text = "LEVEL 10";
-            button13.Click += button13_Click;
-            // 
-            // button12
-            // 
-            button12.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button12.Location = new Point(670, 302);
-            button12.Name = "button12";
-            button12.Size = new Size(115, 99);
-            button12.TabIndex = 8;
-            button12.Text = "LEVEL 9";
-            button12.Click += button12_Click;
-            // 
-            // button11
-            // 
-            button11.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button11.Location = new Point(482, 302);
-            button11.Name = "button11";
-            button11.Size = new Size(115, 99);
-            button11.TabIndex = 7;
-            button11.Text = "LEVEL 8";
-            button11.Click += button11_Click;
-            // 
-            // button10
-            // 
-            button10.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button10.Location = new Point(324, 302);
-            button10.Name = "button10";
-            button10.Size = new Size(115, 99);
-            button10.TabIndex = 6;
-            button10.Text = "LEVEL 7";
-            button10.Click += button10_Click;
-            // 
-            // button9
-            // 
-            button9.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button9.Location = new Point(149, 302);
-            button9.Name = "button9";
-            button9.Size = new Size(115, 99);
-            button9.TabIndex = 5;
-            button9.Text = "LEVEL 6";
-            button9.Click += button9_Click;
-            // 
-            // button8
-            // 
-            button8.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button8.Location = new Point(884, 91);
-            button8.Name = "button8";
-            button8.Size = new Size(115, 99);
-            button8.TabIndex = 4;
-            button8.Text = "LEVEL 5";
-            button8.Click += button8_Click;
-            // 
-            // button7
-            // 
-            button7.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button7.Location = new Point(670, 91);
-            button7.Name = "button7";
-            button7.Size = new Size(115, 99);
-            button7.TabIndex = 3;
-            button7.Text = "LEVEL 4";
-            button7.Click += button7_Click;
-            // 
-            // button6
-            // 
-            button6.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button6.Location = new Point(482, 91);
-            button6.Name = "button6";
-            button6.Size = new Size(115, 99);
-            button6.TabIndex = 2;
-            button6.Text = "LEVEL 3";
-            button6.Click += button6_Click;
-            // 
-            // button5
-            // 
-            button5.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button5.Location = new Point(324, 91);
-            button5.Name = "button5";
-            button5.Size = new Size(115, 99);
-            button5.TabIndex = 1;
-            button5.Text = "LEVEL 2";
-            button5.Click += button5_Click;
-            // 
-            // button4
-            // 
-            button4.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            button4.Location = new Point(149, 91);
-            button4.Name = "button4";
-            button4.Size = new Size(115, 99);
-            button4.TabIndex = 0;
-            button4.Text = "LEVEL 1";
-            button4.Click += button4_Click;
-            // 
-            // level
-            // 
-            level.Controls.Add(button15);
-            level.Location = new Point(4, 24);
-            level.Name = "level";
-            level.Size = new Size(1412, 593);
-            level.TabIndex = 2;
-            level.Text = "level";
-            // 
-            // button15
-            // 
-            button15.Location = new Point(30, 34);
-            button15.Name = "button15";
-            button15.Size = new Size(107, 45);
-            button15.TabIndex = 0;
-            button15.Text = "BACK TO LEVELS";
-            button15.Click += button15_Click;
-            // 
-            // stats
-            // 
-            stats.Location = new Point(4, 24);
-            stats.Name = "stats";
-            stats.Size = new Size(1412, 593);
-            stats.TabIndex = 3;
-            stats.Text = "stats";
+            this.SuspendLayout();
             // 
             // Form1
             // 
-            AutoScaleMode = AutoScaleMode.None;
-            BackColor = SystemColors.AppWorkspace;
-            ClientSize = new Size(1420, 623);
-            Controls.Add(tabControl1);
-            Name = "Form1";
-            Text = "Form1";
-            Load += Form1_Load;
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            tabControl1.ResumeLayout(false);
-            menu.ResumeLayout(false);
-            menu.PerformLayout();
-            levels.ResumeLayout(false);
-            level.ResumeLayout(false);
-            ResumeLayout(false);
+            this.AutoScaleMode = AutoScaleMode.None;
+            this.BackColor = Color.White;
+            this.ClientSize = new Size(screenW, screenH);
+            this.Name = "Form1";
+            this.Text = "Sokoban Game";
+            this.Load += Form1_Load;
+            this.KeyDown += Form1_KeyDown;  // Add key handler
+            this.KeyPreview = true;         // Enable key preview
 
+            // Initialize panels (better to do this in constructor)
+            InitializePanels();
+
+            this.ResumeLayout(false);
         }
-
-        // Correct Form1_Load
+        #endregion
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.calculate_components();
-            this.prepare_gamecomponents();
+            this.StartPosition = FormStartPosition.Manual; // Important!
+            this.Location = new Point(0, 0);
+            this.WindowState = FormWindowState.Maximized;
+            this.ShowPanel(homePanel);
         }
-
-        // Handle Key Events, Main for the game
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        private void InitializePanels()
         {
-            if (tabControl1.SelectedTab == level)
+            // Home, Levels, Level, Endlevel, profile, shop
+
+            // Home Panel
+            homePanel = new Panel
             {
-                this.game_movement(sender, e);
-            }
-            else if (e.KeyCode == Keys.Escape)
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(homePanel);
+
+            // Levels Panel
+            levelsPanel = new Panel
             {
-                Application.Exit();
-            }
-        }
-        //LEVEL 1
-        private void button4_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid1;
-            this.load_map(current_map);
-            //tabControl1.Hide();
-        }
-        //LEVEL 2
-        private void button5_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid2;
-            this.load_map(current_map);
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(levelsPanel);
 
-        }
-        //LEVEL 3
-        private void button6_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid3;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 4
-        private void button7_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid4;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 5
-        private void button8_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid5;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 6
-        private void button9_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid6;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 7
-        private void button10_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid7;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 8
-        private void button11_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid8;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 9
-        private void button12_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid9;
-            this.load_map(current_map);
-
-        }
-        //LEVEL 10
-        private void button13_Click(object sender, EventArgs e)
-        {
-            tabControl1.SelectedTab = level;
-            current_map = map.MapGrid10;
-            this.load_map(current_map);
-
-        }
-        public void game_movement(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Left)
+            // Level Panel
+            levelPanel = new Panel
             {
-                player.moveLeft();                          //player moved left
-                if (map.collided_pw(player, walls))
-                {
-                    player.moveRight(true);                 //player moved back to the original position
-                }
-                Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(levelPanel);
 
-                if (a != null)                              //yes they collided so they moved
-                {
-                    a.moveLeft();                           //box moved left
-                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
-                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
-                    {
-                        a.moveRight();
-                        player.moveRight(true);
-                    }
-
-                }
-                map.checkWin(boxes, finalDest);
-            }
-            else if (e.KeyCode == Keys.Right)
+            // End Level Panel
+            endLevelPanel = new Panel
             {
-                player.moveRight();                         //player moved left
-                if (map.collided_pw(player, walls))
-                {
-                    player.moveLeft(true);                  //player moved back to the original position
-                }                                           //player moved right
-                Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(endLevelPanel);
 
-                if (a != null)                              //yes they collided so they moved
-                {
-                    a.moveRight();                          //box moved right
-                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
-                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
-                    {
-                        a.moveLeft();
-                        player.moveLeft(true);
-                    }
-
-                }
-                map.checkWin(boxes, finalDest);
-            }
-            else if (e.KeyCode == Keys.Up)
+            // Profile Panel
+            profilePanel = new Panel
             {
-                player.moveUp();                            //player moved left
-                if (map.collided_pw(player, walls))
-                {
-                    player.moveDown(true);                  //player moved back to the original position
-                }                                           //player moved up
-                Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(profilePanel);
 
-                if (a != null)                              //yes they collided so they moved
-                {
-                    a.moveUp();                             //box moved left
-                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
-                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
-                    {
-                        a.moveDown();
-                        player.moveDown(true);
-                    }
-
-                }
-                map.checkWin(boxes, finalDest);
-            }
-            else if (e.KeyCode == Keys.Down)
+            // Shop Panel
+            shopPanel = new Panel
             {
-                player.moveDown();                          //player moved left
-                if (map.collided_pw(player, walls))
-                {
-                    player.moveUp(true);                    //player moved back to the original position
-                }                                           //player moved down
-                Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                Size = this.ClientSize,
+                BackColor = Color.White,
+                Visible = false
+            };
+            this.Controls.Add(shopPanel);
 
-                if (a != null)                              //yes they collided so they moved
-                {
-                    a.moveDown();                           //box moved down
-                    Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                    Box c = map.collided_bw(a, walls);      //check if box collided with wall
-                    if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
-                    {
-                        a.moveUp();
-                        player.moveUp(true);
-                    }
-                }
-                map.checkWin(boxes, finalDest);
-            }
-            else if (e.KeyCode == Keys.Escape)
-            {
-                Application.Exit();
-            }
-
-            map.checkWin(boxes, finalDest);
+            // Add controls to panels (// Home, Levels, Level, Endlevel, profile, shop)
+            InitializeHomeScreen();
+            InitializeLevelsScreen();
+            InitializeLevelScreen();
+            InitializeEndLevelScreen();
+            InitializeProfileScreen();
+            InitializeShopScreen();
         }
 
-        public void calculate_components()
+        private void InitializeHomeScreen()
         {
-            //menu components
-            pictureBox1.Location = new Point(0, 0);
-            pictureBox1.Size = new Size(screenWidth, screenHeight / 10);
-
-            label3.Size = new Size(screenWidth / 5, screenHeight / 6);
-            label3.Location = new Point(screenWidth / 2 - label3.Width / 2, pictureBox1.Height / 2 - label3.Height / 2);
-
-            ClientSize = new Size(screenWidth, screenHeight);
-
-            tabControl1.Location = new Point(0, -40);
-            tabControl1.Size = new Size(screenWidth, screenHeight);
-            //
-            // Buttons
-            //
-            int menuBtnWidth = screenWidth / 4;
-            int menuBtnHeight = screenHeight / 7;
-            int menuBtnX = screenWidth / 2 - menuBtnWidth / 2;
-            //int menuBtnY = (screenHeight - pictureBox1.Height) / 4 - menuBtnHeight / 2;
-            Button[] menuButtons = { button1, button2, button3 };
+            homeScreenRect = new PictureBox
+            {
+                Width = screenW,
+                Height = screenH / 10,
+                Location = new Point(0, 0),
+                BackColor = Color.LightBlue
+            };
+            homePanel.Controls.Add(homeScreenRect);
 
             
-            for (int i = 1; i < menuButtons.Length + 1; i++)
+            // Button styles
+            Size buttonSize = new Size(screenW / 5, screenH / 10);
+            int spacing = screenH / 10;
+            int startY = screenH / 6;
+            int centerX = (this.ClientSize.Width - buttonSize.Width) / 2; // 300 is button width
+
+            // Play Button
+            Button btnPlay = new Button
             {
-                menuButtons[i - 1].Size = new Size(menuBtnWidth, menuBtnHeight);
-                menuButtons[i - 1].Location = new Point(menuBtnX, (screenHeight * i - pictureBox1.Height) / 4 - button1.Height / 2);
-                //menuButtons[i - 1].FlatStyle = FlatStyle.Flat;
-                menuButtons[i - 1].Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            }
+                Text = "Play",
+                Font = btnFont,
+                Size = buttonSize,
+                Location = new Point(centerX, startY),
+                BackColor = Color.LightGreen
+            };
+            btnPlay.Click += (s, e) => ShowPanel(levelsPanel);
 
-            Button[] levelsButtons = { button4, button5, button6, button7, button8, button9, button10, button11, button12, button13 };
-
-            //AI GENERATED + small changes
-            int columns = 5;
-            int rows = 2;
-            int totalButtons = levelsButtons.Length;
-
-            int spacingX = screenWidth / (columns + 1); // Horizontal spacing
-            int spacingY = screenHeight / (rows + 3);   // Vertical spacing (offset a bit for aesthetics)
-
-            int buttonWidth = menuBtnWidth / 2;
-            int buttonHeight = menuBtnHeight;
-
-            for (int i = 0; i < totalButtons; i++)
+            // Profile Button
+            Button btnProfile = new Button
             {
-                int row = i / columns;     // 0 or 1
-                int col = i % columns;     // 0 to 4
+                Text = "Profile",
+                Font = btnFont,
+                Size = buttonSize,
+                Location = new Point(centerX, 2 * startY),
+                BackColor = Color.LightSkyBlue
+            };
+            btnProfile.Click += (s, e) => ShowPanel(profilePanel);
 
-                levelsButtons[i].Size = new Size(buttonWidth, buttonHeight);
+            // Shop Button
+            Button btnShop = new Button
+            {
+                Text = "Shop",
+                Font = btnFont,
+                Size = buttonSize,
+                Location = new Point(centerX, 3 * startY),
+                BackColor = Color.Khaki
+            };
+            btnShop.Click += (s, e) => ShowPanel(shopPanel);
 
-                int x = spacingX * (col + 1) - (buttonWidth / 2);
-                int y = spacingY * (row + 2); // Adjust for vertical center
+            // Exit Button
+            Button btnExit = new Button
+            {
+                Text = "Exit",
+                Font = btnFont,
+                Size = buttonSize,
+                Location = new Point(centerX, 4 * startY),
+                BackColor = Color.IndianRed
+            };
+            btnExit.Click += (s, e) => this.Close();
 
-                levelsButtons[i].Location = new Point(x, y - screenHeight / 7);
-                levelsButtons[i].Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            }
+            // Add buttons to panel
+            homePanel.Controls.Add(btnPlay);
+            homePanel.Controls.Add(btnProfile);
+            homePanel.Controls.Add(btnShop);
+            homePanel.Controls.Add(btnExit);
 
+            this.Controls.Add(homePanel);
+        }
+        private void InitializeLevelsScreen()
+        {
+            Size btnSize = new Size(screenW / 8, screenH / 8);
+            int spacing = screenH / 8;
+            int startX = screenH / 7;
+            int centerX = (this.ClientSize.Width - btnSize.Width) / 2;
+            Color btnColor = Color.LightSkyBlue;
 
-            button14.Location = new Point(20, 20);
-            button14.Size = new Size(100, 50);
+            Button btnBackToMenu = new Button
+            {
+                Text = "LEVEL 1",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point(startX + spacing, screenH / 4),
+                BackColor = btnColor
+            };
+            btnBackToMenu.Click += (s, e) => ShowPanel(homePanel);
 
-            button15.Location = new Point(20, 20);
-            button15.Size = new Size(100, 50);
+            Button level1 = new Button
+            {
+                Text = "LEVEL 2",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 2, screenH / 4),
+                BackColor = btnColor
+            };
+            level1.Click += (s, e) => ShowPanel(homePanel);
 
+            Button level2 = new Button
+            {
+                Text = "LEVEL 3",
+                Font = btnFont,
+                Size = btnSize  ,
+                Location = new Point((startX + spacing) * 3, screenH / 4),
+                BackColor = btnColor
+            };
+            level2.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level3 = new Button
+            {
+                Text = "LEVEL 4",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 4, screenH / 4),
+                BackColor = btnColor
+            };
+            level3.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level4 = new Button
+            {
+                Text = "LEVEL 5",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 5, screenH / 4),
+                BackColor = btnColor
+            };
+            level4.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level5 = new Button
+            {
+                Text = "LEVEL 6",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing), screenH / 2),
+                BackColor = btnColor
+            };
+            level5.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level6 = new Button
+            {
+                Text = "LEVEL 7",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 2, screenH / 2),
+                BackColor = btnColor
+            };
+            level6.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level7 = new Button
+            {
+                Text = "LEVEL 8",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 3, screenH / 2),
+                BackColor = btnColor
+            };
+            level7.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level8 = new Button
+            {
+                Text = "LEVEL 9",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 4, screenH / 2),
+                BackColor = btnColor
+            };
+            level8.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level9 = new Button
+            {
+                Text = "LEVEL 10",
+                Font = btnFont,
+                Size = btnSize,
+                Location = new Point((startX + spacing) * 5, screenH / 2),
+                BackColor = btnColor
+            };
+            level9.Click += (s, e) => ShowPanel(homePanel);
+
+            Button level10 = new Button
+            {
+                Text = "Back To Menu",
+                Font = btnFont,
+                Size = new Size (200, 100),
+                Location = new Point(100, 50),
+                BackColor = btnColor
+            };
+            level10.Click += (s, e) => ShowPanel(homePanel);
+
+            levelsPanel.Controls.Add(btnBackToMenu);
+            levelsPanel.Controls.Add(level1);
+            levelsPanel.Controls.Add(level2);
+            levelsPanel.Controls.Add(level3);
+            levelsPanel.Controls.Add(level4);
+            levelsPanel.Controls.Add(level5);
+            levelsPanel.Controls.Add(level6);
+            levelsPanel.Controls.Add(level7);
+            levelsPanel.Controls.Add(level8);
+            levelsPanel.Controls.Add(level9);
+            levelsPanel.Controls.Add(level10);
+            //levelsPanel.Controls.Add();
+            this.Controls.Add(levelsPanel);
         }
 
-        public void load_map(int[,] MapGrid)
+        private void InitializeLevelScreen()
         {
-            //tabControl1.Hide();
-            this.prepare_gamecomponents();
-            map.drawMap(MapGrid);
-            map.AddToForm(tabControl1.SelectedTab);
+
+        }
+        private void InitializeEndLevelScreen()
+        {
+            // Add your Sokoban game elements here
+            
+        }
+        private void InitializeProfileScreen()
+        {
+            // Add your Sokoban game elements here
+            
+        }
+        private void InitializeShopScreen()
+        {
+            // Add your Sokoban game elements here
+            
         }
 
-        //load components from a map file
-        public void prepare_gamecomponents()
+        private void ShowPanel(Panel targetPanel)
         {
-            player = map.player;
-            boxes = map.boxes;
-            walls = map.walls;
-            finalDest = map.finalDest;
+            foreach (Control c in this.Controls.OfType<Panel>())
+                c.Visible = false;
+            targetPanel.Visible = true;
         }
 
-        public void reset_map()
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            player = null;
-            boxes = null;
-            walls = null;
-            finalDest = null;
-            foreach (Control ctrl in level.Controls.OfType<Control>().ToList())
+            if (levelPanel.Visible)
             {
-                if (ctrl != button15)
+                // Handle game controls
+                switch (e.KeyCode)
                 {
-                    level.Controls.Remove(ctrl);
+                    case Keys.Left:
+                        // Move player left
+                        break;
+                    case Keys.Right:
+                        // Move player right
+                        break;
                 }
             }
         }
-
-        #endregion
-
-        private Label label3;
-        private PictureBox pictureBox1;
-        private Button button1;
-        private Button button2;
-        private Button button3;
-        private TabControl tabControl1;
-        private TabPage menu;
-        private TabPage levels;
-        private TabPage level;
-        private TabPage stats;
-        private Button button14;
-        private Button button13;
-        private Button button12;
-        private Button button11;
-        private Button button10;
-        private Button button9;
-        private Button button8;
-        private Button button7;
-        private Button button6;
-        private Button button5;
-        private Button button4;
-        private Button button15;
     }
 }
