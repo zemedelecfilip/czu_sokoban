@@ -9,6 +9,9 @@
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+	  <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" />
+	  <PackageReference Include="SQLitePCLRaw.core" Version="2.1.11" />
+	  <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.11" />
+	  <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.11" />
 	</ItemGroup>
 </Project>

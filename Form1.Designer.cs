@@ -74,7 +74,7 @@ namespace czu_sokoban
            
                 Button backToMenu = new Button
                 {
-                    Text = "Back To Menu",
+                    Text = "Menu",
                     Font = btnFont,
                     Size = new Size(200, 100),
                     Location = new Point(100, 125),
@@ -86,17 +86,6 @@ namespace czu_sokoban
         }
         private void InitializePanels()
         {
-            Button backToMenu = new Button
-            {
-                Text = "Back To Menu",
-                Font = btnFont,
-                Size = new Size(200, 100),
-                Location = new Point(100, 125),
-                BackColor = btnColor
-            };
-            backToMenu.Click += (s, e) => ShowPanel(homePanel);
-
-
             // Home, Levels, Level, Endlevel, profile, shop
 
             // Home Panel
@@ -165,13 +154,6 @@ namespace czu_sokoban
             AddHeaderToPanel(levelsPanel);
             AddHeaderToPanel(profilePanel);
             AddHeaderToPanel(shopPanel);
-
-            homePanel.Controls.Add(backToMenu);
-            levelsPanel.Controls.Add(backToMenu);
-            levelPanel.Controls.Add(backToMenu);
-            endLevelPanel.Controls.Add(backToMenu);
-            profilePanel.Controls.Add(backToMenu);
-            shopPanel.Controls.Add(backToMenu);
         }
 
         private void InitializeHomeScreen()
