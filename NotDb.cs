@@ -3,7 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using SQLitePCL;
+using System;
+using System.IO;
+using System.Linq;
 
 public class Person
 {
@@ -13,12 +19,32 @@ public class Person
 
 public class PeopleDatabase
 {
+    public const int Width = Storage.gridSize;
+    public const int Height = Storage.gridSize;
     private const string ConnectionString = "file:mydatabase.db";
+    public static List<int[,]> levels = new List<int[,]>();
+    public static string[] players;
+
 
     public PeopleDatabase()
     {
         Batteries_V2.Init();
         CreateTables();
+        levels.Add(MapGrid1);
+        levels.Add(MapGrid2);
+        levels.Add(MapGrid3);
+        levels.Add(MapGrid4);
+        levels.Add(MapGrid5);
+        levels.Add(MapGrid6);
+        levels.Add(MapGrid7);
+        levels.Add(MapGrid8);
+        levels.Add(MapGrid9);
+        levels.Add(MapGrid10);
+        players = new string[] { "Player1", "Player2", "Player3", "Player4" };
+        insertLevels();
+        insertPlayers();
+        //insertShop();
+
     }
 
     private void CreateTables()
@@ -77,8 +103,6 @@ public class PeopleDatabase
         return stmt;
     }
 
-
-
     private sqlite3 OpenConnection()
     {
         raw.sqlite3_open(ConnectionString, out sqlite3 db);
@@ -123,47 +147,225 @@ public class PeopleDatabase
         }
     }
 
-    public string GetLevelTexture(string levelName)
+    public string SerializeMapGrid(int[,] grid)
+    {
+        int height = grid.GetLength(0);
+        int width = grid.GetLength(1);
+        var rows = new List<string>();
+        for (int i = 0; i < height; i++)
+        {
+            var cols = new List<string>();
+            for (int j = 0; j < width; j++)
+            {
+                cols.Add(grid[i, j].ToString());
+            }
+            rows.Add(string.Join(",", cols));
+        }
+        return string.Join(";", rows); // Use ';' to separate rows
+    }
+
+    public void insertLevels()
     {
         using (var db = OpenConnection())
         {
-            string sql = @"
-            SELECT s.texture_config 
-            FROM shop s
-            INNER JOIN levels l ON s.level_name = l.name
-            WHERE l.name = ?";
-
-            var stmt = PrepareStatement(db, sql);
-            raw.sqlite3_bind_text(stmt, 1, levelName);
-
-            if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
+            foreach (var level in levels)
             {
-                return raw.sqlite3_column_text(stmt, 0).utf8_to_string();
+                string serialized = SerializeMapGrid(MapGrid10);
+                string sql = "INSERT INTO levels (name, levels_data) VALUES (?, ?)";
+                var stmt = PrepareStatement(db, sql);
+                raw.sqlite3_bind_text(stmt, 1, "level1");
+                raw.sqlite3_bind_text(stmt, 2, serialized);
+                raw.sqlite3_step(stmt);
+                raw.sqlite3_finalize(stmt);
             }
-            return null; // Not found
         }
     }
 
-    /*
-    public void init_insert()
+    public void insertPlayers()
     {
-        // Insert a level
-        string levelJson = "{ ... }"; // Your 10-level data
-        raw.sqlite3_exec(db,
-        "INSERT INTO levels (name, levels_data) VALUES ('dungeon', ?)",
-        levelJson, ...);
-
-        // Insert a shop item linked to the level
-        raw.sqlite3_exec(db,
-        "INSERT INTO shop (item_name, texture_config, level_name) " +
-        "VALUES ('map', 'resolution:4k', 'dungeon')", ...);
-
-        // Retrieve texture for "map" item
-        string texture = GetItemTexture("map");
-
-        // Retrieve texture for dungeon level's associated item
-        string levelTexture = GetLevelTexture("dungeon");
-
+        using (var db = OpenConnection())
+        {
+            foreach (var player in players)
+            {
+                string sql = "INSERT INTO people (name) VALUES (?);";
+                var stmt = PrepareStatement(db, sql);
+                raw.sqlite3_bind_text(stmt, 1, player);
+                raw.sqlite3_step(stmt);
+                raw.sqlite3_finalize(stmt);
+            }
+        }
     }
-    */
+
+    // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
+    // insert filepaths then make a getimage global method
+    public void insertShop()
+    {
+        string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\");
+        long size = FolderSizeHelper.GetPngFolderSize(folderPath);
+        _ = FolderSizeHelper.FormatBytes(size);
+        using (var db = OpenConnection())
+        {
+            foreach (string filePath in Directory.GetFiles(folderPath))
+            {
+                string sql = "INSERT INTO shop (item_name, bought, texture_config) VALUES (?, ?, ?);";
+                var stmt = PrepareStatement(db, sql);
+                raw.sqlite3_bind_text(stmt, 1, filePath.Split('.')[0]);
+                raw.sqlite3_bind_int(stmt, 2, 0); // Not bought
+                raw.sqlite3_bind_text(stmt, 3, filePath);
+                raw.sqlite3_step(stmt);
+                raw.sqlite3_finalize(stmt);
+                
+            }
+        }
+    }
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid1 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid2 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid3 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    public int[,] MapGrid4 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid5 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid6 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    public int[,] MapGrid7 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 3, 0, 0, 0, 0, 0, 1},
+        {1, 0, 1, 4, 1, 1, 0, 1},
+        {1, 1, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 1, 4, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid8 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1, 0, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 3, 4, 0, 5, 0, 1},
+        {1, 0, 0, 4, 0, 5, 0, 1},
+        {1, 1, 0, 0, 0, 0, 1, 1},
+        {1, 1, 1, 0, 0, 1, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid9 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
+    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    public int[,] MapGrid10 = new int[Height, Width]
+    {
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 1, 0, 3, 0, 1, 1, 1},
+        {1, 1, 4, 1, 4, 0, 0, 1},
+        {1, 0, 5, 5, 0, 5, 0, 1},
+        {1, 0, 0, 4, 4, 0, 1, 1},
+        {1, 1, 1, 0, 1, 5, 1, 0},
+        {0, 0, 1, 0, 0, 0, 1, 0},
+        {0, 0, 1, 1, 1, 1, 1, 0}
+    };
 }
+
+    public class FolderSizeHelper
+    {
+        public static long GetPngFolderSize(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+                throw new DirectoryNotFoundException($"Directory not found: {folderPath}");
+
+            // Get all .png files in the folder (non-recursive)
+            var files = Directory.GetFiles(folderPath, "*.png");
+
+            // Sum their sizes
+            long totalBytes = files.Sum(file => new FileInfo(file).Length);
+
+            return totalBytes;
+        }
+
+        // Optional: Format bytes as MB, KB, etc.
+        public static string FormatBytes(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len = len / 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
+        }
+    }
