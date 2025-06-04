@@ -9,43 +9,12 @@ public class Wall : PictureBox
         this.y = y;
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
-        this.getImage();
+        // file path for wall image get from db (current skin)
+        this.Image = Storage.getImage();
     }
 
     public Point gridPos()
     {
         return new Point(this.x / a, this.y / a);
-    }
-
-    public void getImage()
-    {
-        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\Wall_Black.png");
-        try
-        {
-            if (!File.Exists(path))
-            {
-                this.BackColor = Color.Black;
-            }
-
-            this.Image = Image.FromFile(path);
-            if (Storage.size > 50)
-            {
-                this.SizeMode = PictureBoxSizeMode.Zoom;
-            }
-            else
-            {
-                this.SizeMode = PictureBoxSizeMode.CenterImage;
-            }
-        }
-        catch (FileNotFoundException ex)
-        {
-            //MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Black;
-        }
-        catch (Exception ex)
-        {
-            //MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Black;
-        }
     }
 }

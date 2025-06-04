@@ -51,7 +51,8 @@ public class Player: PictureBox
         return new Point(this.x / a, this.y / a); //x, y
     }
 
-	public void getImage(string dir)
+    // use the getImage method from a storage combined with a case switch 
+    public void getImage(string dir)
 	{
 		string path;
 		switch (dir)
@@ -96,12 +97,10 @@ public class Player: PictureBox
         catch (FileNotFoundException ex)
         {
             //MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Red;
         }
         catch (Exception ex)
         {
             //MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Red;
         }
     }
 }

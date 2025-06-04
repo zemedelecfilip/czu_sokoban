@@ -197,7 +197,7 @@ public class PeopleDatabase
     }
 
     // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
-    // insert filepaths then make a getimage global method
+    
     public void insertShop()
     {
         string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\");
@@ -207,14 +207,27 @@ public class PeopleDatabase
         {
             foreach (string filePath in Directory.GetFiles(folderPath))
             {
-                string sql = "INSERT INTO shop (item_name, bought, texture_config) VALUES (?, ?, ?);";
+                // only one character in the game
+                if (!filePath.Contains("Character"))
+                {
+                    string sql = "INSERT INTO shop (item_name, bought, texture_config) VALUES (?, ?, ?);";
+                    var stmt = PrepareStatement(db, sql);
+                    raw.sqlite3_bind_text(stmt, 1, filePath.Split('.')[0]);
+                    raw.sqlite3_bind_int(stmt, 2, 0); // Not bought
+                    raw.sqlite3_bind_text(stmt, 3, filePath);
+                    raw.sqlite3_step(stmt);
+                    raw.sqlite3_finalize(stmt);
+                }
+            }
+            // update for a default items
+            string[] defaultItems = { "Crate_Blue.png", "CrateDark_Blue.png", "EndPoint_Purple.png", "Wall_Black.png" };
+            foreach (var item in defaultItems)
+            {
+                string sql = "UPDATE shop SET bought = 1 WHERE item_name = ?;";
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, filePath.Split('.')[0]);
-                raw.sqlite3_bind_int(stmt, 2, 0); // Not bought
-                raw.sqlite3_bind_text(stmt, 3, filePath);
+                raw.sqlite3_bind_text(stmt, 1, item);
                 raw.sqlite3_step(stmt);
                 raw.sqlite3_finalize(stmt);
-                
             }
         }
     }
