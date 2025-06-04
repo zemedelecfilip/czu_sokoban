@@ -164,16 +164,38 @@ public class PeopleDatabase
         return string.Join(";", rows); // Use ';' to separate rows
     }
 
+    public int[,] DeserializeMapGrid(string data)
+    {
+        if (string.IsNullOrEmpty(data)) return new int[0, 0];
+
+        string[] rows = data.Split(';');
+        int height = rows.Length;
+        int width = rows[0].Split(',').Length;
+
+        int[,] grid = new int[height, width];
+
+        for (int i = 0; i < height; i++)
+        {
+            string[] cols = rows[i].Split(',');
+            for (int j = 0; j < width; j++)
+            {
+                grid[i, j] = int.Parse(cols[j]);
+            }
+        }
+        return grid;
+    }
+
+    //FIXME
     public void insertLevels()
     {
         using (var db = OpenConnection())
         {
             foreach (var level in levels)
             {
-                string serialized = SerializeMapGrid(MapGrid10);
+                string serialized = SerializeMapGrid(level);
                 string sql = "INSERT INTO levels (name, levels_data) VALUES (?, ?)";
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, "level1");
+                raw.sqlite3_bind_text(stmt, 1, $"{level}");
                 raw.sqlite3_bind_text(stmt, 2, serialized);
                 raw.sqlite3_step(stmt);
                 raw.sqlite3_finalize(stmt);
@@ -230,6 +252,25 @@ public class PeopleDatabase
                 raw.sqlite3_finalize(stmt);
             }
         }
+    }
+
+    public int[,] getLevel(string level)
+    {
+        using (var db = OpenConnection())
+        {
+            string sql = "SELECT levels_data FROM levels WHERE name = ?;";
+            var stmt = PrepareStatement(db, sql);
+            raw.sqlite3_bind_text(stmt, 1, level);
+            if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
+            {
+                string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
+                // Deserialize the data back to int[,]
+                return DeserializeMapGrid(serializedData);
+                
+            }
+            raw.sqlite3_finalize(stmt);
+        }
+        return null;
     }
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
     public int[,] MapGrid1 = new int[Height, Width]

@@ -14,6 +14,8 @@ namespace czu_sokoban
         public int screenW = Storage.screenWidth;
         public int screenH = Storage.screenHeight;
 
+        PeopleDatabase database = new PeopleDatabase();
+
         // deklarování panelů pro různé obrazovky
         // Home, Levels, Level, Endlevel, profile, shop
         private Panel homePanel;
@@ -383,7 +385,8 @@ namespace czu_sokoban
 
         private void InitializeLevelScreen()
         {
-
+            database.getLevel("MapGrid1");
+            Console.WriteLine(database.getLevel("MapGrid1"));
         }
         private void InitializeEndLevelScreen()
         {
