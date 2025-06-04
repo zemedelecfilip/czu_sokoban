@@ -40,11 +40,12 @@ public class PeopleDatabase
         levels.Add(MapGrid8);
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
+        //printArr(MapGrid1);
         players = new string[] { "Player1", "Player2", "Player3", "Player4" };
         insertLevels();
         insertPlayers();
         //insertShop();
-
+        Console.WriteLine("Database initialized and tables created successfully.");
     }
 
     private void CreateTables()
@@ -114,7 +115,7 @@ public class PeopleDatabase
         var people = new List<Person>();
         using (var db = OpenConnection())
         {
-            string sql = "SELECT id, name FROM people;";
+            string sql = "SELECT * FROM people;";
             raw.sqlite3_prepare_v2(db, sql, out sqlite3_stmt stmt);
 
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
@@ -256,6 +257,8 @@ public class PeopleDatabase
 
     public int[,] getLevel(string level)
     {
+        Console.WriteLine($"Retrieving level: {level}");
+
         using (var db = OpenConnection())
         {
             string sql = "SELECT levels_data FROM levels WHERE name = ?;";
@@ -265,12 +268,30 @@ public class PeopleDatabase
             {
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
-                return DeserializeMapGrid(serializedData);
-                
+                var finGrid = DeserializeMapGrid(serializedData);
+                Console.WriteLine($"fingrid data: {finGrid}");
+                return finGrid;
             }
             raw.sqlite3_finalize(stmt);
         }
         return null;
+    }
+
+    public void printArr (int [,] arr)
+    {
+        if (arr == null)
+        {
+            Console.WriteLine("Array is null.");
+            return;
+        }
+        for (int i = 0; i < arr.GetLength(0); i++)
+        {
+            for (int j = 0; j < arr.GetLength(1); j++)
+            {
+                Console.Write(arr[i, j] + " ");
+            }
+            Console.WriteLine();
+        }
     }
     //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
     public int[,] MapGrid1 = new int[Height, Width]

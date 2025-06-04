@@ -151,7 +151,7 @@ namespace czu_sokoban
             // Add controls to panels (// Home, Levels, Level, Endlevel, profile, shop)
             InitializeHomeScreen();
             InitializeLevelsScreen();
-            InitializeLevelScreen();
+            //InitializeLevelScreen();
             InitializeEndLevelScreen();
             InitializeProfileScreen();
             InitializeShopScreen();
@@ -277,6 +277,7 @@ namespace czu_sokoban
                 BackColor = btnColor
             };
             level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen();
 
             Button level2 = new Button
             {
@@ -385,8 +386,10 @@ namespace czu_sokoban
 
         private void InitializeLevelScreen()
         {
-            database.getLevel("MapGrid1");
-            Console.WriteLine(database.getLevel("MapGrid1"));
+            Console.WriteLine("Initializing Level Screen...");
+            int[,] arr = database.getLevel("MapGrid1"); 
+            database.printArr(arr);
+            Console.WriteLine($"1st player name: {database.SelectAll()[0].Name}");
         }
         private void InitializeEndLevelScreen()
         {
