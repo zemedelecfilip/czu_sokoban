@@ -10,11 +10,7 @@ public class Wall : PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         // file path for wall image get from db (current skin)
-        this.Image = Storage.getImage();
+        this.Image = Storage.getImage("Wall_Black.png");
     }
 
-    public Point gridPos()
-    {
-        return new Point(this.x / a, this.y / a);
-    }
 }

@@ -46,10 +46,6 @@ public class Player: PictureBox
         this.direction = change_dir ? "up" : "down";
         this.getImage(direction);
     }
-    public Point gridPos()
-	{
-        return new Point(this.x / a, this.y / a); //x, y
-    }
 
     // use the getImage method from a storage combined with a case switch 
     public void getImage(string dir)

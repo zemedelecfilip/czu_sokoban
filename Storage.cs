@@ -73,7 +73,12 @@ public class Storage
         }
         return bmp;
     }
+    public static Point gridPos(int x, int y)
+    {
+        return new Point(x / size, y / size);
+    }
 }
+
 
 
 

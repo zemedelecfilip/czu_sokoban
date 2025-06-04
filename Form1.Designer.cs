@@ -4,6 +4,7 @@ using System.Windows.Forms.Design.Behavior;
 using System.Drawing.Drawing2D;
 using System.Reflection.Emit;
 using static System.Windows.Forms.AxHost;
+using System.Numerics;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -68,22 +69,25 @@ namespace czu_sokoban
             this.ShowPanel(homePanel);
         }
 
+        // adding global button to return to home to all panels except homePanel
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
-            // Avoid adding multiple times
-           
-                Button backToMenu = new Button
-                {
-                    Text = "Menu",
-                    Font = btnFont,
-                    Size = new Size(200, 100),
-                    Location = new Point(100, 125),
-                    BackColor = btnColor
-                };
-                backToMenu.Click += (s, e) => ShowPanel(homePanel);
-                targetPanel.Controls.Add(backToMenu);
-                backToMenu.BringToFront();
+            if (targetPanel == homePanel) return;
+
+            Button backToMenu = new Button
+            {
+                Text = "Menu",
+                Font = btnFont,
+                Size = new Size(200, 100),
+                Location = new Point(100, 125),
+                BackColor = btnColor
+            };
+            backToMenu.Click += (s, e) => ShowPanel(homePanel);
+            targetPanel.Controls.Add(backToMenu);
+            backToMenu.BringToFront();
         }
+
+        // process of making panels for different screens
         private void InitializePanels()
         {
             // Home, Levels, Level, Endlevel, profile, shop
@@ -151,9 +155,11 @@ namespace czu_sokoban
             InitializeShopScreen();
 
             AddHeaderToPanel(homePanel);
+            AddHeaderToPanel(levelPanel);
             AddHeaderToPanel(levelsPanel);
             AddHeaderToPanel(profilePanel);
             AddHeaderToPanel(shopPanel);
+
         }
 
         private void InitializeHomeScreen()
@@ -239,7 +245,8 @@ namespace czu_sokoban
                 AutoSize = false;
                 //TextAlign = ContentAlignment.MiddleCenter;
                 Dock = DockStyle.Fill;
-            };
+            }
+            ;
 
             // Add label to header, header to parent panel
             parentPanel.Controls.Add(headerPanel);
@@ -247,6 +254,7 @@ namespace czu_sokoban
             // Ensure header is at the front
             headerPanel.BringToFront();
             headerLabel.BringToFront();
+            AddGlobalButtonToPanel(parentPanel);
 
         }
 
@@ -266,7 +274,7 @@ namespace czu_sokoban
                 Location = new Point(startX + spacing, 7 * screenH / 20),
                 BackColor = btnColor
             };
-            level1.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
 
             Button level2 = new Button
             {
@@ -282,7 +290,7 @@ namespace czu_sokoban
             {
                 Text = "LEVEL 3",
                 Font = btnFont,
-                Size = btnSize  ,
+                Size = btnSize,
                 Location = new Point((startX + spacing) * 3, 7 * screenH / 20),
                 BackColor = btnColor
             };
@@ -369,26 +377,25 @@ namespace czu_sokoban
             levelsPanel.Controls.Add(level8);
             levelsPanel.Controls.Add(level9);
             levelsPanel.Controls.Add(level10);
-            AddGlobalButtonToPanel(levelsPanel);
             //levelsPanel.Controls.Add();
             this.Controls.Add(levelsPanel);
         }
 
         private void InitializeLevelScreen()
         {
-            AddGlobalButtonToPanel(levelPanel);
+
         }
         private void InitializeEndLevelScreen()
         {
-            AddGlobalButtonToPanel(endLevelPanel);
+
         }
         private void InitializeProfileScreen()
         {
-            AddGlobalButtonToPanel(profilePanel);
+
         }
         private void InitializeShopScreen()
         {
-            AddGlobalButtonToPanel(shopPanel);
+
         }
 
         private void ShowPanel(Panel targetPanel)
@@ -402,16 +409,107 @@ namespace czu_sokoban
         {
             if (levelPanel.Visible)
             {
-                // Handle game controls
-                switch (e.KeyCode)
+
+                /*
+                if (e.KeyCode == Keys.Left)
                 {
-                    case Keys.Left:
-                        // Move player left
-                        break;
-                    case Keys.Right:
-                        // Move player right
-                        break;
+                    player.moveLeft();                          //player moved left
+                    if (map.collided_pw(player, walls))
+                    {
+                        player.moveRight(true);                 //player moved back to the original position
+                    }
+                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+
+                    if (a != null)                              //yes they collided so they moved
+                    {
+                        a.moveLeft();                           //box moved left
+                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        {
+                            a.moveRight();
+                            player.moveRight(true);
+                        }
+
+                    }
+                    map.checkWin(boxes, finalDest);
                 }
+                else if (e.KeyCode == Keys.Right)
+                {
+                    player.moveRight();                         //player moved left
+                    if (map.collided_pw(player, walls))
+                    {
+                        player.moveLeft(true);                  //player moved back to the original position
+                    }                                           //player moved right
+                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+
+                    if (a != null)                              //yes they collided so they moved
+                    {
+                        a.moveRight();                          //box moved right
+                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        {
+                            a.moveLeft();
+                            player.moveLeft(true);
+                        }
+
+                    }
+                    map.checkWin(boxes, finalDest);
+                }
+                else if (e.KeyCode == Keys.Up)
+                {
+                    player.moveUp();                            //player moved left
+                    if (map.collided_pw(player, walls))
+                    {
+                        player.moveDown(true);                  //player moved back to the original position
+                    }                                           //player moved up
+                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+
+                    if (a != null)                              //yes they collided so they moved
+                    {
+                        a.moveUp();                             //box moved left
+                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        {
+                            a.moveDown();
+                            player.moveDown(true);
+                        }
+
+                    }
+                    map.checkWin(boxes, finalDest);
+                }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    player.moveDown();                          //player moved left
+                    if (map.collided_pw(player, walls))
+                    {
+                        player.moveUp(true);                    //player moved back to the original position
+                    }                                           //player moved down
+                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+
+                    if (a != null)                              //yes they collided so they moved
+                    {
+                        a.moveDown();                           //box moved down
+                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        {
+                            a.moveUp();
+                            player.moveUp(true);
+                        }
+                    }
+                    map.checkWin(boxes, finalDest);
+                }
+                else if (e.KeyCode == Keys.Escape)
+                {
+                    Application.Exit();
+                }
+
+                map.checkWin(boxes, finalDest);
+            
+            */
             }
         }
     }

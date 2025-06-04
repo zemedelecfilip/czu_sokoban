@@ -11,7 +11,7 @@ public class Box : PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.isThere = false;
-        this.getImage();
+        this.Image = Storage.getImage(this.isThereBox() ? "CrateDark_Blue.png" : "Crate_Blue.png");
     }
     public void moveLeft()
     {
@@ -33,52 +33,10 @@ public class Box : PictureBox
         this.Top += boxSpeed;
         this.y = this.Top;
     }
-    public Point gridPos()
-    {
-        return new Point(this.x / a, this.y / a);
-    }
+    
     public bool isThereBox()
     {
         return this.isThere;
     }
 
-    public void getImage()
-    {
-        string path;
-        if (isThere)
-        {
-            path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
-        }
-        else
-        {
-            path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\Crate_Blue.png");
-        }
-        try
-        {
-            if (!File.Exists(path))
-            {
-                this.BackColor = Color.Blue;
-            }
-            this.Image = Image.FromFile(path);
-            if (Storage.size > 50)
-            {
-                this.SizeMode = PictureBoxSizeMode.StretchImage;
-            }
-            else
-            {
-                this.SizeMode = PictureBoxSizeMode.CenterImage;
-            }
-
-        }
-        catch (FileNotFoundException ex)
-        {
-            //MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Blue;
-        }
-        catch (Exception ex)
-        {
-            //MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            this.BackColor = Color.Blue;
-        }
-    }
 }

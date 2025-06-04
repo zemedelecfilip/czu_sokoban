@@ -56,20 +56,21 @@ public class Maps
     }
     //method for adding all objects to form, so can be moved / displayed
     //player is added first so it is on top of all other objects, 2nd are boxes for same reason
-    public void AddToForm(TabPage form1)
+    //FIXED na panel verzi
+    public void AddToForm(Panel LevelPanel)
     {
-        if (form1 == null) return;
+        if (LevelPanel == null) return;
 
         if (player != null)
         {
-            form1.Controls.Add(player);
+            LevelPanel.Controls.Add(player);
         }
 
         if (walls != null)
         {
             foreach (var box in walls)
             {
-                 form1.Controls.Add(box);
+                 LevelPanel.Controls.Add(box);
             }
         }
 
@@ -77,7 +78,7 @@ public class Maps
         {
             foreach (var box in boxes)
             {
-                 form1.Controls.Add(box);
+                 LevelPanel.Controls.Add(box);
             }
         }
 
@@ -85,12 +86,13 @@ public class Maps
         {
             foreach (var box in finalDest)
             {
-                 form1.Controls.Add(box);
+                 LevelPanel.Controls.Add(box);
             }
         }
     }
 
     //create and add all objects to lists
+    //FIXME na db verzi
     public void drawMap(int [,] MapGrid)
     {
         for (int i = 0; i < Height; i++)
@@ -131,7 +133,7 @@ public class Maps
         }
         foreach (var box in boxes)
         {
-            if (player.gridPos() == box.gridPos())
+            if (Storage.gridPos(player.x, player.y).Equals(Storage.gridPos(box.x, box.y)))
             {
                 return box;
             }
@@ -150,7 +152,7 @@ public class Maps
         }
         foreach (var box in boxes)
         {
-            if (bob.gridPos() == box.gridPos() && bob != box)
+            if (Storage.gridPos(bob.x, bob.y) == Storage.gridPos(box.x, box.y) && bob != box)
             {
                 return box;
             }
@@ -167,7 +169,7 @@ public class Maps
         }
         foreach (var wall in walls)
         {
-            if (box.gridPos() == wall.gridPos())
+            if (Storage.gridPos(box.x, box.y) == Storage.gridPos(wall.x, wall.y))
             {
                 return box;
             }
@@ -185,7 +187,7 @@ public class Maps
         }
         foreach (var wall in walls)
         {
-            if (player.gridPos() == wall.gridPos())
+            if (Storage.gridPos(player.x, player.y) == Storage.gridPos(wall.x, wall.y))
             {
                 return true;
             }
@@ -200,7 +202,7 @@ public class Maps
         {
             foreach (var dest in finalDest)
             {
-                if (box.gridPos() == dest.gridPos())
+                if (Storage.gridPos(box.x, box.y) == Storage.gridPos(dest.x, dest.y))
                 {
                     box.isThere = true;
                     dests--;
@@ -211,7 +213,7 @@ public class Maps
                     box.isThere = false;
                 }
             }
-            box.getImage();
+            box.Image = Storage.getImage(box.isThereBox() ? "CrateDark_Blue.png" : "Crate_Blue.png");
         }
         return dests == 0 ? true : false;
     }
