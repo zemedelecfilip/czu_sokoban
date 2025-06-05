@@ -12,7 +12,7 @@ using System.Xml.Linq;
 public class Maps
 {
     // Constants for grid size
-    public const int Size = Storage.size;
+    public static int Size = Storage.size;
     public const int Width = Storage.gridSize;
     public const int Height = Storage.gridSize;
     public static int leftMargin = Storage.leftMargin;
@@ -63,12 +63,12 @@ public class Maps
     //method for adding all objects to form, so can be moved / displayed
     //player is added first so it is on top of all other objects, 2nd are boxes for same reason
     //FIXED na panel verzi
-    public void AddToControls(Panel LevelPanel)
+    public void AddToControls(Panel levelPanel)
     {
         // Clear previous controls;
-        LevelPanel.Controls.Clear();
+        levelPanel.Controls.Clear();
         
-        if (LevelPanel == null)
+        if (levelPanel == null)
         {
             Console.WriteLine("level panel kdo??? - null");
             return;
@@ -78,14 +78,14 @@ public class Maps
 
         if (player != null)
         {
-            LevelPanel.Controls.Add(player);
+            levelPanel.Controls.Add(player);
         }
 
         if (walls != null)
         {
             foreach (var box in walls)
             {
-                 LevelPanel.Controls.Add(box);
+                 levelPanel.Controls.Add(box);
             }
         }
 
@@ -93,7 +93,7 @@ public class Maps
         {
             foreach (var box in boxes)
             {
-                 LevelPanel.Controls.Add(box);
+                 levelPanel.Controls.Add(box);
             }
         }
 
@@ -101,7 +101,7 @@ public class Maps
         {
             foreach (var box in finalDest)
             {
-                 LevelPanel.Controls.Add(box);
+                 levelPanel.Controls.Add(box);
             }
         }
     }

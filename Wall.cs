@@ -11,6 +11,7 @@ public class Wall : PictureBox
         this.Size = new Size(a, a);
         // file path for wall image get from db (current skin)
         this.Image = Storage.getImage("Wall_Black.png");
+        this.SizeMode = Storage.sizeMode;
     }
 
 }

@@ -5,17 +5,34 @@ public class Player: PictureBox
 	public int playerSpeed = Storage.playerSpeed;
 	public int x, y;
     public string direction = "down";
-	public Player(int x, int y)
+    public bool firstLoead = true;
+    public Player(int x, int y)
 	{
 		this.x = x;
 		this.y = y;
 		this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
-        this.getImage(direction);
-        //this.BackColor = Color.Red;
+        this.SizeMode = Storage.sizeMode;
+        
+        switch (this.direction)
+        {
+            case "left":
+                this.Image = Storage.getImage("Character_left");
+                break;
+            case "right":
+                this.Image = Storage.getImage("Character_right");
+                break;
+            case "up":
+                this.Image = Storage.getImage("Character_up");
+                break;
+            case "down":
+                this.Image = Storage.getImage("Character_down");
+                break;
+
+        }
     }
 
-	public void moveLeft(bool change_dir = false)
+    public void moveLeft(bool change_dir = false)
 	{
         this.Left -= playerSpeed;
 		this.x = this.Left;

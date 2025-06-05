@@ -12,6 +12,8 @@ public class Box : PictureBox
         this.Size = new Size(a, a);
         this.isThere = false;
         this.Image = Storage.getImage(this.isThereBox() ? "CrateDark_Blue.png" : "Crate_Blue.png");
+        this.SizeMode = Storage.sizeMode;
+
     }
     public void moveLeft()
     {

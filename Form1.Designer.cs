@@ -73,6 +73,7 @@ namespace czu_sokoban
             this.Location = new Point(0, 0);
             this.WindowState = FormWindowState.Maximized;
             this.ShowPanel(homePanel);
+            Console.WriteLine($"screenSize: {screenW}x{screenH}");
         }
 
         // adding global button to return to home to all panels except homePanel
@@ -88,7 +89,15 @@ namespace czu_sokoban
                 Location = new Point(100, 125),
                 BackColor = btnColor
             };
-            backToMenu.Click += (s, e) => ShowPanel(homePanel);
+            if (targetPanel == levelPanel)
+            {
+                backToMenu.Text = "Levels";
+                backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
+            } 
+            else 
+            {
+                backToMenu.Click += (s, e) => ShowPanel(homePanel);
+            }
             targetPanel.Controls.Add(backToMenu);
             backToMenu.BringToFront();
         }
@@ -266,140 +275,39 @@ namespace czu_sokoban
 
         private void InitializeLevelsScreen()
         {
+            int numLevels = 10;
             Size btnSize = new Size(screenW / 8, screenH / 8);
             int spacing = screenH / 8;
             int startX = screenH / 7;
-            int centerX = (this.ClientSize.Width - btnSize.Width) / 2;
+            int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
 
-            Button level1 = new Button
+            for (int i = 0; i < numLevels; i++)
             {
-                Text = "LEVEL 1",
-                Font = btnFont,
-                Size = btnSize,
-                // H / 4 + H / 10
-                Location = new Point(startX + spacing, 7 * screenH / 20),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-            level1.Click += (s, e) => ShowPanel(levelPanel);
+                int row = i < 5 ? 0 : 1; // First 5 buttons in row 0, next 5 in row 1
+                int col = i % 5 + 1;     // Columns: 1 to 5 in each row
 
-            Button level2 = new Button
-            {
-                Text = "LEVEL 2",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 2, 7 * screenH / 20),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
+                Button levelBtn = new Button
+                {
+                    Text = $"LEVEL {i + 1}",
+                    Font = btnFont,
+                    Size = btnSize,
+                    Location = new Point((startX + spacing) * col, rowY[row]),
+                    BackColor = btnColor
+                };
 
-            Button level3 = new Button
-            {
-                Text = "LEVEL 3",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 3, 7 * screenH / 20),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
+                string levelName = $"level{i + 1}";
+                levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
+                levelBtn.Click += (s, e) => ShowPanel(levelPanel);
 
-            Button level4 = new Button
-            {
-                Text = "LEVEL 4",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 4, 7 * screenH / 20),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
+                levelsPanel.Controls.Add(levelBtn);
+            }
 
-            Button level5 = new Button
-            {
-                Text = "LEVEL 5",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 5, 7 * screenH / 20),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            Button level6 = new Button
-            {
-                Text = "LEVEL 6",
-                Font = btnFont,
-                Size = btnSize,
-                // H / 2 + H / 10 = 3 H / 5
-                Location = new Point((startX + spacing), 3 * screenH / 5),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            Button level7 = new Button
-            {
-                Text = "LEVEL 7",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 2, 3 * screenH / 5),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            Button level8 = new Button
-            {
-                Text = "LEVEL 8",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 3, 3 * screenH / 5),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            Button level9 = new Button
-            {
-                Text = "LEVEL 9",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 4, 3 * screenH / 5),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            Button level10 = new Button
-            {
-                Text = "LEVEL 10",
-                Font = btnFont,
-                Size = btnSize,
-                Location = new Point((startX + spacing) * 5, 3 * screenH / 5),
-                BackColor = btnColor
-            };
-            level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
-
-            levelsPanel.Controls.Add(level1);
-            levelsPanel.Controls.Add(level2);
-            levelsPanel.Controls.Add(level3);
-            levelsPanel.Controls.Add(level4);
-            levelsPanel.Controls.Add(level5);
-            levelsPanel.Controls.Add(level6);
-            levelsPanel.Controls.Add(level7);
-            levelsPanel.Controls.Add(level8);
-            levelsPanel.Controls.Add(level9);
-            levelsPanel.Controls.Add(level10);
-            //levelsPanel.Controls.Add();
             this.Controls.Add(levelsPanel);
         }
 
         private void InitializeLevelScreen(string level)
         {
-            Console.WriteLine("Initializing Level Screen...");
+            Console.WriteLine($"Initializing Level Screen... with level: {level}");
             // get level
             this.prepareLevel(level);
 
@@ -421,6 +329,7 @@ namespace czu_sokoban
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
+            Console.WriteLine($"arr: {arr}");
             // depends on level create objs
             maps.addObjToList(arr);
             // make them able to move
@@ -467,7 +376,7 @@ namespace czu_sokoban
                         }
 
                     }
-                    maps.checkWin(boxes, finalDest);
+                    //maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Right)
                 {
@@ -490,7 +399,7 @@ namespace czu_sokoban
                         }
 
                     }
-                    maps.checkWin(boxes, finalDest);
+                    //maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Up)
                 {
@@ -513,7 +422,7 @@ namespace czu_sokoban
                         }
 
                     }
-                    maps.checkWin(boxes, finalDest);
+                    //maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
@@ -535,14 +444,13 @@ namespace czu_sokoban
                             player.moveUp(true);
                         }
                     }
-                    maps.checkWin(boxes, finalDest);
-                }
-                else if (e.KeyCode == Keys.Escape)
-                {
-                    Application.Exit();
+                    //maps.checkWin(boxes, finalDest);
                 }
 
-                maps.checkWin(boxes, finalDest);
+                if (maps.checkWin(boxes, finalDest))
+                {
+                    ShowPanel(endLevelPanel);
+                }
             
             }
         }

@@ -289,7 +289,7 @@ public class PeopleDatabase
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
-
+                Console.WriteLine($"Level {level} retrieved successfully.");
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);

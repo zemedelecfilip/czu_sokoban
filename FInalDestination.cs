@@ -9,6 +9,7 @@ public class FinalDestination : PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.Image = Storage.getImage("EndPoint_Purple.png");
+        this.SizeMode = Storage.sizeMode;
 
     }
 
