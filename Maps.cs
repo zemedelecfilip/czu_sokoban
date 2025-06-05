@@ -1,9 +1,13 @@
-//vytvoøení všech objektù na základì mapy
+ï»¿//vytvoÃ¸enÃ­ vÅ¡ech objektÃ¹ na zÃ¡kladÃ¬ mapy
 using czu_sokoban;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
+using System.Reflection.Emit;
 using System.Security;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 public class Maps
 {
@@ -13,13 +17,13 @@ public class Maps
     public const int Height = Storage.gridSize;
     public static int leftMargin = Storage.leftMargin;
     public static int topMargin = Storage.topMargin;
+    public int screenWidth = Storage.screenWidth;
+    public int screenHeight = Storage.screenHeight;
+
     public List<Box> boxes;
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
-
-    public int screenWidth = Storage.screenWidth;
-    public int screenHeight = Storage.screenHeight;
 
     //export skore - cas
     //menu - import progressu
@@ -31,7 +35,9 @@ public class Maps
         boxes = new List<Box>();
         walls = new List<Wall>();
         finalDest = new List<FinalDestination>();
+        player = null;
     }
+
     public void AddBox(int x, int y) //FIXME add picture path
     {
         Box newBox = new Box(x, y);
@@ -57,9 +63,18 @@ public class Maps
     //method for adding all objects to form, so can be moved / displayed
     //player is added first so it is on top of all other objects, 2nd are boxes for same reason
     //FIXED na panel verzi
-    public void AddToForm(Panel LevelPanel)
+    public void AddToControls(Panel LevelPanel)
     {
-        if (LevelPanel == null) return;
+        // Clear previous controls;
+        LevelPanel.Controls.Clear();
+        
+        if (LevelPanel == null)
+        {
+            Console.WriteLine("level panel kdo??? - null");
+            return;
+        }
+        Console.WriteLine("level panel nekdo??? - not null");
+
 
         if (player != null)
         {
@@ -93,8 +108,15 @@ public class Maps
 
     //create and add all objects to lists
     //FIXME na db verzi
-    public void drawMap(int [,] MapGrid)
+    public void addObjToList(int [,] MapGrid)
     {
+        Console.WriteLine($"boxes: {boxes.Count}, walls: {walls.Count}, finalDest: {finalDest.Count}, player: {player}");
+        // to nor oversize the lists
+        boxes.Clear();
+        finalDest.Clear();
+        walls.Clear();
+        player = null;
+
         for (int i = 0; i < Height; i++)
         {
             for (int j = 0; j < Width; j++)

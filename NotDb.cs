@@ -191,15 +191,18 @@ public class PeopleDatabase
     {
         using (var db = OpenConnection())
         {
+            int levelCount = 1;
             foreach (var level in levels)
             {
+                //Console.WriteLine($"inserting level name: level{levelCount}");
                 string serialized = SerializeMapGrid(level);
                 string sql = "INSERT INTO levels (name, levels_data) VALUES (?, ?)";
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, $"{level}");
+                raw.sqlite3_bind_text(stmt, 1, $"level{levelCount}");
                 raw.sqlite3_bind_text(stmt, 2, serialized);
                 raw.sqlite3_step(stmt);
                 raw.sqlite3_finalize(stmt);
+                levelCount++;
             }
         }
     }
@@ -219,8 +222,25 @@ public class PeopleDatabase
         }
     }
 
+    public List<string> getAllLevels()
+    {
+        List<string> levelNames = new List<string>();
+        using (var db = OpenConnection())
+        {
+            string sql = "SELECT name FROM levels;";
+            var stmt = PrepareStatement(db, sql);
+            while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
+            {
+                string levelName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
+                levelNames.Add(levelName);
+            }
+            raw.sqlite3_finalize(stmt);
+        }
+        return levelNames;
+    }
+
     // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
-    
+
     public void insertShop()
     {
         string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\");
@@ -269,7 +289,7 @@ public class PeopleDatabase
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
-                Console.WriteLine($"fingrid data: {finGrid}");
+
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);
@@ -281,7 +301,7 @@ public class PeopleDatabase
     {
         if (arr == null)
         {
-            Console.WriteLine("Array is null.");
+            Console.WriteLine("array in printArr args is null");
             return;
         }
         for (int i = 0; i < arr.GetLength(0); i++)

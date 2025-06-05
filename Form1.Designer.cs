@@ -15,7 +15,11 @@ namespace czu_sokoban
         public int screenH = Storage.screenHeight;
 
         PeopleDatabase database = new PeopleDatabase();
-
+        Maps maps = new Maps();
+        Player player;
+        List<Box> boxes;
+        List<Wall> walls;
+        List<FinalDestination> finalDest;
         // deklarování panelů pro různé obrazovky
         // Home, Levels, Level, Endlevel, profile, shop
         private Panel homePanel;
@@ -276,8 +280,8 @@ namespace czu_sokoban
                 Location = new Point(startX + spacing, 7 * screenH / 20),
                 BackColor = btnColor
             };
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
             level1.Click += (s, e) => ShowPanel(levelPanel);
-            level1.Click += (s, e) => InitializeLevelScreen();
 
             Button level2 = new Button
             {
@@ -287,7 +291,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 2, 7 * screenH / 20),
                 BackColor = btnColor
             };
-            level2.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level3 = new Button
             {
@@ -297,7 +302,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 3, 7 * screenH / 20),
                 BackColor = btnColor
             };
-            level3.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level4 = new Button
             {
@@ -307,7 +313,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 4, 7 * screenH / 20),
                 BackColor = btnColor
             };
-            level4.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level5 = new Button
             {
@@ -317,7 +324,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 5, 7 * screenH / 20),
                 BackColor = btnColor
             };
-            level5.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level6 = new Button
             {
@@ -328,7 +336,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing), 3 * screenH / 5),
                 BackColor = btnColor
             };
-            level6.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level7 = new Button
             {
@@ -338,7 +347,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 2, 3 * screenH / 5),
                 BackColor = btnColor
             };
-            level7.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level8 = new Button
             {
@@ -348,7 +358,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 3, 3 * screenH / 5),
                 BackColor = btnColor
             };
-            level8.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level9 = new Button
             {
@@ -358,7 +369,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 4, 3 * screenH / 5),
                 BackColor = btnColor
             };
-            level9.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             Button level10 = new Button
             {
@@ -368,7 +380,8 @@ namespace czu_sokoban
                 Location = new Point((startX + spacing) * 5, 3 * screenH / 5),
                 BackColor = btnColor
             };
-            level10.Click += (s, e) => ShowPanel(homePanel);
+            level1.Click += (s, e) => ShowPanel(levelPanel);
+            level1.Click += (s, e) => InitializeLevelScreen(Text.ToLower());
 
             levelsPanel.Controls.Add(level1);
             levelsPanel.Controls.Add(level2);
@@ -384,12 +397,12 @@ namespace czu_sokoban
             this.Controls.Add(levelsPanel);
         }
 
-        private void InitializeLevelScreen()
+        private void InitializeLevelScreen(string level)
         {
             Console.WriteLine("Initializing Level Screen...");
-            int[,] arr = database.getLevel("MapGrid1"); 
-            database.printArr(arr);
-            Console.WriteLine($"1st player name: {database.SelectAll()[0].Name}");
+            // get level
+            this.prepareLevel(level);
+
         }
         private void InitializeEndLevelScreen()
         {
@@ -404,6 +417,23 @@ namespace czu_sokoban
 
         }
 
+        private void prepareLevel(string mapName)
+        {
+            // get level data from db
+            int[,] arr = database.getLevel(mapName);
+            // depends on level create objs
+            maps.addObjToList(arr);
+            // make them able to move
+            maps.AddToControls(levelPanel);
+            AddGlobalButtonToPanel(levelPanel);
+            AddHeaderToPanel(levelPanel);
+            // reset lists and prepare components
+            boxes = maps.boxes;
+            player = maps.player;
+            walls = maps.walls;
+            finalDest = maps.finalDest;
+        }
+
         private void ShowPanel(Panel targetPanel)
         {
             foreach (Control c in this.Controls.OfType<Panel>())
@@ -416,21 +446,20 @@ namespace czu_sokoban
             if (levelPanel.Visible)
             {
 
-                /*
                 if (e.KeyCode == Keys.Left)
                 {
                     player.moveLeft();                          //player moved left
-                    if (map.collided_pw(player, walls))
+                    if (maps.collided_pw(player, walls))
                     {
                         player.moveRight(true);                 //player moved back to the original position
                     }
-                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
 
                     if (a != null)                              //yes they collided so they moved
                     {
                         a.moveLeft();                           //box moved left
-                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
                         if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                         {
                             a.moveRight();
@@ -438,22 +467,22 @@ namespace czu_sokoban
                         }
 
                     }
-                    map.checkWin(boxes, finalDest);
+                    maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Right)
                 {
                     player.moveRight();                         //player moved left
-                    if (map.collided_pw(player, walls))
+                    if (maps.collided_pw(player, walls))
                     {
                         player.moveLeft(true);                  //player moved back to the original position
                     }                                           //player moved right
-                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
 
                     if (a != null)                              //yes they collided so they moved
                     {
                         a.moveRight();                          //box moved right
-                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
                         if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                         {
                             a.moveLeft();
@@ -461,22 +490,22 @@ namespace czu_sokoban
                         }
 
                     }
-                    map.checkWin(boxes, finalDest);
+                    maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Up)
                 {
                     player.moveUp();                            //player moved left
-                    if (map.collided_pw(player, walls))
+                    if (maps.collided_pw(player, walls))
                     {
                         player.moveDown(true);                  //player moved back to the original position
                     }                                           //player moved up
-                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
 
                     if (a != null)                              //yes they collided so they moved
                     {
                         a.moveUp();                             //box moved left
-                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
                         if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                         {
                             a.moveDown();
@@ -484,38 +513,37 @@ namespace czu_sokoban
                         }
 
                     }
-                    map.checkWin(boxes, finalDest);
+                    maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
                     player.moveDown();                          //player moved left
-                    if (map.collided_pw(player, walls))
+                    if (maps.collided_pw(player, walls))
                     {
                         player.moveUp(true);                    //player moved back to the original position
                     }                                           //player moved down
-                    Box a = map.collided_pb(player, boxes);     //check if player collided with box
+                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
 
                     if (a != null)                              //yes they collided so they moved
                     {
                         a.moveDown();                           //box moved down
-                        Box b = map.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = map.collided_bw(a, walls);      //check if box collided with wall
+                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
+                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
                         if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
                         {
                             a.moveUp();
                             player.moveUp(true);
                         }
                     }
-                    map.checkWin(boxes, finalDest);
+                    maps.checkWin(boxes, finalDest);
                 }
                 else if (e.KeyCode == Keys.Escape)
                 {
                     Application.Exit();
                 }
 
-                map.checkWin(boxes, finalDest);
+                maps.checkWin(boxes, finalDest);
             
-            */
             }
         }
     }
