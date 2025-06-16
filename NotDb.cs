@@ -289,7 +289,7 @@ public class PeopleDatabase
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
-                Console.WriteLine($"Level {level} retrieved successfully.");
+                //Console.WriteLine($"Level {level} retrieved successfully.");
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);
@@ -301,7 +301,7 @@ public class PeopleDatabase
     {
         if (arr == null)
         {
-            Console.WriteLine("array in printArr args is null");
+            //Console.WriteLine("array in printArr args is null");
             return;
         }
         for (int i = 0; i < arr.GetLength(0); i++)

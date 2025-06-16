@@ -70,16 +70,10 @@ public class Maps
         
         if (levelPanel == null)
         {
-            Console.WriteLine("level panel kdo??? - null");
+            //Console.WriteLine("level panel kdo??? - null");
             return;
         }
-        Console.WriteLine("level panel nekdo??? - not null");
-
-
-        if (player != null)
-        {
-            levelPanel.Controls.Add(player);
-        }
+        //Console.WriteLine("level panel nekdo??? - not null");
 
         if (walls != null)
         {
@@ -97,6 +91,11 @@ public class Maps
             }
         }
 
+        if (player != null)
+        {
+            levelPanel.Controls.Add(player);
+        }
+
         if (finalDest != null)
         {
             foreach (var box in finalDest)
@@ -110,7 +109,7 @@ public class Maps
     //FIXME na db verzi
     public void addObjToList(int [,] MapGrid)
     {
-        Console.WriteLine($"boxes: {boxes.Count}, walls: {walls.Count}, finalDest: {finalDest.Count}, player: {player}");
+        //Console.WriteLine($"boxes: {boxes.Count}, walls: {walls.Count}, finalDest: {finalDest.Count}, player: {player}");
         // to nor oversize the lists
         boxes.Clear();
         finalDest.Clear();

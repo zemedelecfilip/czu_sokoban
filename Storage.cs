@@ -22,6 +22,7 @@ public class Storage
     // Bitmap redSquare = CreateColoredSquare(64, Color.Red);
     public static Image getImage(string filePath)
     {
+        Console.WriteLine($"Loading image from: {filePath}");
         string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..\..\..\Textures\{filePath}");
         try
         {

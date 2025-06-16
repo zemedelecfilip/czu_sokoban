@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Reflection.Emit;
 using static System.Windows.Forms.AxHost;
 using System.Numerics;
+using System.Diagnostics;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -29,23 +30,21 @@ namespace czu_sokoban
         private Panel profilePanel;
         private Panel shopPanel;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
         public Color btnColor = Color.LightSkyBlue;
+        public int stepsCount = 0;
+        Stopwatch stopwatch = new Stopwatch();
+        public int finalStepsCount = 0;
+        public double finalTime = 0.0;
+
 
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
-
-            Button backToMenu = new Button
-            {
-                Text = "Back To Menu",
-                Font = btnFont,
-                Size = new Size(200, 100),
-                Location = new Point(100, 125),
-                BackColor = btnColor
-            };
-            backToMenu.Click += (s, e) => ShowPanel(homePanel);
 
             this.SuspendLayout();
             // 
@@ -86,14 +85,15 @@ namespace czu_sokoban
                 Text = "Menu",
                 Font = btnFont,
                 Size = new Size(200, 100),
-                Location = new Point(100, 125),
+                Location = new Point(screenW / 18, screenH / 7),
                 BackColor = btnColor
             };
             if (targetPanel == levelPanel)
             {
                 backToMenu.Text = "Levels";
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
-            } 
+                backToMenu.Click += (s, e) => this.resetVars();
+            }
             else 
             {
                 backToMenu.Click += (s, e) => ShowPanel(homePanel);
@@ -307,14 +307,32 @@ namespace czu_sokoban
 
         private void InitializeLevelScreen(string level)
         {
-            Console.WriteLine($"Initializing Level Screen... with level: {level}");
+            //Console.WriteLine($"Initializing Level Screen... with level: {level}");
             // get level
             this.prepareLevel(level);
 
         }
         private void InitializeEndLevelScreen()
         {
+            label3 = new System.Windows.Forms.Label
+            {
+                Text = $"Finální počet kroků: {stepsCount}",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(screenW / 18, screenH / 4),
+                AutoSize = true,
+                ForeColor = Color.Black
+            };
+            endLevelPanel.Controls.Add(label3);
 
+            label4 = new System.Windows.Forms.Label
+            {
+                Text = $"Výsledný čas: {finalTime}",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(screenW / 18, 11 * screenH / 28),
+                AutoSize = true,
+                ForeColor = Color.Black
+            };
+            endLevelPanel.Controls.Add(label4);
         }
         private void InitializeProfileScreen()
         {
@@ -329,7 +347,7 @@ namespace czu_sokoban
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
-            Console.WriteLine($"arr: {arr}");
+            //Console.WriteLine($"arr: {arr}");
             // depends on level create objs
             maps.addObjToList(arr);
             // make them able to move
@@ -341,6 +359,27 @@ namespace czu_sokoban
             player = maps.player;
             walls = maps.walls;
             finalDest = maps.finalDest;
+            // movement count label
+            label1 = new System.Windows.Forms.Label
+            {
+                Text = "Počet kroků: 0",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(screenW / 18, screenH / 4),
+                AutoSize = true,
+                ForeColor = Color.Black
+            };
+            levelPanel.Controls.Add(label1);
+
+            label2 = new System.Windows.Forms.Label
+            {
+                Text = "Počet kroků: 0.000",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(screenW / 18, 11 * screenH / 28),
+                AutoSize = true,
+                ForeColor = Color.Black
+            };
+            levelPanel.Controls.Add(label2);
+
         }
 
         private void ShowPanel(Panel targetPanel)
@@ -354,105 +393,158 @@ namespace czu_sokoban
         {
             if (levelPanel.Visible)
             {
+                int dif = 0;
 
                 if (e.KeyCode == Keys.Left)
                 {
-                    player.moveLeft();                          //player moved left
+                    //player moved left
+                    player.moveLeft();
+                    dif++;
+
                     if (maps.collided_pw(player, walls))
                     {
-                        player.moveRight(true);                 //player moved back to the original position
+                        //player moved back to the original position
+                        player.moveRight(true);
+                        dif--;
                     }
-                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
+                    //check if player collided with box
+                    Box a = maps.collided_pb(player, boxes);     
 
-                    if (a != null)                              //yes they collided so they moved
+                    //yes they collided so they moved
+                    if (a != null)                              
                     {
-                        a.moveLeft();                           //box moved left
-                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
-                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        //box moved left
+                        a.moveLeft();
+                        dif++;
+                        //check if box collided with box
+                        Box b = maps.collided_bb(a, boxes);      
+                        //check if box collided with wall
+                        Box c = maps.collided_bw(a, walls);      
+                        //yes they collided (wall / box) so they moved back to the original position
+                        if (b != null || c != null)             
                         {
                             a.moveRight();
                             player.moveRight(true);
+                            dif--;
                         }
-
+                        dif--;
                     }
-                    //maps.checkWin(boxes, finalDest);
+                    // inceresement of steps count
+                    stepsCount += dif;
+                    
+
                 }
                 else if (e.KeyCode == Keys.Right)
                 {
-                    player.moveRight();                         //player moved left
+                    
+                    player.moveRight();
+                    dif++;
+
                     if (maps.collided_pw(player, walls))
                     {
-                        player.moveLeft(true);                  //player moved back to the original position
-                    }                                           //player moved right
-                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
+                        player.moveLeft(true);
+                        dif--;
+                    }                                           
+                    Box a = maps.collided_pb(player, boxes);     
 
-                    if (a != null)                              //yes they collided so they moved
+                    if (a != null)                              
                     {
-                        a.moveRight();                          //box moved right
-                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
-                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        a.moveRight();
+                        dif++;
+                        Box b = maps.collided_bb(a, boxes);      
+                        Box c = maps.collided_bw(a, walls);      
+                        if (b != null || c != null)             
                         {
                             a.moveLeft();
                             player.moveLeft(true);
+                            dif--;
                         }
+                        dif--;
 
                     }
-                    //maps.checkWin(boxes, finalDest);
+                    stepsCount += dif;
                 }
                 else if (e.KeyCode == Keys.Up)
                 {
-                    player.moveUp();                            //player moved left
+                    player.moveUp();
+                    dif++;
+
                     if (maps.collided_pw(player, walls))
                     {
-                        player.moveDown(true);                  //player moved back to the original position
-                    }                                           //player moved up
-                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
+                        player.moveDown(true);
+                        dif--;
+                    }
+                    Box a = maps.collided_pb(player, boxes);   
 
-                    if (a != null)                              //yes they collided so they moved
+                    if (a != null)                              
                     {
-                        a.moveUp();                             //box moved left
-                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
-                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        a.moveUp();
+                        dif++;
+                        Box b = maps.collided_bb(a, boxes);
+                        Box c = maps.collided_bw(a, walls); 
+                        if (b != null || c != null)          
                         {
                             a.moveDown();
                             player.moveDown(true);
+                            dif--;
                         }
+                        dif--;
 
                     }
-                    //maps.checkWin(boxes, finalDest);
+                    stepsCount += dif;
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
-                    player.moveDown();                          //player moved left
+                    player.moveDown();
+                    dif++;
                     if (maps.collided_pw(player, walls))
                     {
-                        player.moveUp(true);                    //player moved back to the original position
-                    }                                           //player moved down
-                    Box a = maps.collided_pb(player, boxes);     //check if player collided with box
+                        player.moveUp(true);
+                        dif--;
+                    }
+                    Box a = maps.collided_pb(player, boxes);
 
-                    if (a != null)                              //yes they collided so they moved
+                    if (a != null)
                     {
-                        a.moveDown();                           //box moved down
-                        Box b = maps.collided_bb(a, boxes);      //check if box collided with box
-                        Box c = maps.collided_bw(a, walls);      //check if box collided with wall
-                        if (b != null || c != null)             //yes they collided (wall / box) so they moved back to the original position
+                        a.moveDown();
+                        dif++;
+                        Box b = maps.collided_bb(a, boxes);
+                        Box c = maps.collided_bw(a, walls);
+                        if (b != null || c != null)
                         {
                             a.moveUp();
                             player.moveUp(true);
+                            dif--;
                         }
+                        dif--;
                     }
-                    //maps.checkWin(boxes, finalDest);
+                    stepsCount += dif;
+                }
+
+                if (stepsCount > 0) {
+                    stopwatch.Start();
                 }
 
                 if (maps.checkWin(boxes, finalDest))
                 {
+                    stopwatch.Stop();
                     ShowPanel(endLevelPanel);
+                    finalTime = stopwatch.Elapsed.TotalSeconds;
+                    finalStepsCount = stepsCount;
+                    this.resetVars();
+                    Console.WriteLine($"Počet kroků: {stepsCount}, Čas: {stopwatch.Elapsed.TotalSeconds:F3}");
                 }
-            
+
+                label1.Text = $"Počet kroků: {stepsCount}";
+                label2.Text = $"Čas: {stopwatch.Elapsed.TotalSeconds:F3} s";
+
             }
+        }
+
+        private void resetVars()
+        {
+            stepsCount = 0;
+            stopwatch.Reset();
         }
     }
 }
