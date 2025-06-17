@@ -8,18 +8,18 @@ public class Storage
     // Height = 100, ;
     // 4 * H / 45
     public static int size = screenHeight * 4 / 45;
-    public static int size2 = screenHeight * 3 / 45;
+    //public static int size2 = screenHeight * 3 / 45;
 
     public static int playerSpeed = size;
-    public static int playerSpeed2 = size2;
+    //public static int playerSpeed2 = size2;
 
     public const int gridSize = 8;
     public static int leftMargin = screenWidth / 2 - (gridSize * size) / 2;
     public static int topMargin = screenHeight / 2 - (gridSize * size) / 2;
     
     public const int gridSize2 = 10;
-    public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
-    public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
+    //public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
+    //public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
 
     //Normal - not in the middle, StretchImage - full win, mid, decent, CenterImage - just center, Zoom - full win, mid
     public static PictureBoxSizeMode sizeMode = PictureBoxSizeMode.StretchImage;

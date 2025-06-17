@@ -13,11 +13,10 @@ public class Maps
 {
     // Constants for grid size
     public static int Size = Storage.size;
-    public static int Size2 = Storage.size2;
     public const int Width = Storage.gridSize;
     public const int Height = Storage.gridSize;
-    public static int leftMargin;
-    public static int topMargin;
+    public static int leftMargin = Storage.leftMargin;
+    public static int topMargin = Storage.topMargin;
     public int screenWidth = Storage.screenWidth;
     public int screenHeight = Storage.screenHeight;
 
@@ -136,12 +135,6 @@ public class Maps
 
         Console.WriteLine("arrSize: " + arrSize);
 
-        if (arrSize == 10)
-        {
-            Size = Storage.size2;
-            leftMargin = Storage.leftMargin2;
-            topMargin = Storage.topMargin2;
-        }
 
         for (int i = 0; i < arrSize; i++)
         {

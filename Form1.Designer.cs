@@ -94,7 +94,14 @@ namespace czu_sokoban
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
                 backToMenu.Click += (s, e) => this.resetVars();
             }
-            else 
+            else if (targetPanel == endLevelPanel)
+            {
+                backToMenu.Size = new Size(400, 100);
+                backToMenu.Location = new Point(screenW / 2 - backToMenu.Width / 2, 2 * screenH / 3 - backToMenu.Height / 2);
+                backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
+                backToMenu.Text = "Back To Levels";
+            }
+            else
             {
                 backToMenu.Click += (s, e) => ShowPanel(homePanel);
             }
@@ -174,6 +181,7 @@ namespace czu_sokoban
             AddHeaderToPanel(levelsPanel);
             AddHeaderToPanel(profilePanel);
             AddHeaderToPanel(shopPanel);
+            AddHeaderToPanel(endLevelPanel);
 
         }
 
@@ -316,23 +324,33 @@ namespace czu_sokoban
         {
             label3 = new System.Windows.Forms.Label
             {
+                AutoSize = true,
                 Text = $"Finální počet kroků: {stepsCount}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                Location = new Point(screenW / 18, screenH / 4),
-                AutoSize = true,
                 ForeColor = Color.Black
             };
             endLevelPanel.Controls.Add(label3);
+            label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 +  2 * label3.Height);
 
             label4 = new System.Windows.Forms.Label
             {
+                AutoSize = true,
                 Text = $"Výsledný čas: {finalTime}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                Location = new Point(screenW / 18, 11 * screenH / 28),
-                AutoSize = true,
                 ForeColor = Color.Black
             };
             endLevelPanel.Controls.Add(label4);
+            label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
+
+            label4 = new System.Windows.Forms.Label
+            {
+                AutoSize = true,
+                Text = $"Výsledný čas: {finalTime}",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+            endLevelPanel.Controls.Add(label4);
+
         }
         private void InitializeProfileScreen()
         {
