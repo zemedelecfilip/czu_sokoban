@@ -1,17 +1,19 @@
-public class FinalDestination : PictureBox
+public class Texture : PictureBox
 {
     public int x, y;
     public int a = Storage.size;
-    public FinalDestination(int x, int y)
+    string path;
+
+    public Texture(int x, int y, string path)
     {
+        this.path = path;
         this.x = x;
         this.y = y;
-        this.BackColor = Color.Transparent;
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
-        this.Image = Storage.getImage("EndPoint_Purple.png");
+        // file path for wall image get from db (current skin)
+        this.Image = Storage.getImage(path);
         this.SizeMode = Storage.sizeMode;
-
     }
 
 }

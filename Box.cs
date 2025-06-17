@@ -8,6 +8,7 @@ public class Box : PictureBox
     {
         this.x = x;
         this.y = y;
+        this.BackColor = Color.Transparent;
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.isThere = false;

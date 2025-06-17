@@ -21,6 +21,9 @@ public class PeopleDatabase
 {
     public const int Width = Storage.gridSize;
     public const int Height = Storage.gridSize;
+
+    public const int Width2 = Storage.gridSize2;
+    public const int Height2 = Storage.gridSize2;
     private const string ConnectionString = "file:mydatabase.db";
     public static List<int[,]> levels = new List<int[,]>();
     public static string[] players;
@@ -40,7 +43,7 @@ public class PeopleDatabase
         levels.Add(MapGrid8);
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
-        //printArr(MapGrid1);
+        printArr(MapGrid1);
         players = new string[] { "Player1", "Player2", "Player3", "Player4" };
         insertLevels();
         insertPlayers();
@@ -189,6 +192,7 @@ public class PeopleDatabase
     //FIXME
     public void insertLevels()
     {
+        Console.WriteLine(levels.Count());
         using (var db = OpenConnection())
         {
             int levelCount = 1;
@@ -196,10 +200,10 @@ public class PeopleDatabase
             {
                 //Console.WriteLine($"inserting level name: level{levelCount}");
                 string serialized = SerializeMapGrid(level);
-                string sql = "INSERT INTO levels (name, levels_data) VALUES (?, ?)";
+                string sql = "UPDATE levels SET levels_data = ? WHERE name = ?";
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, $"level{levelCount}");
-                raw.sqlite3_bind_text(stmt, 2, serialized);
+                raw.sqlite3_bind_text(stmt, 1, serialized);  // Swapped parameter order
+                raw.sqlite3_bind_text(stmt, 2, $"level{levelCount}");
                 raw.sqlite3_step(stmt);
                 raw.sqlite3_finalize(stmt);
                 levelCount++;
@@ -290,6 +294,7 @@ public class PeopleDatabase
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
                 //Console.WriteLine($"Level {level} retrieved successfully.");
+                this.printArr(finGrid);
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);
@@ -313,124 +318,140 @@ public class PeopleDatabase
             Console.WriteLine();
         }
     }
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid1 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 3, 0, 0, 0, 0, 0, 1},
-        {1, 0, 1, 4, 1, 1, 0, 1},
-        {1, 1, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 1, 4, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 5, 0, 0, 1, 1, 5, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1}
+        {1, 1, 1, 1, 6, 6, 1, 1},
+        {1, 3, 6, 4, 6, 6, 6, 1},
+        {1, 1, 1, 1, 1, 6, 1, 1},
+        {1, 6, 5, 5, 4, 6, 6, 1},
+        {1, 6, 6, 6, 6, 6, 6, 1},
+        {1, 1, 6, 6, 6, 1, 1, 1},
+        {2, 1, 1, 1, 1, 1, 1, 1}
     };
 
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid2 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 1, 0, 1, 1, 0, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 3, 4, 0, 5, 0, 1},
-        {1, 0, 0, 4, 0, 5, 0, 1},
-        {1, 1, 0, 0, 0, 0, 1, 1},
-        {1, 1, 1, 0, 0, 1, 1, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1}
+        {1, 5, 6, 6, 6, 6, 5, 1},
+        {1, 6, 6, 6, 1, 6, 6, 1},
+        {1, 3, 4, 4, 4, 4, 6, 1},
+        {1, 6, 1, 6, 6, 6, 6, 1},
+        {1, 5, 6, 6, 6, 6, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {2, 2, 1, 1, 1, 2, 2, 2}
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid3 = new int[Height, Width]
     {
-        {0, 1, 1, 1, 1, 1, 0, 0},
-        {0, 1, 0, 3, 0, 1, 1, 1},
-        {1, 1, 4, 1, 4, 0, 0, 1},
-        {1, 0, 5, 5, 0, 5, 0, 1},
-        {1, 0, 0, 4, 4, 0, 1, 1},
-        {1, 1, 1, 0, 1, 5, 1, 0},
-        {0, 0, 1, 0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 1, 1, 1, 0}
-    };
-    public int[,] MapGrid4 = new int[Height, Width]
-    {
         {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 3, 0, 0, 0, 0, 0, 1},
-        {1, 0, 1, 4, 1, 1, 0, 1},
-        {1, 1, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 1, 4, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 5, 0, 0, 1, 1, 5, 1},
+        {1, 5, 6, 1, 1, 3, 6, 1},
+        {1, 5, 6, 1, 6, 6, 6, 1},
+        {1, 5, 5, 6, 6, 4, 6, 1},
+        {1, 6, 1, 6, 6, 4, 6, 1},
+        {1, 6, 4, 6, 1, 4, 6, 1},
+        {1, 6, 6, 6, 6, 6, 6, 1},
         {1, 1, 1, 1, 1, 1, 1, 1}
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid5 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid4 = new int[Height2, Width2]
     {
-        {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 1, 0, 1, 1, 0, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 3, 4, 0, 5, 0, 1},
-        {1, 0, 0, 4, 0, 5, 0, 1},
-        {1, 1, 0, 0, 0, 0, 1, 1},
-        {1, 1, 1, 0, 0, 1, 1, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1}
+        {2, 1, 1, 2, 1, 1, 1, 1, 1, 1},
+        {1, 1, 6, 1, 1, 1, 1, 1, 1, 1},
+        {1, 6, 1, 1, 1, 6, 5, 6, 1, 1},
+        {2, 1, 1, 1, 6, 4, 5, 6, 1, 1},
+        {1, 1, 1, 6, 4, 6, 6, 6, 1, 1},
+        {1, 1, 6, 4, 3, 6, 1, 1, 1, 1},
+        {1, 6, 4, 6, 6, 1, 1, 2, 2, 1},
+        {1, 5, 5, 6, 1, 1, 6, 1, 1, 1},
+        {1, 6, 6, 6, 1, 2, 1, 1, 2, 1},
+        {1, 1, 1, 1, 1, 2, 1, 2, 2, 1},
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid6 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid5 = new int[Height2, Width2]
     {
-        {0, 1, 1, 1, 1, 1, 0, 0},
-        {0, 1, 0, 3, 0, 1, 1, 1},
-        {1, 1, 4, 1, 4, 0, 0, 1},
-        {1, 0, 5, 5, 0, 5, 0, 1},
-        {1, 0, 0, 4, 4, 0, 1, 1},
-        {1, 1, 1, 0, 1, 5, 1, 0},
-        {0, 0, 1, 0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 1, 1, 1, 0}
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
-    public int[,] MapGrid7 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid6 = new int[Height2, Width2]
     {
-        {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 3, 0, 0, 0, 0, 0, 1},
-        {1, 0, 1, 4, 1, 1, 0, 1},
-        {1, 1, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 1, 4, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 5, 0, 0, 1, 1, 5, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1}
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid8 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid7 = new int[Height2, Width2]
     {
-        {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 1, 0, 1, 1, 0, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 3, 4, 0, 5, 0, 1},
-        {1, 0, 0, 4, 0, 5, 0, 1},
-        {1, 1, 0, 0, 0, 0, 1, 1},
-        {1, 1, 1, 0, 0, 1, 1, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1}
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid9 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid8 = new int[Height2, Width2]
     {
-        {0, 1, 1, 1, 1, 1, 0, 0},
-        {0, 1, 0, 3, 0, 1, 1, 1},
-        {1, 1, 4, 1, 4, 0, 0, 1},
-        {1, 0, 5, 5, 0, 5, 0, 1},
-        {1, 0, 0, 4, 4, 0, 1, 1},
-        {1, 1, 1, 0, 1, 5, 1, 0},
-        {0, 0, 1, 0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 1, 1, 1, 0}
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
-    //0 = empty, 1 - wall, 3 = player, 4 = box, 5 - final destination
-    public int[,] MapGrid10 = new int[Height, Width]
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid9 = new int[Height2, Width2]
     {
-        {0, 1, 1, 1, 1, 1, 0, 0},
-        {0, 1, 0, 3, 0, 1, 1, 1},
-        {1, 1, 4, 1, 4, 0, 0, 1},
-        {1, 0, 5, 5, 0, 5, 0, 1},
-        {1, 0, 0, 4, 4, 0, 1, 1},
-        {1, 1, 1, 0, 1, 5, 1, 0},
-        {0, 0, 1, 0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 1, 1, 1, 0}
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    public int[,] MapGrid10 = new int[Height2, Width2]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
 }
 

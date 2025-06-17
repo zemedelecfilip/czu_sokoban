@@ -9,7 +9,7 @@ public class Wall : PictureBox
         this.y = y;
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
-        // file path for wall image get from db (current skin)
+        this.BackColor = Color.Transparent;
         this.Image = Storage.getImage("Wall_Black.png");
         this.SizeMode = Storage.sizeMode;
     }

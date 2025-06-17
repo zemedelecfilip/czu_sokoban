@@ -12,7 +12,8 @@ public class Player: PictureBox
 	{
 		this.x = x;
 		this.y = y;
-		this.Location = new Point(this.x, this.y);
+        this.BackColor = Color.Transparent;
+        this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.SizeMode = Storage.sizeMode;
         this.Image = Storage.getImage("Character_down.png");

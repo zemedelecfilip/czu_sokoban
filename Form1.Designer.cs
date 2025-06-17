@@ -347,9 +347,8 @@ namespace czu_sokoban
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
-            //Console.WriteLine($"arr: {arr}");
             // depends on level create objs
-            maps.addObjToList(arr);
+            maps.addObjToList(arr, arr.GetLength(0));
             // make them able to move
             maps.AddToControls(levelPanel);
             AddGlobalButtonToPanel(levelPanel);

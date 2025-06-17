@@ -13,10 +13,11 @@ public class Maps
 {
     // Constants for grid size
     public static int Size = Storage.size;
+    public static int Size2 = Storage.size2;
     public const int Width = Storage.gridSize;
     public const int Height = Storage.gridSize;
-    public static int leftMargin = Storage.leftMargin;
-    public static int topMargin = Storage.topMargin;
+    public static int leftMargin;
+    public static int topMargin;
     public int screenWidth = Storage.screenWidth;
     public int screenHeight = Storage.screenHeight;
 
@@ -24,6 +25,7 @@ public class Maps
     public List<Wall> walls;
     public List<FinalDestination> finalDest;
     public Player player;
+    public List<Texture> textures;
 
     //export skore - cas
     //menu - import progressu
@@ -35,34 +37,41 @@ public class Maps
         boxes = new List<Box>();
         walls = new List<Wall>();
         finalDest = new List<FinalDestination>();
+        textures = new List<Texture>(); 
         player = null;
     }
 
-    public void AddBox(int x, int y) //FIXME add picture path
+    public void AddBox(int x, int y)
     {
         Box newBox = new Box(x, y);
         boxes.Add(newBox);
     }
-    public void AddWall(int x, int y) //FIXME add picture path
+    public void AddWall(int x, int y)
     {
         Wall newBox = new Wall(x, y);
         walls.Add(newBox);
     }
 
-    public void AddPlayer(int x, int y) //FIXME add picture path
+    public void AddPlayer(int x, int y)
     {
         Player player = new Player(x, y);
         this.player = player;
     }
 
-    public void AddFinalDestination(int x, int y) //FIXME add picture path
+    public void AddFinalDestination(int x, int y)
     {
         FinalDestination newBox = new FinalDestination(x, y);
         finalDest.Add(newBox);
     }
+
+    public void AddTexture(int x, int y, string path)
+    {
+        Texture newBox = new Texture(x, y, path);
+        textures.Add(newBox);
+    }
+
     //method for adding all objects to form, so can be moved / displayed
-    //player is added first so it is on top of all other objects, 2nd are boxes for same reason
-    //FIXED na panel verzi
+    //the order of adding is important, because the last added control is on top of the others
     public void AddToControls(Panel levelPanel)
     {
         // Clear previous controls;
@@ -73,7 +82,6 @@ public class Maps
             //Console.WriteLine("level panel kdo??? - null");
             return;
         }
-        //Console.WriteLine("level panel nekdo??? - not null");
 
         if (walls != null)
         {
@@ -103,39 +111,74 @@ public class Maps
                  levelPanel.Controls.Add(box);
             }
         }
+
+        if (textures != null)
+        {
+            foreach (var texture in textures)
+            {
+                levelPanel.Controls.Add(texture);
+            }
+        }
+
     }
 
     //create and add all objects to lists
     //FIXME na db verzi
-    public void addObjToList(int [,] MapGrid)
+    public void addObjToList(int [,] MapGrid, int arrSize)
     {
         //Console.WriteLine($"boxes: {boxes.Count}, walls: {walls.Count}, finalDest: {finalDest.Count}, player: {player}");
         // to nor oversize the lists
         boxes.Clear();
         finalDest.Clear();
         walls.Clear();
+        textures.Clear();
         player = null;
 
-        for (int i = 0; i < Height; i++)
+        Console.WriteLine("arrSize: " + arrSize);
+
+        if (arrSize == 10)
         {
-            for (int j = 0; j < Width; j++)
+            Size = Storage.size2;
+            leftMargin = Storage.leftMargin2;
+            topMargin = Storage.topMargin2;
+        }
+
+        for (int i = 0; i < arrSize; i++)
+        {
+            for (int j = 0; j < arrSize; j++)
             {
-                // 1 = wall, 0 = empty, 3 = player, 4 = box, 5 - final destination for the box
+                // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
                 switch (MapGrid[i, j])
                 {
                     case 1:
                         AddWall((j * Size + leftMargin), (i * Size + topMargin));
                         break;
-                    case 3:
-                        AddPlayer((j * Size + leftMargin), (i * Size + topMargin)); 
+
+                    case 2:
+                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Grass.png");
                         break;
-                    
+                    case 3:
+                        AddPlayer((j * Size + leftMargin), (i * Size + topMargin));
+                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
+                        break;
+
                     case 4:
                         AddBox((j * Size + leftMargin), (i * Size + topMargin));
+                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
                         break;
 
                     case 5:
+                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
                         AddFinalDestination((j * Size + leftMargin), (i * Size + topMargin));
+                        break;
+
+                    case 6:
+                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
+                        break;
+
+                    case 7:
+                        AddFinalDestination((j * Size + leftMargin), (i * Size + topMargin));
+                        AddWall((j * Size + leftMargin), (i * Size + topMargin));
                         break;
                     default:
                         // Empty

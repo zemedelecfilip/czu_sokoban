@@ -6,23 +6,31 @@ public class Storage
     public static int screenHeight = Screen.PrimaryScreen.Bounds.Height;
 
     // Height = 100, ;
-
+    // 4 * H / 45
     public static int size = screenHeight * 4 / 45;
+    public static int size2 = screenHeight * 3 / 45;
+
     public static int playerSpeed = size;
+    public static int playerSpeed2 = size2;
 
     public const int gridSize = 8;
     public static int leftMargin = screenWidth / 2 - (gridSize * size) / 2;
     public static int topMargin = screenHeight / 2 - (gridSize * size) / 2;
+    
+    public const int gridSize2 = 10;
+    public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
+    public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
 
     //Normal - not in the middle, StretchImage - full win, mid, decent, CenterImage - just center, Zoom - full win, mid
     public static PictureBoxSizeMode sizeMode = PictureBoxSizeMode.StretchImage;
+    public static System.Drawing.Color Transparent { get; }
 
     // PictureBoxSizeMode.Zoom;
     // default: wall - black, player - red, box - blue / darkblue, final destination - purple, 
     // Bitmap redSquare = CreateColoredSquare(64, Color.Red);
     public static Image getImage(string filePath)
     {
-        Console.WriteLine($"Loading image from: {filePath}");
+        //Console.WriteLine($"Loading image from: {filePath}");
         string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..\..\..\Textures\{filePath}");
         try
         {
