@@ -43,7 +43,7 @@ public class PeopleDatabase
         levels.Add(MapGrid8);
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
-        printArr(MapGrid1);
+        //printArr(MapGrid1);
         players = new string[] { "Player1", "Player2", "Player3", "Player4" };
         insertLevels();
         insertPlayers();
@@ -192,7 +192,7 @@ public class PeopleDatabase
     //FIXME
     public void insertLevels()
     {
-        Console.WriteLine(levels.Count());
+        //Console.WriteLine(levels.Count());
         using (var db = OpenConnection())
         {
             int levelCount = 1;
@@ -293,8 +293,6 @@ public class PeopleDatabase
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
-                //Console.WriteLine($"Level {level} retrieved successfully.");
-                this.printArr(finGrid);
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);

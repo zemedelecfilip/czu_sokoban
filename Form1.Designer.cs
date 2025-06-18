@@ -33,6 +33,7 @@ namespace czu_sokoban
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
         public Color btnColor = Color.LightSkyBlue;
@@ -40,6 +41,7 @@ namespace czu_sokoban
         Stopwatch stopwatch = new Stopwatch();
         public int finalStepsCount = 0;
         public double finalTime = 0.0;
+        public string currLevelName = "";
 
 
         #region Windows Form Designer generated code
@@ -317,6 +319,7 @@ namespace czu_sokoban
         {
             //Console.WriteLine($"Initializing Level Screen... with level: {level}");
             // get level
+            currLevelName = level;
             this.prepareLevel(level);
 
         }
@@ -342,14 +345,15 @@ namespace czu_sokoban
             endLevelPanel.Controls.Add(label4);
             label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
 
-            label4 = new System.Windows.Forms.Label
+            label5 = new System.Windows.Forms.Label
             {
                 AutoSize = true,
-                Text = $"Výsledný čas: {finalTime}",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Text = $"Gratulace za dokončení {currLevelName}",
+                Font = new Font("Segoe UI", 42, FontStyle.Bold),
                 ForeColor = Color.Black
             };
-            endLevelPanel.Controls.Add(label4);
+            endLevelPanel.Controls.Add(label5);
+            label5.Location = new Point((screenW - label5.Width) / 2, screenH / 5);
 
         }
         private void InitializeProfileScreen()
@@ -549,7 +553,7 @@ namespace czu_sokoban
                     finalTime = stopwatch.Elapsed.TotalSeconds;
                     finalStepsCount = stepsCount;
                     this.resetVars();
-                    Console.WriteLine($"Počet kroků: {stepsCount}, Čas: {stopwatch.Elapsed.TotalSeconds:F3}");
+                    Console.WriteLine($"Počet kroků: {finalStepsCount}, Čas: {finalTime}");
                 }
 
                 label1.Text = $"Počet kroků: {stepsCount}";
