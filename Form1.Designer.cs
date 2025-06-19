@@ -77,7 +77,7 @@ namespace czu_sokoban
             Console.WriteLine($"screenSize: {screenW}x{screenH}");
         }
 
-        // adding global button to return to home to all panels except homePanel
+        // adding global button to return to home to all panels except homePanel;
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
             if (targetPanel == homePanel) return;
@@ -101,6 +101,7 @@ namespace czu_sokoban
                 backToMenu.Size = new Size(400, 100);
                 backToMenu.Location = new Point(screenW / 2 - backToMenu.Width / 2, 2 * screenH / 3 - backToMenu.Height / 2);
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
+                backToMenu.Click += (s, e) => this.resetVars();
                 backToMenu.Text = "Back To Levels";
             }
             else
@@ -174,7 +175,7 @@ namespace czu_sokoban
             InitializeHomeScreen();
             InitializeLevelsScreen();
             //InitializeLevelScreen();
-            InitializeEndLevelScreen();
+            //InitializeEndLevelScreen();
             InitializeProfileScreen();
             InitializeShopScreen();
 
@@ -290,6 +291,7 @@ namespace czu_sokoban
             int spacing = screenH / 8;
             int startX = screenH / 7;
             int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
+            //this.getPbs = new int[numLevels];
 
             for (int i = 0; i < numLevels; i++)
             {
@@ -305,10 +307,34 @@ namespace czu_sokoban
                     BackColor = btnColor
                 };
 
+                Font labelFont = new Font("Segoe UI", 12, FontStyle.Bold);
+                Color foreColor = Color.Black;
+                Boolean labelAutoSize = true;
+
+                System.Windows.Forms.Label levelLabel = new System.Windows.Forms.Label
+                {
+                    Text = $"Best step count: 0", //{stepPb}",
+                    Font = labelFont,
+                    ForeColor = foreColor,
+                    AutoSize = labelAutoSize,
+                };
+                levelLabel.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height);
+
+                System.Windows.Forms.Label levelLabel2 = new System.Windows.Forms.Label
+                {
+                    Text = $"Best time: 0.00", //{timePb}",
+                    Font = labelFont,
+                    ForeColor = foreColor,
+                    AutoSize = labelAutoSize,
+                };
+                levelLabel2.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height + levelLabel.Height);
+
                 string levelName = $"level{i + 1}";
                 levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
                 levelBtn.Click += (s, e) => ShowPanel(levelPanel);
 
+                levelsPanel.Controls.Add(levelLabel);
+                levelsPanel.Controls.Add(levelLabel2);
                 levelsPanel.Controls.Add(levelBtn);
             }
 
@@ -328,7 +354,7 @@ namespace czu_sokoban
             label3 = new System.Windows.Forms.Label
             {
                 AutoSize = true,
-                Text = $"Finální počet kroků: {stepsCount}",
+                Text = $"Finální počet kroků: {finalStepsCount}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.Black
             };
@@ -550,10 +576,10 @@ namespace czu_sokoban
                 {
                     stopwatch.Stop();
                     ShowPanel(endLevelPanel);
-                    finalTime = stopwatch.Elapsed.TotalSeconds;
-                    finalStepsCount = stepsCount;
+                    Console.WriteLine("Player1", currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                    database.SetLevelTimeAndSteps("Player1", currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
                     this.resetVars();
-                    Console.WriteLine($"Počet kroků: {finalStepsCount}, Čas: {finalTime}");
+                    InitializeEndLevelScreen();
                 }
 
                 label1.Text = $"Počet kroků: {stepsCount}";
@@ -567,5 +593,10 @@ namespace czu_sokoban
             stepsCount = 0;
             stopwatch.Reset();
         }
+        // based on name get pbs from levels db
+        private void getPbs(string name)
+        {
+
+        } 
     }
 }
