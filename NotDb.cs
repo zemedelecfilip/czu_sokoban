@@ -1,4 +1,4 @@
-//dependecies for this bad boy find in https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3#readme-body-tab
+// dependecies for this bad boy find in https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3#readme-body-tab
 // install like 5 mil nuggets
 
 using System;
@@ -10,6 +10,8 @@ using SQLitePCL;
 using System;
 using System.IO;
 using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
+using System.Xml.Linq;
 
 public class Person
 {
@@ -43,16 +45,17 @@ public class PeopleDatabase
         levels.Add(MapGrid8);
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
-        //printArr(MapGrid1);
+        printArr(MapGrid1);
         players = new string[] { "Player1", "Player2", "Player3", "Player4" };
-        insertLevels();
         insertPlayers();
+        insertLevels();
         //insertShop();
         Console.WriteLine("Database initialized and tables created successfully.");
     }
 
     private void CreateTables()
     {
+        Console.WriteLine("Creating tables...");
         using (var db = OpenConnection())
         {
             // Players table
@@ -73,7 +76,7 @@ public class PeopleDatabase
 
             // Player-level attempts table
             string playerLevelsSql = @"
-            CREATE TABLE IF NOT EXISTS player_levels (
+            CREATE TABLE player_levels (
                 player_id INTEGER NOT NULL REFERENCES people(id),
                 level_id INTEGER NOT NULL REFERENCES levels(id),
                 time NUMBER NOT NULL,
@@ -205,19 +208,24 @@ public class PeopleDatabase
     //FIXME
     public void insertLevels()
     {
-        //Console.WriteLine(levels.Count());
         using (var db = OpenConnection())
         {
             int levelCount = 1;
             foreach (var level in levels)
             {
-                //Console.WriteLine($"inserting level name: level{levelCount}");
                 string serialized = SerializeMapGrid(level);
-                string sql = "UPDATE levels SET levels_data = ? WHERE name = ?";
+                // Corrected SQL with player_id
+                string sql = "INSERT INTO levels (name, levels_data, player_id) VALUES (?, ?, ?);";
+
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, serialized);  // Swapped parameter order
-                raw.sqlite3_bind_text(stmt, 2, $"level{levelCount}");
+
+                // Correct parameter binding order:
+                raw.sqlite3_bind_text(stmt, 1, $"level{levelCount}");  // Name
+                raw.sqlite3_bind_text(stmt, 2, serialized);
+                raw.sqlite3_bind_text(stmt, 3, "");
+
                 raw.sqlite3_step(stmt);
+                Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)}");
                 raw.sqlite3_finalize(stmt);
                 levelCount++;
             }
@@ -318,8 +326,10 @@ public class PeopleDatabase
             string sql = "SELECT levels_data FROM levels WHERE name = ?;";
             var stmt = PrepareStatement(db, sql);
             raw.sqlite3_bind_text(stmt, 1, level);
+            Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)} == raw.SQLITE_ROW {raw.SQLITE_ROW}");
             if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
+                Console.WriteLine($"in if raw.sqlite3_step(stmt) == raw.SQLITE_ROW");
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);

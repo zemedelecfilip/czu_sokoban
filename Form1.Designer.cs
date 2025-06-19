@@ -395,6 +395,7 @@ namespace czu_sokoban
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
+            Console.WriteLine($"Preparing level: {mapName} with data: {arr.GetLength(0)}x{arr.GetLength(1)}");
             // depends on level create objs
             maps.addObjToList(arr, arr.GetLength(0));
             // make them able to move
