@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using System.Xml.Linq;
+using System.Numerics;
 
 public class Person
 {
@@ -35,6 +36,26 @@ public class PeopleDatabase
     {
         Batteries_V2.Init();
         CreateTables();
+        insertGrids();
+        //printArr(MapGrid1);
+        insertSaves();
+        insertLevels();
+        //insertShop();
+        Console.WriteLine("Database initialized and tables created successfully.");
+    }
+    public void dropTables()
+    {
+        using (var db = OpenConnection())
+        {
+            string dropSavesTableSql = "DROP TABLE IF EXISTS Saves;";
+            string dropLevelsTableSql = "DROP TABLE IF EXISTS Levels;";
+            raw.sqlite3_exec(db, dropSavesTableSql, null, IntPtr.Zero, out _);
+            raw.sqlite3_exec(db, dropLevelsTableSql, null, IntPtr.Zero, out _);
+        }
+    }
+
+    public void insertGrids()
+    {
         levels.Add(MapGrid1);
         levels.Add(MapGrid2);
         levels.Add(MapGrid3);
@@ -45,12 +66,6 @@ public class PeopleDatabase
         levels.Add(MapGrid8);
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
-        printArr(MapGrid1);
-        players = new string[] { "Player1", "Player2", "Player3", "Player4" };
-        insertPlayers();
-        insertLevels();
-        //insertShop();
-        Console.WriteLine("Database initialized and tables created successfully.");
     }
 
     private void CreateTables()
@@ -59,45 +74,29 @@ public class PeopleDatabase
         using (var db = OpenConnection())
         {
             // Players table
-            string playersTableSql = @"
-            CREATE TABLE IF NOT EXISTS people (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE
+            string savesTableSql = @"
+            CREATE TABLE Saves (
+                save_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                Name TEXT,
+                Shop int not null default 1,
+                Completed_lvls INTEGER DEFAULT 0
             );";
 
             // Levels table (now linked to players)
             string levelsTableSql = @"
-            CREATE TABLE IF NOT EXISTS levels (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+            CREATE TABLE Levels (
+                level_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                save_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
+                best_time INTEGER,
+                best_steps_count INTEGER,
                 levels_data TEXT NOT NULL,
-                player_id INTEGER NOT NULL REFERENCES people(id)
+                FOREIGN KEY (save_id) REFERENCES Saves(save_id)
             );";
 
-            // Player-level attempts table
-            string playerLevelsSql = @"
-            CREATE TABLE player_levels (
-                player_id INTEGER NOT NULL REFERENCES people(id),
-                level_id INTEGER NOT NULL REFERENCES levels(id),
-                time NUMBER NOT NULL,
-                steps INTEGER NOT NULL,
-                PRIMARY KEY (player_id, level_id)
-            );";
 
-            // Shop table (fixed foreign key)
-            string shopTableSql = @"
-            CREATE TABLE IF NOT EXISTS shop (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                item_name TEXT UNIQUE NOT NULL,  
-                bought BOOLEAN DEFAULT 0,        
-                texture_config TEXT NOT NULL,    
-                level_name TEXT REFERENCES levels(name)
-            );";
-
-            raw.sqlite3_exec(db, playersTableSql, null, IntPtr.Zero, out _);
+            raw.sqlite3_exec(db, savesTableSql, null, IntPtr.Zero, out _);
             raw.sqlite3_exec(db, levelsTableSql, null, IntPtr.Zero, out _);
-            raw.sqlite3_exec(db, playerLevelsSql, null, IntPtr.Zero, out _);
-            raw.sqlite3_exec(db, shopTableSql, null, IntPtr.Zero, out _);
         }
     }
 
@@ -127,44 +126,6 @@ public class PeopleDatabase
     {
         raw.sqlite3_open(ConnectionString, out sqlite3 db);
         return db;
-    }
-
-    public List<Person> SelectAll()
-    {
-        var people = new List<Person>();
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT * FROM people;";
-            raw.sqlite3_prepare_v2(db, sql, out sqlite3_stmt stmt);
-
-            while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-            {
-                var person = new Person
-                {
-                    Id = raw.sqlite3_column_int(stmt, 0),
-                    Name = raw.sqlite3_column_text(stmt, 1).utf8_to_string()
-                };
-                people.Add(person);
-            }
-            raw.sqlite3_finalize(stmt);
-        }
-        return people;
-    }
-
-    public string GetItemTexture(string itemName)
-    {
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT texture_config FROM shop WHERE item_name = ?";
-            var stmt = PrepareStatement(db, sql);
-            raw.sqlite3_bind_text(stmt, 1, itemName);
-
-            if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-            {
-                return raw.sqlite3_column_text(stmt, 0).utf8_to_string();
-            }
-            return null; // Not found
-        }
     }
 
     public string SerializeMapGrid(int[,] grid)
@@ -210,66 +171,54 @@ public class PeopleDatabase
     {
         using (var db = OpenConnection())
         {
-            int levelCount = 1;
-            foreach (var level in levels)
+            for (var i = 0; i < 3; i++)
             {
-                string serialized = SerializeMapGrid(level);
-                // Corrected SQL with player_id
-                string sql = "INSERT INTO levels (name, levels_data, player_id) VALUES (?, ?, ?);";
+                int levelCount = 1;
+                foreach (var level in levels)
+                {
+                    string serialized = SerializeMapGrid(level);
+                    // Corrected SQL with player_id
+                    string sql = "INSERT INTO levels (save_id, name, best_time, best_steps_count, levels_data) VALUES (?, ?, ?, ?, ?);";
 
-                var stmt = PrepareStatement(db, sql);
+                    var stmt = PrepareStatement(db, sql);
 
-                // Correct parameter binding order:
-                raw.sqlite3_bind_text(stmt, 1, $"level{levelCount}");  // Name
-                raw.sqlite3_bind_text(stmt, 2, serialized);
-                raw.sqlite3_bind_text(stmt, 3, "");
+                    // Correct parameter binding order:
+                    raw.sqlite3_bind_text(stmt, 1, $"{i}");
+                    raw.sqlite3_bind_text(stmt, 2, $"level{levelCount}");
+                    raw.sqlite3_bind_text(stmt, 3, $"{0}");
+                    raw.sqlite3_bind_text(stmt, 4, $"{0}");
+                    raw.sqlite3_bind_text(stmt, 5, serialized);
 
-                raw.sqlite3_step(stmt);
-                Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)}");
-                raw.sqlite3_finalize(stmt);
-                levelCount++;
+                    raw.sqlite3_step(stmt);
+                    //Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)}");
+                    raw.sqlite3_finalize(stmt);
+                    levelCount++;
+                }
             }
         }
     }
 
-    public void insertPlayers()
+    public void insertSaves()
     {
         using (var db = OpenConnection())
         {
-            foreach (var player in players)
+            for (int i = 0; i < 3; i++)
             {
-                string sql = "INSERT INTO people (name) VALUES (?);";
+                string sql = "INSERT INTO Saves (Name) VALUES (?);";
                 var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, player);
+                raw.sqlite3_bind_text(stmt, 1, $"save{i}");
                 raw.sqlite3_step(stmt);
                 raw.sqlite3_finalize(stmt);
             }
         }
     }
 
-    public List<string> getAllLevels()
-    {
-        List<string> levelNames = new List<string>();
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT name FROM levels;";
-            var stmt = PrepareStatement(db, sql);
-            while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-            {
-                string levelName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
-                levelNames.Add(levelName);
-            }
-            raw.sqlite3_finalize(stmt);
-        }
-        return levelNames;
-    }
-
-    public List<string> getAllPlayers()
+    public List<string> getAllSaves()
     {
         List<string> playerNames = new List<string>();
         using (var db = OpenConnection())
         {
-            string sql = "SELECT name FROM people;";
+            string sql = "SELECT name FROM saves;";
             var stmt = PrepareStatement(db, sql);
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
@@ -283,40 +232,6 @@ public class PeopleDatabase
 
     // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
 
-    public void insertShop()
-    {
-        string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\");
-        long size = FolderSizeHelper.GetPngFolderSize(folderPath);
-        _ = FolderSizeHelper.FormatBytes(size);
-        using (var db = OpenConnection())
-        {
-            foreach (string filePath in Directory.GetFiles(folderPath))
-            {
-                // only one character in the game
-                if (!filePath.Contains("Character"))
-                {
-                    string sql = "INSERT INTO shop (item_name, bought, texture_config) VALUES (?, ?, ?);";
-                    var stmt = PrepareStatement(db, sql);
-                    raw.sqlite3_bind_text(stmt, 1, filePath.Split('.')[0]);
-                    raw.sqlite3_bind_int(stmt, 2, 0); // Not bought
-                    raw.sqlite3_bind_text(stmt, 3, filePath);
-                    raw.sqlite3_step(stmt);
-                    raw.sqlite3_finalize(stmt);
-                }
-            }
-            // update for a default items
-            string[] defaultItems = { "Crate_Blue.png", "CrateDark_Blue.png", "EndPoint_Purple.png", "Wall_Black.png" };
-            foreach (var item in defaultItems)
-            {
-                string sql = "UPDATE shop SET bought = 1 WHERE item_name = ?;";
-                var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, item);
-                raw.sqlite3_step(stmt);
-                raw.sqlite3_finalize(stmt);
-            }
-        }
-    }
-
     public int[,] getLevel(string level)
     {
         Console.WriteLine($"Retrieving level: {level}");
@@ -326,10 +241,10 @@ public class PeopleDatabase
             string sql = "SELECT levels_data FROM levels WHERE name = ?;";
             var stmt = PrepareStatement(db, sql);
             raw.sqlite3_bind_text(stmt, 1, level);
-            Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)} == raw.SQLITE_ROW {raw.SQLITE_ROW}");
+            //Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)} == raw.SQLITE_ROW {raw.SQLITE_ROW}");
             if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
-                Console.WriteLine($"in if raw.sqlite3_step(stmt) == raw.SQLITE_ROW");
+                //Console.WriteLine($"in if raw.sqlite3_step(stmt) == raw.SQLITE_ROW");
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
@@ -358,24 +273,35 @@ public class PeopleDatabase
     }
 
     //Ai generated 
-    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(string playerName)
+    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId, string level)
     {
-        var results = new List<(string, double, int)>();
+        List<(string LevelName, double Time, int Steps)> results = new List<(string LevelName, double Time, int Steps)>();
         using (var db = OpenConnection())
         {
             string sql = @"
-            SELECT l.name, pl.time, pl.steps
-            FROM player_levels pl
-            JOIN people p ON pl.player_id = p.id
-            JOIN levels l ON pl.level_id = l.id
-            WHERE p.name = ?;";
+            SELECT name, best_time, best_steps_count
+            FROM Levels
+            WHERE save_id = @saveId AND name = @levelName;";
+
             var stmt = PrepareStatement(db, sql);
-            raw.sqlite3_bind_text(stmt, 1, playerName);
+
+            // Bind parameters
+            raw.sqlite3_bind_int(stmt, 1, saveId);         // Bind @saveId
+            raw.sqlite3_bind_text(stmt, 2, level);      // Bind @levelName
+
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
+                // Read columns (now in correct order: name, best_time, best_steps_count)
                 string levelName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
-                double time = raw.sqlite3_column_double(stmt, 1);
-                int steps = raw.sqlite3_column_int(stmt, 2);
+
+                double time = (raw.sqlite3_column_type(stmt, 1) != raw.SQLITE_NULL)
+                    ? raw.sqlite3_column_double(stmt, 1)
+                    : 0.0;
+
+                int steps = (raw.sqlite3_column_type(stmt, 2) != raw.SQLITE_NULL)
+                    ? raw.sqlite3_column_int(stmt, 2)
+                    : 0;
+
                 results.Add((levelName, time, steps));
             }
             raw.sqlite3_finalize(stmt);
@@ -383,7 +309,7 @@ public class PeopleDatabase
         return results;
     }
 
-    public void SetLevelTimeAndSteps(string playerName, string levelName, double time, int steps)
+    public void SetLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
     {
         using (var db = OpenConnection())
         {
@@ -392,32 +318,45 @@ public class PeopleDatabase
 
             try
             {
-                // Get player ID
-                int playerId = GetPlayerId(playerName);
-                if (playerId == -1) throw new Exception($"Player '{playerName}' not found");
+                // Parameters: (int saveId, string levelName, double time, int steps)
+                // 1. Update existing level record
+                string updateSql = @"
+                UPDATE Levels
+                SET best_time = ?,
+                    best_steps_count = ?
+                WHERE save_id = ? AND name = ?;";
 
-                // Get level ID
-                int levelId = GetLevelId(levelName);
-                if (levelId == -1) throw new Exception($"Level '{levelName}' not found");
+                var updateStmt = PrepareStatement(db, updateSql);
+                raw.sqlite3_bind_double(updateStmt, 1, time);
+                raw.sqlite3_bind_int(updateStmt, 2, steps);
+                raw.sqlite3_bind_int(updateStmt, 3, saveId);
+                raw.sqlite3_bind_text(updateStmt, 4, levelName);
 
-                // Insert/update player_levels record
-                string upsertSql = @"
-                INSERT INTO player_levels (player_id, level_id, time, steps)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(player_id, level_id) DO UPDATE SET
-                    time = excluded.time,
-                    steps = excluded.steps;";
-
-                var stmt = PrepareStatement(db, upsertSql);
-                raw.sqlite3_bind_int(stmt, 1, playerId);
-                raw.sqlite3_bind_int(stmt, 2, levelId);
-                raw.sqlite3_bind_double(stmt, 3, time);
-                raw.sqlite3_bind_int(stmt, 4, steps);
-
-                if (raw.sqlite3_step(stmt) != raw.SQLITE_DONE)
+                if (raw.sqlite3_step(updateStmt) != raw.SQLITE_DONE)
                     throw new Exception("Failed to update level stats");
 
-                raw.sqlite3_finalize(stmt);
+                int changes = raw.sqlite3_changes(db);
+                raw.sqlite3_finalize(updateStmt);
+
+                // 2. Insert new record if no existing record was updated
+                if (changes == 0)
+                {
+                    string insertSql = @"
+                    INSERT INTO Levels (save_id, name, best_time, best_steps_count)
+                    VALUES (?, ?, ?, ?);";
+
+                    var insertStmt = PrepareStatement(db, insertSql);
+                    raw.sqlite3_bind_int(insertStmt, 1, saveId);
+                    raw.sqlite3_bind_text(insertStmt, 2, levelName);
+                    raw.sqlite3_bind_double(insertStmt, 3, time);
+                    raw.sqlite3_bind_int(insertStmt, 4, steps);
+
+                    if (raw.sqlite3_step(insertStmt) != raw.SQLITE_DONE)
+                        throw new Exception("Failed to insert level stats");
+
+                    raw.sqlite3_finalize(insertStmt);
+                }
+
                 raw.sqlite3_exec(db, "COMMIT;", null, IntPtr.Zero, out _);
             }
             catch
@@ -426,6 +365,7 @@ public class PeopleDatabase
                 throw;
             }
         }
+
     }
 
     // Helper: Get player ID by name
