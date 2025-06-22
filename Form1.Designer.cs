@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using static System.Windows.Forms.AxHost;
 using System.Numerics;
 using System.Diagnostics;
+using System.Collections.Generic;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -34,6 +35,8 @@ namespace czu_sokoban
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
         public Color btnColor = Color.LightSkyBlue;
@@ -72,7 +75,7 @@ namespace czu_sokoban
             this.Location = new Point(0, 0);
             this.WindowState = FormWindowState.Maximized;
             this.ShowPanel(homePanel);
-            Console.WriteLine($"screenSize: {screenW}x{screenH}");
+            //Console.WriteLine($"screenSize: {screenW}x{screenH}");
         }
 
         // adding global button to return to home to all panels except homePanel;
@@ -98,6 +101,7 @@ namespace czu_sokoban
             {
                 backToMenu.Size = new Size(400, 100);
                 backToMenu.Location = new Point(screenW / 2 - backToMenu.Width / 2, 2 * screenH / 3 - backToMenu.Height / 2);
+                backToMenu.Click += (s, e) => InitializeLevelsScreen();
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
                 backToMenu.Click += (s, e) => this.resetVars();
                 backToMenu.Text = "Back To Levels";
@@ -171,7 +175,7 @@ namespace czu_sokoban
 
             // Add controls to panels (// Home, Levels, Level, Endlevel, profile, shop)
             InitializeHomeScreen();
-            InitializeLevelsScreen();
+            //InitializeLevelsScreen();
             //InitializeLevelScreen();
             //InitializeEndLevelScreen();
             InitializeProfileScreen();
@@ -203,6 +207,7 @@ namespace czu_sokoban
                 Location = new Point(centerX, startY),
                 BackColor = Color.LightGreen
             };
+            btnPlay.Click += (s, e) => InitializeLevelsScreen();
             btnPlay.Click += (s, e) => ShowPanel(levelsPanel);
 
             // Profile Button
@@ -284,15 +289,26 @@ namespace czu_sokoban
 
         private void InitializeLevelsScreen()
         {
+            if (label6 != null && label7 != null)
+            {
+                levelsPanel.Controls.Remove(label6);
+                levelsPanel.Controls.Remove(label7);
+            }
+
             int numLevels = 10;
             Size btnSize = new Size(screenW / 8, screenH / 8);
             int spacing = screenH / 8;
             int startX = screenH / 7;
             int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
-            //this.getPbs = new int[numLevels];
 
             for (int i = 0; i < numLevels; i++)
             {
+
+                List<(string LevelName, double Time, int Steps)> arr = database.GetLevelTimesAndStepsByPlayer(1, $"level{i + 1}");
+                Console.WriteLine($"Loading level {i + 1} time: {arr[0].Time}, steps: {arr[0].Steps}");
+                var stepPb = arr[0].Steps;
+                var timePb = arr[0].Time;
+
                 int row = i < 5 ? 0 : 1; // First 5 buttons in row 0, next 5 in row 1
                 int col = i % 5 + 1;     // Columns: 1 to 5 in each row
 
@@ -309,31 +325,36 @@ namespace czu_sokoban
                 Color foreColor = Color.Black;
                 Boolean labelAutoSize = true;
 
-                System.Windows.Forms.Label levelLabel = new System.Windows.Forms.Label
+                label6 = new System.Windows.Forms.Label
                 {
-                    Text = $"Best step count: 0", //{stepPb}",
+                    Text = $"Best step count: {stepPb}",
                     Font = labelFont,
                     ForeColor = foreColor,
                     AutoSize = labelAutoSize,
                 };
-                levelLabel.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height);
+                label6.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height);
 
-                System.Windows.Forms.Label levelLabel2 = new System.Windows.Forms.Label
+                label7 = new System.Windows.Forms.Label
                 {
-                    Text = $"Best time: 0.00", //{timePb}",
+                    Text = $"Best time: {timePb}",
                     Font = labelFont,
                     ForeColor = foreColor,
                     AutoSize = labelAutoSize,
                 };
-                levelLabel2.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height + levelLabel.Height);
+                label7.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height + label6.Height);
 
                 string levelName = $"level{i + 1}";
                 levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
                 levelBtn.Click += (s, e) => ShowPanel(levelPanel);
 
-                levelsPanel.Controls.Add(levelLabel);
-                levelsPanel.Controls.Add(levelLabel2);
+
+                levelsPanel.Controls.Add(label6);
+                levelsPanel.Controls.Add(label7);
                 levelsPanel.Controls.Add(levelBtn);
+
+                stepPb = 0;
+                timePb = 0; 
+                arr = null; 
             }
 
             this.Controls.Add(levelsPanel);
@@ -400,7 +421,7 @@ namespace czu_sokoban
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
-            Console.WriteLine($"Preparing level: {mapName} with data: {arr.GetLength(0)}x{arr.GetLength(1)}");
+            //Console.WriteLine($"Preparing level: {mapName} with data: {arr.GetLength(0)}x{arr.GetLength(1)}");
             // depends on level create objs
             maps.addObjToList(arr, arr.GetLength(0));
             // make them able to move
@@ -586,6 +607,7 @@ namespace czu_sokoban
 
                     //int saveId, string levelName, double time, int steps
                     database.SetLevelTimeAndSteps(1, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                    Console.WriteLine($"Inserting to db: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds:F3}, steps: {stepsCount}");
                     //string levelName, double time, int stepsCount
                     InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
                     this.resetVars();
@@ -603,10 +625,6 @@ namespace czu_sokoban
             stopwatch.Reset();
             
         }
-        // based on name get pbs from levels db
-        private void getPbs(string name)
-        {
-
-        } 
+         
     }
 }

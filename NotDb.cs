@@ -306,6 +306,7 @@ public class PeopleDatabase
             }
             raw.sqlite3_finalize(stmt);
         }
+        //Console.WriteLine($"Retrieved {results.Count} level records for save_id {saveId}, level {level}.");
         return results;
     }
 
@@ -358,10 +359,12 @@ public class PeopleDatabase
                 }
 
                 raw.sqlite3_exec(db, "COMMIT;", null, IntPtr.Zero, out _);
+                Console.WriteLine($"Level stats updated for save_id {saveId}, level {levelName}: time={time}, steps={steps}.");
             }
             catch
             {
                 raw.sqlite3_exec(db, "ROLLBACK;", null, IntPtr.Zero, out _);
+                Console.WriteLine("Transaction failed, rolled back changes.");
                 throw;
             }
         }
