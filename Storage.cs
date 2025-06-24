@@ -16,7 +16,7 @@ public class Storage
     public const int gridSize = 8;
     public static int leftMargin = screenWidth / 2 - (gridSize * size) / 2;
     public static int topMargin = screenHeight / 2 - (gridSize * size) / 2;
-    
+
     public const int gridSize2 = 10;
     //public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
     //public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;

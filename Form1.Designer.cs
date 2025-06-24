@@ -43,7 +43,8 @@ namespace czu_sokoban
         public int stepsCount = 0;
         Stopwatch stopwatch = new Stopwatch();
         public string currLevelName = "";
-
+        public int currSave = 1;
+        private List<Button> saveButtons = new List<Button>();
 
         #region Windows Form Designer generated code
         private void InitializeComponent()
@@ -95,7 +96,7 @@ namespace czu_sokoban
             {
                 backToMenu.Text = "Levels";
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
-                backToMenu.Click += (s, e) => this.resetVars();
+                //backToMenu.Click += (s, e) => this.resetVars();
             }
             else if (targetPanel == endLevelPanel)
             {
@@ -178,8 +179,9 @@ namespace czu_sokoban
             //InitializeLevelsScreen();
             //InitializeLevelScreen();
             //InitializeEndLevelScreen();
-            InitializeProfileScreen();
+            //InitializeProfileScreen();
             InitializeShopScreen();
+            InitializeLabels();
 
             AddHeaderToPanel(homePanel);
             AddHeaderToPanel(levelPanel);
@@ -219,6 +221,7 @@ namespace czu_sokoban
                 Location = new Point(centerX, 2 * startY),
                 BackColor = Color.LightSkyBlue
             };
+            btnProfile.Click += (s, e) => InitializeProfileScreen();
             btnProfile.Click += (s, e) => ShowPanel(profilePanel);
 
             // Shop Button
@@ -304,10 +307,18 @@ namespace czu_sokoban
             for (int i = 0; i < numLevels; i++)
             {
 
-                List<(string LevelName, double Time, int Steps)> arr = database.GetLevelTimesAndStepsByPlayer(1, $"level{i + 1}");
-                Console.WriteLine($"Loading level {i + 1} time: {arr[0].Time}, steps: {arr[0].Steps}");
-                var stepPb = arr[0].Steps;
-                var timePb = arr[0].Time;
+                var results = database.GetLevelTimesAndStepsByPlayer(1, $"level{i + 1}");
+                if (results.Count > 0)
+                {
+                    var data = results[0];
+                    Console.WriteLine($"Loading level {i + 1}, data: LevelName={data.LevelName}, Time={data.Time}, Steps={data.Steps}");
+                }
+                else
+                {
+                    Console.WriteLine($"Loading level {i + 1}, data: No data found.");
+                }
+                var stepPb = results;
+                var timePb = results;
 
                 int row = i < 5 ? 0 : 1; // First 5 buttons in row 0, next 5 in row 1
                 int col = i % 5 + 1;     // Columns: 1 to 5 in each row
@@ -333,6 +344,7 @@ namespace czu_sokoban
                     AutoSize = labelAutoSize,
                 };
                 label6.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height);
+                levelsPanel.Controls.Add(label6);
 
                 label7 = new System.Windows.Forms.Label
                 {
@@ -342,19 +354,18 @@ namespace czu_sokoban
                     AutoSize = labelAutoSize,
                 };
                 label7.Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height + label6.Height);
+                levelsPanel.Controls.Add(label7);
 
                 string levelName = $"level{i + 1}";
                 levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
                 levelBtn.Click += (s, e) => ShowPanel(levelPanel);
 
 
-                levelsPanel.Controls.Add(label6);
-                levelsPanel.Controls.Add(label7);
                 levelsPanel.Controls.Add(levelBtn);
 
-                stepPb = 0;
-                timePb = 0; 
-                arr = null; 
+                //stepPb = 0;
+                //timePb = 0; 
+                results = null; 
             }
 
             this.Controls.Add(levelsPanel);
@@ -368,55 +379,84 @@ namespace czu_sokoban
             this.prepareLevel(level);
 
         }
-        private void InitializeEndLevelScreen(string levelName, double time, int stepsCount)
-        {
-            if (label3 != null && label4 != null && label5 != null)
-            {
-                endLevelPanel.Controls.Remove(label3);
-                endLevelPanel.Controls.Remove(label4);
-                endLevelPanel.Controls.Remove(label5);
-            }
 
+        private void InitializeLabels()
+        {
             label3 = new System.Windows.Forms.Label
             {
                 AutoSize = true,
-                Text = $"Finální počet kroků: {stepsCount}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.Black
             };
             endLevelPanel.Controls.Add(label3);
-            label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 +  2 * label3.Height);
 
             label4 = new System.Windows.Forms.Label
             {
                 AutoSize = true,
-                Text = $"Výsledný čas: {time}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.Black
             };
             endLevelPanel.Controls.Add(label4);
-            label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
 
             label5 = new System.Windows.Forms.Label
             {
                 AutoSize = true,
-                Text = $"Gratulace za dokončení {levelName}",
                 Font = new Font("Segoe UI", 42, FontStyle.Bold),
                 ForeColor = Color.Black
             };
             endLevelPanel.Controls.Add(label5);
-            label5.Location = new Point((screenW - label5.Width) / 2, screenH / 5);
+        }
+        private void InitializeEndLevelScreen(string levelName, double time, int stepsCount)
+        {
+            // Update label texts
+            label3.Text = $"Finální počet kroků: {stepsCount}";
+            label4.Text = $"Výsledný čas: {time}";
+            label5.Text = $"Gratulace za dokončení {levelName}";
 
+            // Recalculate positions after text update (Width changes)
+            label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 + 2 * label3.Height);
+            label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
+            label5.Location = new Point((screenW - label5.Width) / 2, screenH / 5);
         }
         private void InitializeProfileScreen()
         {
+            for (var i = 0; i < 3; i++) 
+            {
+                int saveId = i + 1;
+                Console.WriteLine($"Adding level button {saveId} to profile panel");
+                Button profileBtn = new Button
+                {
+                    Text = $"Save{saveId}",
+                    Font = btnFont,
+                    Size = new Size(screenW / 5, screenH / 6),
+                    BackColor = btnColor,
+                    Tag = saveId
+                };
 
+                profileBtn.Location = new Point((saveId) * screenW / 4 - profileBtn.Width / 2, screenH / 2 - profileBtn.Height / 2);
+                profileBtn.Click += (s, e) => currSave = saveId;
+                profileBtn.Click += (s, e) => UpdateButtonColors();
+                profileBtn.Click += (s, e) => Console.WriteLine($"Current save set to: {currSave}");
+
+                profilePanel.Controls.Add(profileBtn);
+            }
         }
+        private void UpdateButtonColors()
+        {
+            foreach (Button btn in saveButtons)
+            {
+                Console.WriteLine($"Updating button color for save ID: {btn.Tag}");
+                int buttonSaveId = (int)btn.Tag;
+                btn.BackColor = (buttonSaveId == currSave)
+                    ? Color.LightGreen
+                    : btnColor;
+            }
+        }
+
         private void InitializeShopScreen()
         {
 
         }
-
         private void prepareLevel(string mapName)
         {
             // get level data from db
@@ -606,11 +646,11 @@ namespace czu_sokoban
                     ShowPanel(endLevelPanel);
 
                     //int saveId, string levelName, double time, int steps
-                    database.SetLevelTimeAndSteps(1, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                    database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
                     Console.WriteLine($"Inserting to db: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds:F3}, steps: {stepsCount}");
                     //string levelName, double time, int stepsCount
                     InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
-                    this.resetVars();
+                    //this.resetVars();
                 }
 
                 label1.Text = $"Počet kroků: {stepsCount}";

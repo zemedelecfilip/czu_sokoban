@@ -35,6 +35,7 @@ public class PeopleDatabase
     public PeopleDatabase()
     {
         Batteries_V2.Init();
+        //dropTables();
         CreateTables();
         insertGrids();
         //printArr(MapGrid1);
@@ -278,20 +279,20 @@ public class PeopleDatabase
         List<(string LevelName, double Time, int Steps)> results = new List<(string LevelName, double Time, int Steps)>();
         using (var db = OpenConnection())
         {
+            // Fixed SQL: Use positional parameters (?) instead of named parameters
             string sql = @"
             SELECT name, best_time, best_steps_count
             FROM Levels
-            WHERE save_id = @saveId AND name = @levelName;";
+            WHERE save_id = ? AND name = ?;";
 
             var stmt = PrepareStatement(db, sql);
 
-            // Bind parameters
-            raw.sqlite3_bind_int(stmt, 1, saveId);         // Bind @saveId
-            raw.sqlite3_bind_text(stmt, 2, level);      // Bind @levelName
+            // Correct parameter binding order
+            raw.sqlite3_bind_int(stmt, 1, saveId);
+            raw.sqlite3_bind_text(stmt, 2, level);
 
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
-                // Read columns (now in correct order: name, best_time, best_steps_count)
                 string levelName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
 
                 double time = (raw.sqlite3_column_type(stmt, 1) != raw.SQLITE_NULL)
@@ -306,7 +307,6 @@ public class PeopleDatabase
             }
             raw.sqlite3_finalize(stmt);
         }
-        //Console.WriteLine($"Retrieved {results.Count} level records for save_id {saveId}, level {level}.");
         return results;
     }
 
@@ -314,61 +314,35 @@ public class PeopleDatabase
     {
         using (var db = OpenConnection())
         {
-            // Start transaction
             raw.sqlite3_exec(db, "BEGIN TRANSACTION;", null, IntPtr.Zero, out _);
-
             try
             {
-                // Parameters: (int saveId, string levelName, double time, int steps)
-                // 1. Update existing level record
-                string updateSql = @"
-                UPDATE Levels
-                SET best_time = ?,
-                    best_steps_count = ?
-                WHERE save_id = ? AND name = ?;";
+                // UPSERT operation ensures single record
+                string upsertSql = @"
+                INSERT INTO Levels (save_id, name, best_time, best_steps_count)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(save_id, name) DO UPDATE SET
+                    best_time = excluded.best_time,
+                    best_steps_count = excluded.best_steps_count;";
 
-                var updateStmt = PrepareStatement(db, updateSql);
-                raw.sqlite3_bind_double(updateStmt, 1, time);
-                raw.sqlite3_bind_int(updateStmt, 2, steps);
-                raw.sqlite3_bind_int(updateStmt, 3, saveId);
-                raw.sqlite3_bind_text(updateStmt, 4, levelName);
+                var stmt = PrepareStatement(db, upsertSql);
+                raw.sqlite3_bind_int(stmt, 1, saveId);
+                raw.sqlite3_bind_text(stmt, 2, levelName);
+                raw.sqlite3_bind_double(stmt, 3, time);
+                raw.sqlite3_bind_int(stmt, 4, steps);
 
-                if (raw.sqlite3_step(updateStmt) != raw.SQLITE_DONE)
-                    throw new Exception("Failed to update level stats");
+                if (raw.sqlite3_step(stmt) != raw.SQLITE_DONE)
+                    throw new Exception("Failed to upsert level stats");
 
-                int changes = raw.sqlite3_changes(db);
-                raw.sqlite3_finalize(updateStmt);
-
-                // 2. Insert new record if no existing record was updated
-                if (changes == 0)
-                {
-                    string insertSql = @"
-                    INSERT INTO Levels (save_id, name, best_time, best_steps_count)
-                    VALUES (?, ?, ?, ?);";
-
-                    var insertStmt = PrepareStatement(db, insertSql);
-                    raw.sqlite3_bind_int(insertStmt, 1, saveId);
-                    raw.sqlite3_bind_text(insertStmt, 2, levelName);
-                    raw.sqlite3_bind_double(insertStmt, 3, time);
-                    raw.sqlite3_bind_int(insertStmt, 4, steps);
-
-                    if (raw.sqlite3_step(insertStmt) != raw.SQLITE_DONE)
-                        throw new Exception("Failed to insert level stats");
-
-                    raw.sqlite3_finalize(insertStmt);
-                }
-
+                raw.sqlite3_finalize(stmt);
                 raw.sqlite3_exec(db, "COMMIT;", null, IntPtr.Zero, out _);
-                Console.WriteLine($"Level stats updated for save_id {saveId}, level {levelName}: time={time}, steps={steps}.");
             }
             catch
             {
                 raw.sqlite3_exec(db, "ROLLBACK;", null, IntPtr.Zero, out _);
-                Console.WriteLine("Transaction failed, rolled back changes.");
                 throw;
             }
         }
-
     }
 
     // Helper: Get player ID by name
