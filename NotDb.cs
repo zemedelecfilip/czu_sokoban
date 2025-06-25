@@ -89,8 +89,8 @@ public class PeopleDatabase
                 level_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 save_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
-                best_time INTEGER,
-                best_steps_count INTEGER,
+                best_time INTEGER default 0,
+                best_steps_count INTEGER default 0,
                 levels_data TEXT NOT NULL,
                 FOREIGN KEY (save_id) REFERENCES Saves(save_id)
             );";
@@ -98,6 +98,7 @@ public class PeopleDatabase
 
             raw.sqlite3_exec(db, savesTableSql, null, IntPtr.Zero, out _);
             raw.sqlite3_exec(db, levelsTableSql, null, IntPtr.Zero, out _);
+            Console.WriteLine("Tables created successfully.");
         }
     }
 
@@ -172,7 +173,7 @@ public class PeopleDatabase
     {
         using (var db = OpenConnection())
         {
-            for (var i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
             {
                 int levelCount = 1;
                 foreach (var level in levels)
@@ -184,10 +185,10 @@ public class PeopleDatabase
                     var stmt = PrepareStatement(db, sql);
 
                     // Correct parameter binding order:
-                    raw.sqlite3_bind_text(stmt, 1, $"{i}");
+                    raw.sqlite3_bind_int(stmt, 1, i + 1);
                     raw.sqlite3_bind_text(stmt, 2, $"level{levelCount}");
-                    raw.sqlite3_bind_text(stmt, 3, $"{0}");
-                    raw.sqlite3_bind_text(stmt, 4, $"{0}");
+                    raw.sqlite3_bind_double(stmt, 3, 0.0);
+                    raw.sqlite3_bind_int(stmt, 4, 0);
                     raw.sqlite3_bind_text(stmt, 5, serialized);
 
                     raw.sqlite3_step(stmt);
@@ -212,6 +213,7 @@ public class PeopleDatabase
                 raw.sqlite3_finalize(stmt);
             }
         }
+        Console.WriteLine("Saves inserted successfully.");
     }
 
     public List<string> getAllSaves()
@@ -314,68 +316,27 @@ public class PeopleDatabase
     {
         using (var db = OpenConnection())
         {
-            raw.sqlite3_exec(db, "BEGIN TRANSACTION;", null, IntPtr.Zero, out _);
-            try
-            {
-                // UPSERT operation ensures single record
-                string upsertSql = @"
-                INSERT INTO Levels (save_id, name, best_time, best_steps_count)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(save_id, name) DO UPDATE SET
-                    best_time = excluded.best_time,
-                    best_steps_count = excluded.best_steps_count;";
+            string updateSql = @"
+            UPDATE Levels
+            SET best_time = ?, best_steps_count = ?
+            WHERE save_id = ? AND name = ?;";
 
-                var stmt = PrepareStatement(db, upsertSql);
-                raw.sqlite3_bind_int(stmt, 1, saveId);
-                raw.sqlite3_bind_text(stmt, 2, levelName);
-                raw.sqlite3_bind_double(stmt, 3, time);
-                raw.sqlite3_bind_int(stmt, 4, steps);
+            var stmt = PrepareStatement(db, updateSql);
 
-                if (raw.sqlite3_step(stmt) != raw.SQLITE_DONE)
-                    throw new Exception("Failed to upsert level stats");
+            // Correct parameter binding order:
+            raw.sqlite3_bind_double(stmt, 1, time);        // best_time
+            raw.sqlite3_bind_int(stmt, 2, steps);          // best_steps_count
+            raw.sqlite3_bind_int(stmt, 3, saveId);         // save_id
+            raw.sqlite3_bind_text(stmt, 4, levelName);     // name
 
-                raw.sqlite3_finalize(stmt);
-                raw.sqlite3_exec(db, "COMMIT;", null, IntPtr.Zero, out _);
-            }
-            catch
-            {
-                raw.sqlite3_exec(db, "ROLLBACK;", null, IntPtr.Zero, out _);
-                throw;
-            }
-        }
-    }
 
-    // Helper: Get player ID by name
-    private int GetPlayerId(string name)
-    {
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT id FROM people WHERE name = ?;";
-            var stmt = PrepareStatement(db, sql);
-            raw.sqlite3_bind_text(stmt, 1, name);
-            int id = -1;
-            if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-                id = raw.sqlite3_column_int(stmt, 0);
             raw.sqlite3_finalize(stmt);
-            return id;
         }
     }
 
-    // Helper: Get level ID by name
-    private int GetLevelId(string name)
-    {
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT id FROM levels WHERE name = ?;";
-            var stmt = PrepareStatement(db, sql);
-            raw.sqlite3_bind_text(stmt, 1, name);
-            int id = -1;
-            if (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-                id = raw.sqlite3_column_int(stmt, 0);
-            raw.sqlite3_finalize(stmt);
-            return id;
-        }
-    }
+
+
+
     // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid1 = new int[Height, Width]
     {
@@ -417,11 +378,11 @@ public class PeopleDatabase
     public int[,] MapGrid4 = new int[Height2, Width2]
     {
         {2, 1, 1, 2, 1, 1, 1, 1, 1, 1},
-        {1, 1, 6, 1, 1, 1, 1, 1, 1, 1},
-        {1, 6, 1, 1, 1, 6, 5, 6, 1, 1},
-        {2, 1, 1, 1, 6, 4, 5, 6, 1, 1},
-        {1, 1, 1, 6, 4, 6, 6, 6, 1, 1},
-        {1, 1, 6, 4, 3, 6, 1, 1, 1, 1},
+        {1, 1, 6, 1, 1, 6, 1, 1, 1, 1},
+        {1, 6, 1, 1, 6, 6, 5, 6, 1, 1},
+        {2, 1, 1, 6, 6, 4, 5, 6, 1, 1},
+        {1, 1, 6, 6, 4, 6, 6, 6, 1, 1},
+        {1, 6, 6, 4, 3, 6, 1, 1, 1, 1},
         {1, 6, 4, 6, 6, 1, 1, 2, 2, 1},
         {1, 5, 5, 6, 1, 1, 6, 1, 1, 1},
         {1, 6, 6, 6, 1, 2, 1, 1, 2, 1},
@@ -512,34 +473,3 @@ public class PeopleDatabase
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
 }
-
-    public class FolderSizeHelper
-    {
-        public static long GetPngFolderSize(string folderPath)
-        {
-            if (!Directory.Exists(folderPath))
-                throw new DirectoryNotFoundException($"Directory not found: {folderPath}");
-
-            // Get all .png files in the folder (non-recursive)
-            var files = Directory.GetFiles(folderPath, "*.png");
-
-            // Sum their sizes
-            long totalBytes = files.Sum(file => new FileInfo(file).Length);
-
-            return totalBytes;
-        }
-
-        // Optional: Format bytes as MB, KB, etc.
-        public static string FormatBytes(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            double len = bytes;
-            int order = 0;
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len = len / 1024;
-            }
-            return $"{len:0.##} {sizes[order]}";
-        }
-    }

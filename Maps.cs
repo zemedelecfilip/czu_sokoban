@@ -17,6 +17,8 @@ public class Maps
     public const int Height = Storage.gridSize;
     public static int leftMargin = Storage.leftMargin;
     public static int topMargin = Storage.topMargin;
+    public static int leftMargin2 = Storage.leftMargin;
+    public static int topMargin2 = Storage.topMargin;
     public int screenWidth = Storage.screenWidth;
     public int screenHeight = Storage.screenHeight;
 
@@ -133,7 +135,17 @@ public class Maps
         textures.Clear();
         player = null;
 
-        Console.WriteLine("arrSize: " + arrSize);
+        if (arrSize == 10)
+        {
+            topMargin = Storage.topMargin2;
+            leftMargin = Storage.leftMargin2;
+        }
+        else
+        {
+
+        }
+
+            Console.WriteLine("arrSize: " + arrSize);
 
 
         for (int i = 0; i < arrSize; i++)
