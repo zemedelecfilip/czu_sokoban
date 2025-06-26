@@ -89,8 +89,8 @@ public class PeopleDatabase
                 level_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 save_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
-                best_time INTEGER default 0,
-                best_steps_count INTEGER default 0,
+                best_time REAL not null,
+                best_steps_count INTEGER not null,
                 levels_data TEXT NOT NULL,
                 FOREIGN KEY (save_id) REFERENCES Saves(save_id)
             );";
@@ -276,34 +276,24 @@ public class PeopleDatabase
     }
 
     //Ai generated 
-    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId, string level)
+    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId)
     {
-        List<(string LevelName, double Time, int Steps)> results = new List<(string LevelName, double Time, int Steps)>();
+        var results = new List<(string LevelName, double Time, int Steps)>();
         using (var db = OpenConnection())
         {
-            // Fixed SQL: Use positional parameters (?) instead of named parameters
             string sql = @"
             SELECT name, best_time, best_steps_count
             FROM Levels
-            WHERE save_id = ? AND name = ?;";
+            WHERE save_id = ?;";
 
             var stmt = PrepareStatement(db, sql);
-
-            // Correct parameter binding order
             raw.sqlite3_bind_int(stmt, 1, saveId);
-            raw.sqlite3_bind_text(stmt, 2, level);
 
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
                 string levelName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
-
-                double time = (raw.sqlite3_column_type(stmt, 1) != raw.SQLITE_NULL)
-                    ? raw.sqlite3_column_double(stmt, 1)
-                    : 0.0;
-
-                int steps = (raw.sqlite3_column_type(stmt, 2) != raw.SQLITE_NULL)
-                    ? raw.sqlite3_column_int(stmt, 2)
-                    : 0;
+                double time = raw.sqlite3_column_double(stmt, 1);
+                int steps = raw.sqlite3_column_int(stmt, 2);
 
                 results.Add((levelName, time, steps));
             }
@@ -314,6 +304,7 @@ public class PeopleDatabase
 
     public void SetLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
     {
+        Console.WriteLine($"Setting time {time} and steps {steps} for level {levelName} in save {saveId}");
         using (var db = OpenConnection())
         {
             string updateSql = @"
@@ -323,16 +314,34 @@ public class PeopleDatabase
 
             var stmt = PrepareStatement(db, updateSql);
 
-            // Correct parameter binding order:
-            raw.sqlite3_bind_double(stmt, 1, time);        // best_time
-            raw.sqlite3_bind_int(stmt, 2, steps);          // best_steps_count
-            raw.sqlite3_bind_int(stmt, 3, saveId);         // save_id
-            raw.sqlite3_bind_text(stmt, 4, levelName);     // name
+            // Bind parameters
+            raw.sqlite3_bind_double(stmt, 1, time);
+            raw.sqlite3_bind_int(stmt, 2, steps);
+            raw.sqlite3_bind_int(stmt, 3, saveId);
+            raw.sqlite3_bind_text(stmt, 4, levelName);
 
+            // Execute and check result
+            var result = raw.sqlite3_step(stmt);
+            if (result != raw.SQLITE_DONE)
+            {
+                // Get detailed error message
+                string errMsg = raw.sqlite3_errmsg(db).utf8_to_string();
+                Console.WriteLine(errMsg);
+                //throw new Exception($"SQL error ({result}): {errMsg}");
+            }
+
+            // Check if any rows were updated
+            int changes = raw.sqlite3_changes(db);
+            if (changes == 0)
+            {
+                Console.WriteLine($"Warning: No records updated for save_id={saveId}, level={levelName}");
+            }
 
             raw.sqlite3_finalize(stmt);
+            
         }
     }
+
 
 
 

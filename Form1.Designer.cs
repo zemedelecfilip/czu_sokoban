@@ -302,11 +302,17 @@ namespace czu_sokoban
             int startX = screenH / 7;
             int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
 
+            var results = database.GetLevelTimesAndStepsByPlayer(currSave);
+            foreach (var stat in results)
+            {
+                Console.WriteLine($"Level: {stat.LevelName}, Time: {stat.Time}, Steps: {stat.Steps}");
+            }
+
+
             for (int i = 0; i < numLevels; i++)
             {
+                Console.WriteLine($"Results for level {i + 1}: for save ID {currSave}, data {results[i]}");
                 // Use the current save/profile
-                var results = database.GetLevelTimesAndStepsByPlayer(currSave, $"level{i + 1}");
-                Console.WriteLine($"Results for level {i + 1}: {results.Count} entries found for save ID {currSave}, data {results[0]}");
                 int stepPb = 0;
                 double timePb = 0.0;
                 if (results.Count > 0)
@@ -638,9 +644,7 @@ namespace czu_sokoban
 
                     //int saveId, string levelName, double time, int steps
                     database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
-                    Console.WriteLine($"Inserting to db: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds:F3}, steps: {stepsCount}");
-                    //var debugres = database.GetLevelTimesAndStepsByPlayer(currSave, currLevelName);
-                    //Console.WriteLine($"Debug: {debugres[0].LevelName}, data: {debugres[0]}");
+                    Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount}");
 
                     //string levelName, double time, int stepsCount
                     InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
