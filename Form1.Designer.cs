@@ -640,7 +640,8 @@ namespace czu_sokoban
                     var bestResult = database.GetLevelTimesAndStepsByPlayer(currSave, currLevelName);
 
                     // time is primary
-                    if (bestResult[0].Time < stopwatch.Elapsed.TotalSeconds)
+                    Console.WriteLine($"[checkWin] Best result for level {currLevelName} for save ID {currSave}: {bestResult[0]}, bestTime {stopwatch.Elapsed.TotalSeconds}");
+                    if (bestResult[0].Time > stopwatch.Elapsed.TotalSeconds || bestResult[0].Time == 0.0)
                     {
                         database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
                         Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount}");
