@@ -96,7 +96,7 @@ namespace czu_sokoban
             {
                 backToMenu.Text = "Levels";
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
-                //backToMenu.Click += (s, e) => this.resetVars();
+                backToMenu.Click += (s, e) => this.resetVars();
             }
             else if (targetPanel == endLevelPanel)
             {
@@ -302,24 +302,14 @@ namespace czu_sokoban
             int startX = screenH / 7;
             int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
 
-            var results = database.GetLevelTimesAndStepsByPlayer(currSave);
-            foreach (var stat in results)
-            {
-                Console.WriteLine($"Level: {stat.LevelName}, Time: {stat.Time}, Steps: {stat.Steps}");
-            }
-
 
             for (int i = 0; i < numLevels; i++)
             {
-                Console.WriteLine($"Results for level {i + 1}: for save ID {currSave}, data {results[i]}");
+                var results = database.GetLevelTimesAndStepsByPlayer(currSave, $"level{i+1}");
+                Console.WriteLine($"[InicializeLevelsScreen] level {i + 1}: for save ID {currSave}, data {results[0]}");
                 // Use the current save/profile
-                int stepPb = 0;
-                double timePb = 0.0;
-                if (results.Count > 0)
-                {
-                    stepPb = results[0].Steps;
-                    timePb = results[0].Time;
-                }
+                int stepPb = results[0].Steps;
+                double timePb = results[0].Time;
 
                 int row = i < 5 ? 0 : 1; // First 5 buttons in row 0, next 5 in row 1
                 int col = i % 5 + 1;     // Columns: 1 to 5 in each row
@@ -360,10 +350,14 @@ namespace czu_sokoban
                 labelStep.Text = $"Best step count: {stepPb}";
                 labelTime.Text = $"Best time: {timePb:F3} s"; // Format time to 3 decimal places
                 string levelName = $"level{i + 1}";
+
                 levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
                 levelBtn.Click += (s, e) => ShowPanel(levelPanel);
 
                 levelsPanel.Controls.Add(levelBtn);
+
+                stepPb = 0;
+                timePb = 0;
             }
         }
 
@@ -641,13 +635,23 @@ namespace czu_sokoban
                     stopwatch.Stop();
 
                     ShowPanel(endLevelPanel);
+                    // get curr level best time to compare
 
-                    //int saveId, string levelName, double time, int steps
-                    database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
-                    Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount}");
+                    var bestResult = database.GetLevelTimesAndStepsByPlayer(currSave, currLevelName);
 
-                    //string levelName, double time, int stepsCount
-                    InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                    // time is primary
+                    if (bestResult[0].Time < stopwatch.Elapsed.TotalSeconds)
+                    {
+                        database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                        Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[checkWin] Not inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount} - better time already exists");
+                    }
+
+                        //string levelName, double time, int stepsCount
+                        InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
                     //this.resetVars();
                 }
 
@@ -663,6 +667,5 @@ namespace czu_sokoban
             stopwatch.Reset();
             
         }
-         
     }
 }

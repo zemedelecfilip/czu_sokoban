@@ -27,7 +27,7 @@ public class PeopleDatabase
 
     public const int Width2 = Storage.gridSize2;
     public const int Height2 = Storage.gridSize2;
-    private const string ConnectionString = "file:mydatabase.db";
+    private const string ConnectionString = "Data Source=mydb.db;Pooling=False;";
     public static List<int[,]> levels = new List<int[,]>();
     public static string[] players;
 
@@ -52,6 +52,7 @@ public class PeopleDatabase
             string dropLevelsTableSql = "DROP TABLE IF EXISTS Levels;";
             raw.sqlite3_exec(db, dropSavesTableSql, null, IntPtr.Zero, out _);
             raw.sqlite3_exec(db, dropLevelsTableSql, null, IntPtr.Zero, out _);
+            db.Close();
         }
     }
 
@@ -99,6 +100,7 @@ public class PeopleDatabase
             raw.sqlite3_exec(db, savesTableSql, null, IntPtr.Zero, out _);
             raw.sqlite3_exec(db, levelsTableSql, null, IntPtr.Zero, out _);
             Console.WriteLine("Tables created successfully.");
+            db.Close();
         }
     }
 
@@ -119,6 +121,7 @@ public class PeopleDatabase
                 // Fallback for older versions
                 errorMsg = "Unknown error (sqlite3_errmsg not available)";
             }
+            Console.WriteLine($"SQL prepare error: {errorMsg} (code {rc})");
             throw new Exception($"SQL prepare error: {errorMsg} (code {rc})");
         }
         return stmt;
@@ -127,6 +130,10 @@ public class PeopleDatabase
     private sqlite3 OpenConnection()
     {
         raw.sqlite3_open(ConnectionString, out sqlite3 db);
+        // Set busy timeout to 5 seconds
+        raw.sqlite3_exec(db, "PRAGMA busy_timeout=5000;", null, IntPtr.Zero, out _);
+        // Enable WAL mode for better concurrency
+        raw.sqlite3_exec(db, "PRAGMA journal_mode=WAL;", null, IntPtr.Zero, out _);
         return db;
     }
 
@@ -197,6 +204,7 @@ public class PeopleDatabase
                     levelCount++;
                 }
             }
+            db.Close();
         }
     }
 
@@ -214,23 +222,6 @@ public class PeopleDatabase
             }
         }
         Console.WriteLine("Saves inserted successfully.");
-    }
-
-    public List<string> getAllSaves()
-    {
-        List<string> playerNames = new List<string>();
-        using (var db = OpenConnection())
-        {
-            string sql = "SELECT name FROM saves;";
-            var stmt = PrepareStatement(db, sql);
-            while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
-            {
-                string playerName = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
-                playerNames.Add(playerName);
-            }
-            raw.sqlite3_finalize(stmt);
-        }
-        return playerNames;
     }
 
     // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
@@ -254,6 +245,7 @@ public class PeopleDatabase
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);
+            db.Close();
         }
         return null;
     }
@@ -276,7 +268,7 @@ public class PeopleDatabase
     }
 
     //Ai generated 
-    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId)
+    public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId, string level=null)
     {
         var results = new List<(string LevelName, double Time, int Steps)>();
         using (var db = OpenConnection())
@@ -284,10 +276,11 @@ public class PeopleDatabase
             string sql = @"
             SELECT name, best_time, best_steps_count
             FROM Levels
-            WHERE save_id = ?;";
+            WHERE save_id = ? and name = ?;";
 
             var stmt = PrepareStatement(db, sql);
             raw.sqlite3_bind_int(stmt, 1, saveId);
+            raw.sqlite3_bind_text(stmt, 2, level);
 
             while (raw.sqlite3_step(stmt) == raw.SQLITE_ROW)
             {
@@ -302,49 +295,42 @@ public class PeopleDatabase
         return results;
     }
 
+    private static readonly object _dbLock = new object();
+
     public void SetLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
     {
-        Console.WriteLine($"Setting time {time} and steps {steps} for level {levelName} in save {saveId}");
-        using (var db = OpenConnection())
+        lock (_dbLock)
         {
-            string updateSql = @"
-            UPDATE Levels
-            SET best_time = ?, best_steps_count = ?
-            WHERE save_id = ? AND name = ?;";
-
-            var stmt = PrepareStatement(db, updateSql);
-
-            // Bind parameters
-            raw.sqlite3_bind_double(stmt, 1, time);
-            raw.sqlite3_bind_int(stmt, 2, steps);
-            raw.sqlite3_bind_int(stmt, 3, saveId);
-            raw.sqlite3_bind_text(stmt, 4, levelName);
-
-            // Execute and check result
-            var result = raw.sqlite3_step(stmt);
-            if (result != raw.SQLITE_DONE)
+            using (var db = OpenConnection())
             {
-                // Get detailed error message
-                string errMsg = raw.sqlite3_errmsg(db).utf8_to_string();
-                Console.WriteLine(errMsg);
-                //throw new Exception($"SQL error ({result}): {errMsg}");
-            }
+                string updateSql = @"
+                UPDATE Levels
+                SET best_time = ?, best_steps_count = ?
+                WHERE save_id = ? AND name = ?;";
 
-            // Check if any rows were updated
-            int changes = raw.sqlite3_changes(db);
-            if (changes == 0)
-            {
-                Console.WriteLine($"Warning: No records updated for save_id={saveId}, level={levelName}");
-            }
+                var stmt = PrepareStatement(db, updateSql);
+                raw.sqlite3_bind_double(stmt, 1, time);
+                raw.sqlite3_bind_int(stmt, 2, steps);
+                raw.sqlite3_bind_int(stmt, 3, saveId);
+                raw.sqlite3_bind_text(stmt, 4, levelName);
 
-            raw.sqlite3_finalize(stmt);
-            
+                var result = raw.sqlite3_step(stmt);
+                if (result != raw.SQLITE_DONE)
+                {
+                    string errMsg = raw.sqlite3_errmsg(db).utf8_to_string();
+                    throw new Exception($"SQL error ({result}): {errMsg}");
+                }
+
+                int changes = raw.sqlite3_changes(db);
+                if (changes == 0)
+                {
+                    Console.WriteLine($"Warning: No records updated for save_id={saveId}, level={levelName}");
+                }
+
+                raw.sqlite3_finalize(stmt);
+            }
         }
     }
-
-
-
-
 
     // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid1 = new int[Height, Width]
@@ -358,21 +344,31 @@ public class PeopleDatabase
         {1, 1, 6, 6, 6, 1, 1, 1},
         {2, 1, 1, 1, 1, 1, 1, 1}
     };
-
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid2 = new int[Height, Width]
     {
+        {2, 2, 1, 1, 1, 2, 2, 2},
         {1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 5, 6, 6, 6, 6, 5, 1},
-        {1, 6, 6, 6, 1, 6, 6, 1},
-        {1, 3, 4, 4, 4, 4, 6, 1},
-        {1, 6, 1, 6, 6, 6, 6, 1},
-        {1, 5, 6, 6, 6, 6, 5, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1},
-        {2, 2, 1, 1, 1, 2, 2, 2}
+        {1, 6, 6, 6, 6, 6, 1, 1},
+        {1, 6, 6, 4, 4, 6, 1, 1},
+        {1, 6, 4, 6, 4, 3, 1, 2},
+        {1, 5, 5, 1, 1, 1, 1, 2},
+        {1, 5, 5, 1, 2, 2, 2, 2},
+        {1, 1, 1, 1, 1, 1, 1, 2}
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
-    public int[,] MapGrid3 = new int[Height, Width]
+    public int[,] MapGrid3 = new int[Height2, Width2]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 1, 2, 1, 2, 2, 1, 2, 1, 1},
+        {1, 2, 3, 6, 6, 6, 6, 6, 2, 1},
+        {1, 1, 1, 5, 4, 4, 6, 1, 1, 1},
+        {1, 2, 2, 1, 6, 1, 1, 2, 2, 1},
+        {1, 2, 2, 1, 6, 6, 1, 2, 2, 1},
+        {1, 1, 1, 5, 6, 4, 6, 1, 1, 1},
+        {1, 2, 6, 1, 6, 6, 6, 5, 2, 1},
+        {1, 1, 2, 1, 2, 2, 1, 2, 1, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    public int[,] MapGrid4 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},
         {1, 5, 6, 1, 1, 3, 6, 1},
@@ -383,13 +379,23 @@ public class PeopleDatabase
         {1, 6, 6, 6, 6, 6, 6, 1},
         {1, 1, 1, 1, 1, 1, 1, 1}
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
-    public int[,] MapGrid4 = new int[Height2, Width2]
+    public int[,] MapGrid5 = new int[Height, Width]
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 5, 6, 6, 6, 6, 5, 1},
+        {1, 6, 6, 6, 1, 6, 6, 1},
+        {1, 3, 4, 4, 4, 4, 6, 1},
+        {1, 6, 1, 6, 6, 6, 6, 1},
+        {1, 5, 6, 6, 6, 6, 5, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1},
+        {2, 2, 1, 1, 1, 2, 2, 2}
+    };
+    public int[,] MapGrid6 = new int[Height2, Width2]
     {
         {2, 1, 1, 2, 1, 1, 1, 1, 1, 1},
         {1, 1, 6, 1, 1, 6, 1, 1, 1, 1},
         {1, 6, 1, 1, 6, 6, 5, 6, 1, 1},
-        {2, 1, 1, 6, 6, 4, 5, 6, 1, 1},
+        {2, 1, 1, 1, 6, 4, 5, 6, 1, 1},
         {1, 1, 6, 6, 4, 6, 6, 6, 1, 1},
         {1, 6, 6, 4, 3, 6, 1, 1, 1, 1},
         {1, 6, 4, 6, 6, 1, 1, 2, 2, 1},
@@ -397,63 +403,32 @@ public class PeopleDatabase
         {1, 6, 6, 6, 1, 2, 1, 1, 2, 1},
         {1, 1, 1, 1, 1, 2, 1, 2, 2, 1},
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
-    public int[,] MapGrid5 = new int[Height2, Width2]
-    {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-    };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
-    public int[,] MapGrid6 = new int[Height2, Width2]
-    {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-    };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid7 = new int[Height2, Width2]
     {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+        {2, 2, 1, 1, 1, 1, 1, 2, 2, 2},
+        {2, 2, 1, 1, 1, 5, 1, 2, 2, 2},
+        {2, 1, 1, 1, 6, 6, 1, 1, 1, 1},
+        {1, 1, 6, 6, 6, 6, 6, 6, 6, 1},
+        {1, 6, 6, 6, 1, 4, 6, 5, 1, 1},
+        {1, 3, 4, 4, 1, 6, 4, 6, 1, 1},
+        {1, 1, 1, 6, 6, 5, 6, 1, 1, 1},
+        {2, 2, 1, 6, 6, 1, 1, 1, 1, 1},
+        {2, 2, 1, 5, 1, 1, 1, 2, 2, 2},
+        {2, 2, 1, 1, 1, 1, 1, 2, 2, 2}
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid8 = new int[Height2, Width2]
     {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+        {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
+        {1, 3, 6, 6, 6, 6, 6, 6, 2, 1},
+        {1, 6, 4, 6, 6, 6, 6, 6, 6, 1},
+        {1, 6, 6, 6, 6, 6, 6, 1, 6, 1},
+        {1, 1, 1, 1, 1, 1, 6, 1, 1, 1},
+        {1, 6, 6, 6, 5, 6, 6, 6, 6, 1},
+        {1, 5, 6, 6, 6, 6, 1, 1, 1, 1},
+        {1, 6, 4, 6, 6, 6, 2, 2, 2, 1},
+        {1, 6, 6, 6, 6, 6, 1, 2, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 2, 1, 1}
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid9 = new int[Height2, Width2]
     {
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -467,7 +442,6 @@ public class PeopleDatabase
         {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
-    // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
     public int[,] MapGrid10 = new int[Height2, Width2]
     {
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},

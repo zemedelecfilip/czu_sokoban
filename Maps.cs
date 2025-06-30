@@ -134,20 +134,21 @@ public class Maps
         walls.Clear();
         textures.Clear();
         player = null;
+        int topM = 0;
+        int leftM = 0;
 
+        
         if (arrSize == 10)
         {
-            topMargin = Storage.topMargin2;
-            leftMargin = Storage.leftMargin2;
+            topM = Storage.topMargin2;
+            leftM = Storage.leftMargin2;
         }
-        else
+        else if (arrSize == 8)
         {
-
+            topM = Storage.topMargin;
+            leftM = Storage.leftMargin;
         }
-
-            Console.WriteLine("arrSize: " + arrSize);
-
-
+        
         for (int i = 0; i < arrSize; i++)
         {
             for (int j = 0; j < arrSize; j++)
@@ -156,34 +157,34 @@ public class Maps
                 switch (MapGrid[i, j])
                 {
                     case 1:
-                        AddWall((j * Size + leftMargin), (i * Size + topMargin));
+                        AddWall((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 2:
-                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Grass.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Grass.png");
                         break;
                     case 3:
-                        AddPlayer((j * Size + leftMargin), (i * Size + topMargin));
-                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
+                        AddPlayer((j * Size + leftM), (i * Size + topM));
+                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
                         break;
 
                     case 4:
-                        AddBox((j * Size + leftMargin), (i * Size + topMargin));
-                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
+                        AddBox((j * Size + leftM), (i * Size + topM));
+                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
                         break;
 
                     case 5:
-                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
-                        AddFinalDestination((j * Size + leftMargin), (i * Size + topMargin));
+                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
+                        AddFinalDestination((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 6:
-                        AddTexture((j * Size + leftMargin), (i * Size + topMargin), "Ground_Concrete.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
                         break;
 
                     case 7:
-                        AddFinalDestination((j * Size + leftMargin), (i * Size + topMargin));
-                        AddWall((j * Size + leftMargin), (i * Size + topMargin));
+                        AddFinalDestination((j * Size + leftM), (i * Size + topM));
+                        AddWall((j * Size + leftM), (i * Size + topM));
                         break;
                     default:
                         // Empty
