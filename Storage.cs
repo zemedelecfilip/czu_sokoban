@@ -24,6 +24,11 @@ public class Storage
     public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
     public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
 
+    public string currWall = "Wall_Black.png";
+    public string currBox = "Crate_Blue.png";
+    public string currEndBox = "CrateDark_Blue.png";
+    public string currEndPoint = "EndPoint_Purple.png";
+
     //public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
     //public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
 

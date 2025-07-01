@@ -7,6 +7,7 @@ using static System.Windows.Forms.AxHost;
 using System.Numerics;
 using System.Diagnostics;
 using System.Collections.Generic;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -78,7 +79,6 @@ namespace czu_sokoban
             this.ShowPanel(homePanel);
             //Console.WriteLine($"screenSize: {screenW}x{screenH}");
         }
-
         // adding global button to return to home to all panels except homePanel;
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
@@ -92,8 +92,23 @@ namespace czu_sokoban
                 Location = new Point(screenW / 18, screenH / 7),
                 BackColor = btnColor
             };
+
+            Button resetLevel = new Button
+            {
+                Text = "RESTART",
+                Font = btnFont,
+                Size = new Size(200, 100),
+                Location = new Point(0, 0),
+                BackColor = btnColor
+            };
+            resetLevel.Location = new Point(16 * screenW / 18 - resetLevel.Width / 2, screenH / 7);
+
             if (targetPanel == levelPanel)
             {
+                targetPanel.Controls.Add(resetLevel);
+                resetLevel.Click += (s, e) => InitializeLevelScreen(currLevelName);
+                resetLevel.Click += (s, e) => this.resetVars();
+
                 backToMenu.Text = "Levels";
                 backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
                 backToMenu.Click += (s, e) => this.resetVars();
@@ -114,7 +129,6 @@ namespace czu_sokoban
             targetPanel.Controls.Add(backToMenu);
             backToMenu.BringToFront();
         }
-
         // process of making panels for different screens
         private void InitializePanels()
         {
@@ -191,7 +205,6 @@ namespace czu_sokoban
             AddHeaderToPanel(endLevelPanel);
 
         }
-
         private void InitializeHomeScreen()
         {
             // Button styles
@@ -254,7 +267,6 @@ namespace czu_sokoban
 
             this.Controls.Add(homePanel);
         }
-
         private void AddHeaderToPanel(Panel parentPanel)
         {
 
@@ -289,7 +301,6 @@ namespace czu_sokoban
             AddGlobalButtonToPanel(parentPanel);
 
         }
-
         private void InitializeLevelsScreen()
         {
             // Clear previous controls (except the header)
@@ -360,8 +371,6 @@ namespace czu_sokoban
                 timePb = 0;
             }
         }
-
-
         private void InitializeLevelScreen(string level)
         {
             //Console.WriteLine($"Initializing Level Screen... with level: {level}");
@@ -370,7 +379,6 @@ namespace czu_sokoban
             this.prepareLevel(level);
 
         }
-
         private void InitializeLabels()
         {
             label3 = new System.Windows.Forms.Label
@@ -402,7 +410,7 @@ namespace czu_sokoban
             // Update label texts
             label3.Text = $"Finální počet kroků: {stepsCount}";
             label4.Text = $"Výsledný čas: {time}";
-            label5.Text = $"Gratulace za dokončení {levelName}";
+            label5.Text = $"Gratulace k dokončení {levelName}";
 
             // Recalculate positions after text update (Width changes)
             label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 + 2 * label3.Height);
@@ -411,10 +419,10 @@ namespace czu_sokoban
         }
         private void InitializeProfileScreen()
         {
+            bool firstLoad = true;
             for (var i = 0; i < 3; i++) 
             {
                 int saveId = i + 1;
-                Console.WriteLine($"Adding level button {saveId} to profile panel");
                 Button profileBtn = new Button
                 {
                     Text = $"Save{saveId}",
@@ -423,6 +431,14 @@ namespace czu_sokoban
                     BackColor = btnColor,
                     Tag = saveId
                 };
+
+                if (firstLoad && i == 0)
+                {
+                    profileBtn.BackColor = Color.LightGreen; // Set current save to the first one on first load
+                    firstLoad = false;
+                }
+
+                saveButtons.Add(profileBtn);
 
                 profileBtn.Location = new Point((saveId) * screenW / 4 - profileBtn.Width / 2, screenH / 2 - profileBtn.Height / 2);
                 profileBtn.Click += (s, e) => currSave = saveId;
@@ -443,11 +459,36 @@ namespace czu_sokoban
                     : btnColor;
             }
         }
-
         private void InitializeShopScreen()
         {
+            // Example screen width, adjust as needed
+            Size panelSize = new Size(screenW / 4, 4 * screenH / 5);
 
+            // Create the walls panel
+            Panel wallsPanel = new Panel
+            {
+                Location = new Point(screenW / 4, screenH / 10),
+                Size = panelSize, // Increased height for buttons
+                BorderStyle = BorderStyle.FixedSingle,
+            };
+            wallsPanel.Location = new Point(screenW / 4 - wallsPanel.Width / 2, screenH / 10);
+
+            // Example: Add a button to the walls panel
+            Button wallButton = new Button
+            {
+                Text = "Wall",
+                Size = new Size (200, 100),
+            };
+            wallButton.Location = new Point(shopPanel.Width / 2 + wallButton.Width / 2, shopPanel.Height / 10);
+            wallsPanel.Controls.Add(wallButton);
+
+            // Add wallsPanel to shopPanel
+            shopPanel.Controls.Add(wallsPanel);
+
+            // Add shopPanel to the form
+            this.Controls.Add(shopPanel);
         }
+
         private void prepareLevel(string mapName)
         {
             // get level data from db
@@ -486,14 +527,12 @@ namespace czu_sokoban
             levelPanel.Controls.Add(label2);
 
         }
-
         private void ShowPanel(Panel targetPanel)
         {
             foreach (Control c in this.Controls.OfType<Panel>())
                 c.Visible = false;
             targetPanel.Visible = true;
         }
-
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (levelPanel.Visible)
@@ -638,21 +677,28 @@ namespace czu_sokoban
                     // get curr level best time to compare
 
                     var bestResult = database.GetLevelTimesAndStepsByPlayer(currSave, currLevelName);
+                    double bestTime = bestResult[0].Time;
+                    bestTime = Convert.ToDouble(bestTime.ToString("N3"));
+
+                    var currTime = stopwatch.Elapsed.TotalSeconds;
+                    currTime = Convert.ToDouble(currTime.ToString("N3"));
+
+                    Console.WriteLine($"[checkWin] Current time for level {currLevelName} for save ID {currSave}: {currTime}");
 
                     // time is primary
                     Console.WriteLine($"[checkWin] Best result for level {currLevelName} for save ID {currSave}: {bestResult[0]}, bestTime {stopwatch.Elapsed.TotalSeconds}");
-                    if (bestResult[0].Time > stopwatch.Elapsed.TotalSeconds || bestResult[0].Time == 0.0)
+                    if (bestTime > currTime || bestTime == 0.0)
                     {
-                        database.SetLevelTimeAndSteps(currSave, currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
-                        Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount}");
+                        database.SetLevelTimeAndSteps(currSave, currLevelName, currTime, stepsCount);
+                        Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {currTime}, steps: {stepsCount}");
                     }
                     else
                     {
-                        Console.WriteLine($"[checkWin] Not inserting: level: {currLevelName}, Time: {stopwatch.Elapsed.TotalSeconds}, steps: {stepsCount} - better time already exists");
+                        Console.WriteLine($"[checkWin] Not inserting: level: {currLevelName}, Time: {currTime}, steps: {stepsCount} - better time already exists");
                     }
 
                         //string levelName, double time, int stepsCount
-                        InitializeEndLevelScreen(currLevelName, stopwatch.Elapsed.TotalSeconds, stepsCount);
+                        InitializeEndLevelScreen(currLevelName, currTime, stepsCount);
                     //this.resetVars();
                 }
 
@@ -661,7 +707,6 @@ namespace czu_sokoban
 
             }
         }
-
         private void resetVars()
         {
             stepsCount = 0;

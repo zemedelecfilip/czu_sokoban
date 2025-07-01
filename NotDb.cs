@@ -29,7 +29,7 @@ public class PeopleDatabase
     public PeopleDatabase()
     {
         Batteries_V2.Init();
-        dropTables();
+        //dropTables();
         CreateTables();
         insertGrids();
         //printArr(MapGrid1);
@@ -49,7 +49,6 @@ public class PeopleDatabase
             db.Close();
         }
     }
-
     public void insertGrids()
     {
         levels.Add(MapGrid1);
@@ -63,7 +62,6 @@ public class PeopleDatabase
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
     }
-
     private void CreateTables()
     {
         Console.WriteLine("Creating tables...");
@@ -97,7 +95,6 @@ public class PeopleDatabase
             db.Close();
         }
     }
-
     private sqlite3_stmt PrepareStatement(sqlite3 db, string sql)
     {
         int rc = raw.sqlite3_prepare_v2(db, sql, out sqlite3_stmt stmt);
@@ -120,7 +117,6 @@ public class PeopleDatabase
         }
         return stmt;
     }
-
     private sqlite3 OpenConnection()
     {
         raw.sqlite3_open(ConnectionString, out sqlite3 db);
@@ -130,7 +126,6 @@ public class PeopleDatabase
         raw.sqlite3_exec(db, "PRAGMA journal_mode=WAL;", null, IntPtr.Zero, out _);
         return db;
     }
-
     public string SerializeMapGrid(int[,] grid)
     {
         int height = grid.GetLength(0);
@@ -147,7 +142,6 @@ public class PeopleDatabase
         }
         return string.Join(";", rows); // Use ';' to separate rows
     }
-
     public int[,] DeserializeMapGrid(string data)
     {
         if (string.IsNullOrEmpty(data)) return new int[0, 0];
@@ -168,8 +162,6 @@ public class PeopleDatabase
         }
         return grid;
     }
-
-    //FIXME
     public void insertLevels()
     {
         using (var db = OpenConnection())
@@ -201,7 +193,6 @@ public class PeopleDatabase
             db.Close();
         }
     }
-
     public void insertSaves()
     {
         using (var db = OpenConnection())
@@ -217,9 +208,7 @@ public class PeopleDatabase
         }
         Console.WriteLine("Saves inserted successfully.");
     }
-
     // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
-
     public int[,] getLevel(string level)
     {
         Console.WriteLine($"Retrieving level: {level}");
@@ -243,7 +232,6 @@ public class PeopleDatabase
         }
         return null;
     }
-
     public void printArr (int [,] arr)
     {
         if (arr == null)
@@ -260,8 +248,6 @@ public class PeopleDatabase
             Console.WriteLine();
         }
     }
-
-    //Ai generated 
     public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId, string level=null)
     {
         var results = new List<(string LevelName, double Time, int Steps)>();
@@ -293,7 +279,10 @@ public class PeopleDatabase
 
     public void SetLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
     {
+        time = Convert.ToDouble(time.ToString("N3"));
+        Console.WriteLine($"[Setting] only 3 decimals: {time}");
         lock (_dbLock)
+
         {
             using (var db = OpenConnection())
             {
