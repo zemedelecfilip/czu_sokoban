@@ -122,6 +122,12 @@ namespace czu_sokoban
                 backToMenu.Click += (s, e) => this.resetVars();
                 backToMenu.Text = "Back To Levels";
             }
+            else if (targetPanel == shopPanel)
+            {
+                backToMenu.Location = new Point(screenW / 18, screenH / 10 - backToMenu.Height);
+                backToMenu.Click += (s, e) => ShowPanel(homePanel);
+            }
+
             else
             {
                 backToMenu.Click += (s, e) => ShowPanel(homePanel);
@@ -462,28 +468,48 @@ namespace czu_sokoban
         private void InitializeShopScreen()
         {
             // Example screen width, adjust as needed
-            Size panelSize = new Size(screenW / 4, 4 * screenH / 5);
+            Size panelSize = new Size(screenW / 5, 4 * screenH / 5);
+            int screenWconst = screenW / 5;
+            int spacingX = screenW / 25;
 
-            // Create the walls panel
+            // Wall panel section
             Panel wallsPanel = new Panel
             {
-                Location = new Point(screenW / 4, screenH / 10),
                 Size = panelSize, // Increased height for buttons
                 BorderStyle = BorderStyle.FixedSingle,
             };
-            wallsPanel.Location = new Point(screenW / 4 - wallsPanel.Width / 2, screenH / 10);
+            wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenH / 10);
 
-            // Example: Add a button to the walls panel
-            Button wallButton = new Button
+            // Crate panel section
+            Panel cratePanel = new Panel
             {
-                Text = "Wall",
-                Size = new Size (200, 100),
+                Size = panelSize, // Increased height for buttons
+                BorderStyle = BorderStyle.FixedSingle,
             };
-            wallButton.Location = new Point(shopPanel.Width / 2 + wallButton.Width / 2, shopPanel.Height / 10);
-            wallsPanel.Controls.Add(wallButton);
+            cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenH / 10);
 
-            // Add wallsPanel to shopPanel
+            // EndPoint panel section
+            Panel endPointPanel = new Panel
+            {
+                Size = panelSize, // Increased height for buttons
+                BorderStyle = BorderStyle.FixedSingle,
+            };
+            endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenH / 10);
+
+            // Texture panel section
+            Panel texturePanel = new Panel
+            {
+                Size = panelSize, // Increased height for buttons
+                BorderStyle = BorderStyle.FixedSingle,
+            };
+            texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenH / 10);
+
+
+            // Add panels to shopPanel
             shopPanel.Controls.Add(wallsPanel);
+            shopPanel.Controls.Add(cratePanel);
+            shopPanel.Controls.Add(endPointPanel);
+            shopPanel.Controls.Add(texturePanel);
 
             // Add shopPanel to the form
             this.Controls.Add(shopPanel);
