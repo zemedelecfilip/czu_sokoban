@@ -46,6 +46,8 @@ namespace czu_sokoban
         public string currLevelName = "";
         public int currSave = 1;
         private List<Button> saveButtons = new List<Button>();
+        private List<Button> wallTextureList = new List<Button>();
+        int currWallSelcted = 0;
 
         #region Windows Form Designer generated code
         private void InitializeComponent()
@@ -465,12 +467,27 @@ namespace czu_sokoban
                     : btnColor;
             }
         }
+        private void UpdateSelectedWall()
+        {
+            foreach (Button btn in wallTextureList)
+            {
+                //0: Beige, 1: Black, 2: Brown, 3: Gray
+                int buttonTextureID = (int)btn.Tag;
+                btn.BackColor = (buttonTextureID == currWallSelcted)
+                    ? Color.LightGreen
+                    : Color.PaleVioletRed;
+            }
+        }
         private void InitializeShopScreen()
         {
             // Example screen width, adjust as needed
             Size panelSize = new Size(screenW / 5, 4 * screenH / 5);
             int screenWconst = screenW / 5;
-            int spacingX = screenW / 25;
+            int spacingX = screenW / 25 ;
+            int screenHConst = screenH / 8;
+            //$"Wall_{wallNames[i]}.png"
+            string[] wallNames = {"Beige", "Black", "Brown", "Gray"};
+
 
             // Wall panel section
             Panel wallsPanel = new Panel
@@ -478,7 +495,43 @@ namespace czu_sokoban
                 Size = panelSize, // Increased height for buttons
                 BorderStyle = BorderStyle.FixedSingle,
             };
-            wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenH / 10);
+            wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenHConst);
+            // Add buttons to wallsPanel
+            int buttonSize = panelSize.Width / 3;
+
+            //form of the loop from ai, other stuff from my design
+            for (int i = 0; i < 4; i++)
+            {
+                int buttonIndex = i;
+                // Determine column (0 or 1) and row (0 or 1)
+                int col = i % 2;
+                int row = i / 2;
+
+                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
+                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+            
+                // Y: 0 => 2/5 of height, 1 => 4/5 of height
+                int y = (int)((row == 0 ? 1f / 5f : 2f / 5f) * wallsPanel.Height);
+
+                Button wallButton = new Button
+                {
+                    //Text = $"{i + 1}",
+                    Font = btnFont,
+                    Size = new Size(buttonSize, buttonSize),
+                    Location = new Point(x, y),
+                    BackgroundImageLayout = ImageLayout.Stretch,
+                    Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
+                    Tag = buttonIndex
+                };
+                //0: Beige, 1: Black, 2: Brown, 3: Gray
+                wallButton.Click += (s, e) => Console.WriteLine($"Wall {buttonIndex} button clicked");
+                wallButton.Click += (s, e) => currWallSelcted = buttonIndex;
+                wallButton.Click += (s, e) => UpdateSelectedWall();
+                wallsPanel.Controls.Add(wallButton);
+                wallTextureList.Add(wallButton);
+            }
+            //Needed before inicializing shop screen to prevent sudden color change after first click
+            UpdateSelectedWall();
 
             // Crate panel section
             Panel cratePanel = new Panel
@@ -486,7 +539,7 @@ namespace czu_sokoban
                 Size = panelSize, // Increased height for buttons
                 BorderStyle = BorderStyle.FixedSingle,
             };
-            cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenH / 10);
+            cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenHConst);
 
             // EndPoint panel section
             Panel endPointPanel = new Panel
@@ -494,7 +547,7 @@ namespace czu_sokoban
                 Size = panelSize, // Increased height for buttons
                 BorderStyle = BorderStyle.FixedSingle,
             };
-            endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenH / 10);
+            endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenHConst);
 
             // Texture panel section
             Panel texturePanel = new Panel
@@ -502,7 +555,7 @@ namespace czu_sokoban
                 Size = panelSize, // Increased height for buttons
                 BorderStyle = BorderStyle.FixedSingle,
             };
-            texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenH / 10);
+            texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenHConst);
 
 
             // Add panels to shopPanel
@@ -514,7 +567,6 @@ namespace czu_sokoban
             // Add shopPanel to the form
             this.Controls.Add(shopPanel);
         }
-
         private void prepareLevel(string mapName)
         {
             // get level data from db
