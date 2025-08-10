@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Diagnostics;
 using System.Collections.Generic;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
+using System.Drawing;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -480,6 +481,26 @@ namespace czu_sokoban
                     : Color.PaleVioletRed;
             }
         }
+        private Image UpdatePreviewPictureBox(int size ,string textureName, bool round = true)
+        {
+            if (round)
+            {
+                textureName = textureName.Replace("Wall_", "WallRound_");
+            }
+
+            try 
+            {
+                Image textureImage = Storage.getImage(textureName);
+                return textureImage;
+            }
+            catch (Exception ex)
+            {
+                // If the image is not found, log the error and return a default square
+                Console.WriteLine($"Error loading texture: {ex.Message}");
+                return Storage.CreateColoredSquare(size, Color.Black);
+            }
+
+        }
         private void InitializeShopScreen()
         {
             // Example screen width, adjust as needed
@@ -492,7 +513,6 @@ namespace czu_sokoban
 
             string[] wallNames = {"Beige", "Black", "Brown", "Gray"};
 
-
             // Wall panel section
             Panel wallsPanel = new Panel
             {
@@ -500,11 +520,34 @@ namespace czu_sokoban
                 BorderStyle = BorderStyle.FixedSingle,
             };
             wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenHConst);
+
             // Add buttons to wallsPanel
             int buttonSize = panelSize.Width / 3;
 
             //Picture box on top to show what texture player selected
+            int previewTextureSize = 5 * buttonSize / 4;
 
+            PictureBox wallTexturePreview = new PictureBox
+            {
+                Size = new Size(previewTextureSize, previewTextureSize),
+                Location = new Point(wallsPanel.Width / 2 - previewTextureSize / 2, wallsPanel.Height / 15),
+                //+BackColor = Color.Red,
+                Image = Storage.getImage($"Wall_Black.png"),
+                BackgroundImageLayout = ImageLayout.Stretch,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+
+            };
+
+            CheckBox wallRoundCheck = new CheckBox
+            {
+                Text = "SQUARE TEXTURE",
+                Font = btnFont,
+                BackColor = Color.LightSkyBlue,
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 3 * wallsPanel.Height / 4),
+                Appearance = Appearance.Button,
+                AutoCheck = true, // Enable user interaction
+            };
 
             //form of the loop from ai, other stuff from my design
             for (int i = 0; i < 4; i++)
@@ -518,7 +561,7 @@ namespace czu_sokoban
                 int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
             
                 // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)((row == 0 ? 1f / 5f : 2f / 5f) * wallsPanel.Height);
+                int y = (int)((row == 0 ? 2f / 5f : 3f / 5f) * wallsPanel.Height - buttonSize / 2);
 
                 Button wallButton = new Button
                 {
@@ -528,51 +571,36 @@ namespace czu_sokoban
                     Location = new Point(x, y),
                     BackgroundImageLayout = ImageLayout.Stretch,
                     Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
-                    Tag = buttonIndex
+                    Tag = buttonIndex,
+                    FlatStyle = FlatStyle.Flat,
+                    
                 };
                 //0: Beige, 1: Black, 2: Brown, 3: Gray
-                wallButton.Click += (s, e) => Console.WriteLine($"Wall {buttonIndex} button clicked");
                 wallButton.Click += (s, e) => currWallSelcted = buttonIndex;
                 wallButton.Click += (s, e) => UpdateSelectedWall();
+                wallButton.Click += (s, e) =>
+                {
+                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
+                };
                 wallsPanel.Controls.Add(wallButton);
                 wallTextureList.Add(wallButton);
 
             }
-            CheckBox wallRoundCheck = new CheckBox
-            {
-                Text = "ROUND TEXTURE",
-                Font = btnFont,
-                Size = new Size(buttonSize, buttonSize),
-                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 2 * wallsPanel.Height / 3),
-                Appearance = Appearance.Button,
-                AutoCheck = true // Enable user interaction
-            };
             wallRoundCheck.TextAlign = ContentAlignment.MiddleCenter;
 
             wallRoundCheck.CheckedChanged += (s, e) =>
             {
-                wallRoundCheck.Text = wallRoundCheck.Checked ? "SQUARE TEXTURE" : "ROUND TEXTURE";
+                wallRoundCheck.Text = wallRoundCheck.Checked ? "ROUND TEXTURE" : "SQUARE TEXTURE";
+                wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
             };
 
             wallsPanel.Controls.Add(wallRoundCheck);
-
-            PictureBox wallTexturePreview = new PictureBox
-            {
-                Size = new Size(buttonSize, buttonSize),
-                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, wallsPanel.Height / 45),
-                //+BackColor = Color.Red,
-                Image = Storage.getImage($"Wall_Black.png"),
-                BackgroundImageLayout = ImageLayout.Stretch,
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                //Anchor = AnchorStyles.None,
-
-            };
-
             wallsPanel.Controls.Add(wallTexturePreview);
 
             //Needed before inicializing shop screen to prevent sudden color change after first click
             UpdateSelectedWall();
 
+            /////////////////////////////////////////////////////////////////////
             // Crate panel section
             Panel cratePanel = new Panel
             {
@@ -581,11 +609,53 @@ namespace czu_sokoban
             };
             cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenHConst);
 
+            //VARS
+            buttonSize = 7 * buttonSize / 8;
+            int space = cratePanel.Width / 10; 
+            int rows = 5;
+            int columns = 2;
+
+            for (int i = 0; i < 10; i++)
+            {
+                int buttonIndex = i;
+                // Determine column (0 or 1) and row (0 or 1)
+                int col = i % 2;
+                int row = i / 2;
+
+                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
+                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+
+                // Y: 0 => 2/5 of height, 1 => 4/5 of height
+                int y = (int)((row == 0 ? 2f / 5f : 3f / 5f) * cratePanel.Height - buttonSize / 2);
+
+                Button crateButton = new Button
+                {
+                    //Text = $"{i + 1}",
+                    Font = btnFont,
+                    Size = new Size(buttonSize, buttonSize),
+                    Location = new Point(x, y),
+                    BackgroundImageLayout = ImageLayout.Stretch,
+                    //Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
+                    Tag = buttonIndex,
+                    FlatStyle = FlatStyle.Flat,
+
+                };
+                //crateButton.Click += (s, e) => ;
+                //crateButton.Click += (s, e) => UpdateSelectedWall();
+                //crateButton.Click += (s, e) =>
+                //{
+                //    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
+                //};
+                cratePanel.Controls.Add(crateButton);
+
+            }
+
+            ////////////////////////////////////////////////////////////////////
             // EndPoint panel section
             Panel endPointPanel = new Panel
             {
-                Size = panelSize, // Increased height for buttons
-                BorderStyle = BorderStyle.FixedSingle,
+                 Size = panelSize, // Increased height for buttons
+                 BorderStyle = BorderStyle.FixedSingle,
             };
             endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenHConst);
 
