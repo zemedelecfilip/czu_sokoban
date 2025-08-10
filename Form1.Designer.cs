@@ -48,8 +48,10 @@ namespace czu_sokoban
         public int currSave = 1;
         private List<Button> saveButtons = new List<Button>();
         private List<Button> wallTextureList = new List<Button>();
+        private List<Button> crateTextureList = new List<Button>();
         //default wall texture
-        int currWallSelcted = 1;
+        int currWallSelected = 1;
+        int currCrateSelected = 0;
 
         ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
@@ -476,7 +478,18 @@ namespace czu_sokoban
             {
                 //0: Beige, 1: Black, 2: Brown, 3: Gray
                 int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currWallSelcted)
+                btn.BackColor = (buttonTextureID == currWallSelected)
+                    ? Color.LightGreen
+                    : Color.PaleVioletRed;
+            }
+        }
+        private void UpdateSelectedCrate()
+        {
+            foreach (Button btn in crateTextureList)
+            {
+                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
+                int buttonTextureID = (int)btn.Tag;
+                btn.BackColor = (buttonTextureID == currCrateSelected)
                     ? Color.LightGreen
                     : Color.PaleVioletRed;
             }
@@ -576,11 +589,11 @@ namespace czu_sokoban
                     
                 };
                 //0: Beige, 1: Black, 2: Brown, 3: Gray
-                wallButton.Click += (s, e) => currWallSelcted = buttonIndex;
+                wallButton.Click += (s, e) => currWallSelected = buttonIndex;
                 wallButton.Click += (s, e) => UpdateSelectedWall();
                 wallButton.Click += (s, e) =>
                 {
-                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
+                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelected]}.png", wallRoundCheck.Checked);
                 };
                 wallsPanel.Controls.Add(wallButton);
                 wallTextureList.Add(wallButton);
@@ -591,7 +604,7 @@ namespace czu_sokoban
             wallRoundCheck.CheckedChanged += (s, e) =>
             {
                 wallRoundCheck.Text = wallRoundCheck.Checked ? "ROUND TEXTURE" : "SQUARE TEXTURE";
-                wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
+                wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelected]}.png", wallRoundCheck.Checked);
             };
 
             wallsPanel.Controls.Add(wallRoundCheck);
@@ -610,23 +623,25 @@ namespace czu_sokoban
             cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenHConst);
 
             //VARS
-            buttonSize = 7 * buttonSize / 8;
+            //buttonSize = 7 * buttonSize / 8;
+            //$"Crate_{crateNames[i]}.png"
+            //$"WallDark_{crateNames[i]}.png"
+            string[] crateNames = { "Blue", "Beige", "Brown", "Red", "Yellow"};
             int space = cratePanel.Width / 10; 
             int rows = 5;
             int columns = 2;
 
             for (int i = 0; i < 10; i++)
             {
-                int buttonIndex = i;
+                int buttonIndex = i / 2;
                 // Determine column (0 or 1) and row (0 or 1)
                 int col = i % 2;
-                int row = i / 2;
 
                 // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
                 int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
 
                 // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)((row == 0 ? 2f / 5f : 3f / 5f) * cratePanel.Height - buttonSize / 2);
+                int y = (int)(cratePanel.Height / 28 + (i - col) * (4 * buttonSize / 6));
 
                 Button crateButton = new Button
                 {
@@ -635,20 +650,20 @@ namespace czu_sokoban
                     Size = new Size(buttonSize, buttonSize),
                     Location = new Point(x, y),
                     BackgroundImageLayout = ImageLayout.Stretch,
-                    //Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
+                    Image = i % 2 == 0 ? Storage.getImage($"Crate_{crateNames[buttonIndex]}.png") : Storage.getImage($"CrateDark_{crateNames[buttonIndex]}.png"),
                     Tag = buttonIndex,
                     FlatStyle = FlatStyle.Flat,
 
                 };
-                //crateButton.Click += (s, e) => ;
-                //crateButton.Click += (s, e) => UpdateSelectedWall();
-                //crateButton.Click += (s, e) =>
-                //{
-                //    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelcted]}.png", wallRoundCheck.Checked);
-                //};
+                crateButton.Click += (s, e) => currCrateSelected = buttonIndex;
+                crateButton.Click += (s, e) => UpdateSelectedCrate();
+                crateButton.Click += (s, e) => Console.WriteLine($"currCrateSelected {currCrateSelected}, buttonIndex: {buttonIndex}");
+                crateTextureList.Add(crateButton);
+
                 cratePanel.Controls.Add(crateButton);
 
             }
+            UpdateSelectedCrate();
 
             ////////////////////////////////////////////////////////////////////
             // EndPoint panel section
