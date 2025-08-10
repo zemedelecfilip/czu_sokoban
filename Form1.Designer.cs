@@ -47,8 +47,10 @@ namespace czu_sokoban
         public int currSave = 1;
         private List<Button> saveButtons = new List<Button>();
         private List<Button> wallTextureList = new List<Button>();
-        int currWallSelcted = 0;
+        //default wall texture
+        int currWallSelcted = 1;
 
+        ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
@@ -486,6 +488,8 @@ namespace czu_sokoban
             int spacingX = screenW / 25 ;
             int screenHConst = screenH / 8;
             //$"Wall_{wallNames[i]}.png"
+            //$"WallRound_{wallNames[i]}.png"
+
             string[] wallNames = {"Beige", "Black", "Brown", "Gray"};
 
 
@@ -498,6 +502,9 @@ namespace czu_sokoban
             wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenHConst);
             // Add buttons to wallsPanel
             int buttonSize = panelSize.Width / 3;
+
+            //Picture box on top to show what texture player selected
+
 
             //form of the loop from ai, other stuff from my design
             for (int i = 0; i < 4; i++)
@@ -529,7 +536,40 @@ namespace czu_sokoban
                 wallButton.Click += (s, e) => UpdateSelectedWall();
                 wallsPanel.Controls.Add(wallButton);
                 wallTextureList.Add(wallButton);
+
             }
+            CheckBox wallRoundCheck = new CheckBox
+            {
+                Text = "ROUND TEXTURE",
+                Font = btnFont,
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 2 * wallsPanel.Height / 3),
+                Appearance = Appearance.Button,
+                AutoCheck = true // Enable user interaction
+            };
+            wallRoundCheck.TextAlign = ContentAlignment.MiddleCenter;
+
+            wallRoundCheck.CheckedChanged += (s, e) =>
+            {
+                wallRoundCheck.Text = wallRoundCheck.Checked ? "SQUARE TEXTURE" : "ROUND TEXTURE";
+            };
+
+            wallsPanel.Controls.Add(wallRoundCheck);
+
+            PictureBox wallTexturePreview = new PictureBox
+            {
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, wallsPanel.Height / 45),
+                //+BackColor = Color.Red,
+                Image = Storage.getImage($"Wall_Black.png"),
+                BackgroundImageLayout = ImageLayout.Stretch,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                //Anchor = AnchorStyles.None,
+
+            };
+
+            wallsPanel.Controls.Add(wallTexturePreview);
+
             //Needed before inicializing shop screen to prevent sudden color change after first click
             UpdateSelectedWall();
 
