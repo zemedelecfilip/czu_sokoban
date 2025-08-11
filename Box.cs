@@ -4,6 +4,7 @@ public class Box : PictureBox
     public int a = Storage.size;
     public int boxSpeed = Storage.playerSpeed;
     public bool isThere;
+    private string imagePath = Storage.selectedBox;
     public Box(int x, int y)
     {
         this.x = x;
@@ -12,7 +13,7 @@ public class Box : PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.isThere = false;
-        this.Image = Storage.getImage(this.isThereBox() ? "CrateDark_Blue.png" : "Crate_Blue.png");
+        this.Image = Storage.getImage(this.isThereBox() ? imagePath.Replace("Crate_", "CrateDark_") : imagePath);
         this.SizeMode = Storage.sizeMode;
 
     }

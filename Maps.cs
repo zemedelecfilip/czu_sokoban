@@ -65,9 +65,9 @@ public class Maps
         finalDest.Add(newBox);
     }
 
-    public void AddTexture(int x, int y, string path)
+    public void AddTexture(int x, int y, bool outside = false)
     {
-        Texture newBox = new Texture(x, y, path);
+        Texture newBox = new Texture(x, y, outside);
         textures.Add(newBox);
     }
 
@@ -161,25 +161,25 @@ public class Maps
                         break;
 
                     case 2:
-                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Grass.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM), true);
                         break;
                     case 3:
                         AddPlayer((j * Size + leftM), (i * Size + topM));
-                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 4:
                         AddBox((j * Size + leftM), (i * Size + topM));
-                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 5:
-                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM));
                         AddFinalDestination((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 6:
-                        AddTexture((j * Size + leftM), (i * Size + topM), "Ground_Concrete.png");
+                        AddTexture((j * Size + leftM), (i * Size + topM));
                         break;
 
                     case 7:

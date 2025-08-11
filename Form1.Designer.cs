@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using System.Drawing;
+using System.Net;
 //all textures from https://opengameart.org/content/sokoban-pack
 
 namespace czu_sokoban
@@ -48,9 +49,13 @@ namespace czu_sokoban
         public int currSave = 1;
         private List<Button> saveButtons = new List<Button>();
         private List<Button> wallTextureList = new List<Button>();
+        private string[] wallNames = {"Black", "Beige", "Brown", "Gray"};
         private List<Button> crateTextureList = new List<Button>();
+        private string[] crateNames = {"Blue", "Beige", "Brown", "Red", "Yellow"};
         private List<Button> endPointTextureList = new List<Button>();
+        string[] endPointNames = {"Purple", "Beige", "Black", "Blue", "Brown", "Gray", "Red", "Yellow"};
         private List<Button> texturesTextureList = new List<Button>();
+        string[] texturesNames = {"Concrete", "Dirt", "Grass", "Sand"};
         //default wall texture
         int currWallSelected = 0;
         int currCrateSelected = 0;
@@ -136,9 +141,17 @@ namespace czu_sokoban
             else if (targetPanel == shopPanel)
             {
                 backToMenu.Location = new Point(screenW / 18, screenH / 10 - backToMenu.Height);
+                backToMenu.Click += (s, e) =>
+                {
+                    Console.WriteLine($"[DEBUG TEXTURES] Crate_{crateNames[currCrateSelected]}.png");
+                    Storage.selectedBox = $"Crate_{crateNames[currCrateSelected]}.png";
+                    Storage.selectedWall = $"Wall_{wallNames[currWallSelected]}.png";
+                    Storage.selectedEndPoint = $"EndPoint_{endPointNames[currEndPointSelected]}.png";
+                    Storage.selectedTextures = $"Ground_{texturesNames[currTexturesSelected]}.png";
+                    Console.WriteLine($"[TEXTURES]: box: Crate_{crateNames[currCrateSelected]}.png, wall: Wall_{wallNames[currWallSelected]}.png, EndPoint: EndPoint_{endPointNames[currEndPointSelected]}.png, Textures: Ground_{texturesNames[currTexturesSelected]}.png");
+                };
                 backToMenu.Click += (s, e) => ShowPanel(homePanel);
             }
-
             else
             {
                 backToMenu.Click += (s, e) => ShowPanel(homePanel);
@@ -478,8 +491,8 @@ namespace czu_sokoban
         }
         private void UpdateShopButtons()
         {
-            Color selectedBtn = Color.FromArgb(195, 255, 153);
-            Color notSelectedBtn = Color.FromArgb(255, 170, 170);
+            Color selectedBtn = Color.FromArgb(200 ,195, 255, 153);
+            Color notSelectedBtn = Color.FromArgb(120, 255, 102, 102);
 
 
             foreach (Button btn in crateTextureList)
@@ -546,8 +559,6 @@ namespace czu_sokoban
             //$"Wall_{wallNames[i]}.png"
             //$"WallRound_{wallNames[i]}.png"
 
-            string[] wallNames = {"Black", "Beige", "Brown", "Gray"};
-
             // Wall panel section
             Panel wallsPanel = new Panel
             {
@@ -607,7 +618,7 @@ namespace czu_sokoban
                     BackgroundImageLayout = ImageLayout.Stretch,
                     Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Flat,
+                    FlatStyle = FlatStyle.Standard,
                     
                 };
                 //0: Beige, 1: Black, 2: Brown, 3: Gray
@@ -645,7 +656,6 @@ namespace czu_sokoban
             //buttonSize = 7 * buttonSize / 8;
             //$"Crate_{crateNames[i]}.png"
             //$"WallDark_{crateNames[i]}.png"
-            string[] crateNames = {"Blue", "Beige", "Brown", "Red", "Yellow"};
             int space = cratePanel.Width / 10; 
             int rows = 5;
             int columns = 2;
@@ -671,7 +681,7 @@ namespace czu_sokoban
                     BackgroundImageLayout = ImageLayout.Stretch,
                     Image = i % 2 == 0 ? Storage.getImage($"Crate_{crateNames[buttonIndex]}.png") : Storage.getImage($"CrateDark_{crateNames[buttonIndex]}.png"),
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Flat,
+                    FlatStyle = FlatStyle.Standard,
 
                 };
                 crateButton.Click += (s, e) => currCrateSelected = buttonIndex;
@@ -692,8 +702,6 @@ namespace czu_sokoban
             };
             endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenHConst);
 
-            string[] endPointNames = {"Purple", "Beige", "Black", "Blue", "Brown", "Gray", "Red", "Yellow"};
-
             for (int i = 0; i < 8; i++)
             {
                 int buttonIndex = i;
@@ -712,10 +720,10 @@ namespace czu_sokoban
                     Font = btnFont,
                     Size = new Size(buttonSize, buttonSize),
                     Location = new Point(x, y),
-                    BackgroundImageLayout = ImageLayout.Stretch,
                     Image = Storage.getImage($"EndPoint_{endPointNames[buttonIndex]}.png"),
+                    BackgroundImageLayout = ImageLayout.Stretch,
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Flat,
+                    FlatStyle = FlatStyle.Standard,
 
                 };
                 endPointButton.Click += (s, e) => currEndPointSelected = buttonIndex;
@@ -727,7 +735,6 @@ namespace czu_sokoban
 
             }
 
-
             ////////////////////////////////////////////////////////////////////
             // Texture panel section
             Panel texturePanel = new Panel
@@ -736,8 +743,6 @@ namespace czu_sokoban
                 BorderStyle = BorderStyle.FixedSingle,
             };
             texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenHConst);
-
-            string[] texturesNames = {"Concrete", "Dirt", "Grass", "Sand"};
 
             for (int i = 0; i < 8; i++)
             {
@@ -760,10 +765,10 @@ namespace czu_sokoban
                     BackgroundImageLayout = ImageLayout.Stretch,
                     Image = i % 2 == 0 ? Storage.getImage($"Ground_{texturesNames[buttonIndex]}.png") : Storage.getImage($"GroundGravel_{texturesNames[buttonIndex]}.png"),
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Flat,
+                    FlatStyle = FlatStyle.Standard,
 
                 };
-                texturesButton.Click += (s, e) => currEndPointSelected = buttonIndex;
+                texturesButton.Click += (s, e) => currTexturesSelected = buttonIndex;
                 texturesButton.Click += (s, e) => UpdateShopButtons();
                 texturesButton.Click += (s, e) => Console.WriteLine($"currEndPointSelected {currEndPointSelected}, buttonIndex: {buttonIndex}");
                 texturesTextureList.Add(texturesButton);
