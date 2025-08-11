@@ -41,7 +41,7 @@ namespace czu_sokoban
         private System.Windows.Forms.Label label7;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
-        public Color btnColor = Color.LightSkyBlue;
+        public Color btnColor = Color.FromArgb(174, 226, 255);
         public int stepsCount = 0;
         Stopwatch stopwatch = new Stopwatch();
         public string currLevelName = "";
@@ -49,9 +49,13 @@ namespace czu_sokoban
         private List<Button> saveButtons = new List<Button>();
         private List<Button> wallTextureList = new List<Button>();
         private List<Button> crateTextureList = new List<Button>();
+        private List<Button> endPointTextureList = new List<Button>();
+        private List<Button> texturesTextureList = new List<Button>();
         //default wall texture
-        int currWallSelected = 1;
+        int currWallSelected = 0;
         int currCrateSelected = 0;
+        int currEndPointSelected = 0;
+        int currTexturesSelected = 0;
 
         ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
@@ -290,7 +294,7 @@ namespace czu_sokoban
                 Width = screenW,
                 Height = screenH / 10, // Adjust as needed
                 Dock = DockStyle.Top,
-                BackColor = Color.LightBlue // Choose your color
+                BackColor = Color.FromArgb(177, 240, 247) // Choose your color
             };
 
             // Create the label
@@ -472,27 +476,45 @@ namespace czu_sokoban
                     : btnColor;
             }
         }
-        private void UpdateSelectedWall()
+        private void UpdateShopButtons()
         {
-            foreach (Button btn in wallTextureList)
-            {
-                //0: Beige, 1: Black, 2: Brown, 3: Gray
-                int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currWallSelected)
-                    ? Color.LightGreen
-                    : Color.PaleVioletRed;
-            }
-        }
-        private void UpdateSelectedCrate()
-        {
+            Color selectedBtn = Color.FromArgb(195, 255, 153);
+            Color notSelectedBtn = Color.FromArgb(255, 170, 170);
+
+
             foreach (Button btn in crateTextureList)
             {
                 //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
                 int buttonTextureID = (int)btn.Tag;
                 btn.BackColor = (buttonTextureID == currCrateSelected)
-                    ? Color.LightGreen
-                    : Color.PaleVioletRed;
+                    ? selectedBtn
+                    : notSelectedBtn;
             }
+            foreach (Button btn in wallTextureList)
+            {
+                //0: Beige, 1: Black, 2: Brown, 3: Gray
+                int buttonTextureID = (int)btn.Tag;
+                btn.BackColor = (buttonTextureID == currWallSelected)
+                    ? selectedBtn
+                    : notSelectedBtn;
+            }
+            foreach (Button btn in endPointTextureList)
+            {
+                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
+                int buttonTextureID = (int)btn.Tag;
+                btn.BackColor = (buttonTextureID == currEndPointSelected)
+                    ? selectedBtn
+                    : notSelectedBtn;
+            }
+            foreach (Button btn in texturesTextureList)
+            {
+                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
+                int buttonTextureID = (int)btn.Tag;
+                btn.BackColor = (buttonTextureID == currTexturesSelected)
+                    ? selectedBtn
+                    : notSelectedBtn;
+            }
+
         }
         private Image UpdatePreviewPictureBox(int size ,string textureName, bool round = true)
         {
@@ -524,7 +546,7 @@ namespace czu_sokoban
             //$"Wall_{wallNames[i]}.png"
             //$"WallRound_{wallNames[i]}.png"
 
-            string[] wallNames = {"Beige", "Black", "Brown", "Gray"};
+            string[] wallNames = {"Black", "Beige", "Brown", "Gray"};
 
             // Wall panel section
             Panel wallsPanel = new Panel
@@ -555,7 +577,7 @@ namespace czu_sokoban
             {
                 Text = "SQUARE TEXTURE",
                 Font = btnFont,
-                BackColor = Color.LightSkyBlue,
+                BackColor = btnColor,
                 Size = new Size(buttonSize, buttonSize),
                 Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 3 * wallsPanel.Height / 4),
                 Appearance = Appearance.Button,
@@ -590,7 +612,7 @@ namespace czu_sokoban
                 };
                 //0: Beige, 1: Black, 2: Brown, 3: Gray
                 wallButton.Click += (s, e) => currWallSelected = buttonIndex;
-                wallButton.Click += (s, e) => UpdateSelectedWall();
+                wallButton.Click += (s, e) => UpdateShopButtons();
                 wallButton.Click += (s, e) =>
                 {
                     wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelected]}.png", wallRoundCheck.Checked);
@@ -610,9 +632,6 @@ namespace czu_sokoban
             wallsPanel.Controls.Add(wallRoundCheck);
             wallsPanel.Controls.Add(wallTexturePreview);
 
-            //Needed before inicializing shop screen to prevent sudden color change after first click
-            UpdateSelectedWall();
-
             /////////////////////////////////////////////////////////////////////
             // Crate panel section
             Panel cratePanel = new Panel
@@ -626,7 +645,7 @@ namespace czu_sokoban
             //buttonSize = 7 * buttonSize / 8;
             //$"Crate_{crateNames[i]}.png"
             //$"WallDark_{crateNames[i]}.png"
-            string[] crateNames = { "Blue", "Beige", "Brown", "Red", "Yellow"};
+            string[] crateNames = {"Blue", "Beige", "Brown", "Red", "Yellow"};
             int space = cratePanel.Width / 10; 
             int rows = 5;
             int columns = 2;
@@ -656,14 +675,13 @@ namespace czu_sokoban
 
                 };
                 crateButton.Click += (s, e) => currCrateSelected = buttonIndex;
-                crateButton.Click += (s, e) => UpdateSelectedCrate();
+                crateButton.Click += (s, e) => UpdateShopButtons();
                 crateButton.Click += (s, e) => Console.WriteLine($"currCrateSelected {currCrateSelected}, buttonIndex: {buttonIndex}");
                 crateTextureList.Add(crateButton);
 
                 cratePanel.Controls.Add(crateButton);
 
             }
-            UpdateSelectedCrate();
 
             ////////////////////////////////////////////////////////////////////
             // EndPoint panel section
@@ -674,6 +692,43 @@ namespace czu_sokoban
             };
             endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenHConst);
 
+            string[] endPointNames = {"Purple", "Beige", "Black", "Blue", "Brown", "Gray", "Red", "Yellow"};
+
+            for (int i = 0; i < 8; i++)
+            {
+                int buttonIndex = i;
+                // Determine column (0 or 1) and row (0 or 1)
+                int col = i % 2;
+
+                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
+                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+
+                // Y: 0 => 2/5 of height, 1 => 4/5 of height
+                int y = (int)(cratePanel.Height / 8 + (i - col) * (4 * buttonSize / 6));
+
+                Button endPointButton = new Button
+                {
+                    //Text = $"{i + 1}",
+                    Font = btnFont,
+                    Size = new Size(buttonSize, buttonSize),
+                    Location = new Point(x, y),
+                    BackgroundImageLayout = ImageLayout.Stretch,
+                    Image = Storage.getImage($"EndPoint_{endPointNames[buttonIndex]}.png"),
+                    Tag = buttonIndex,
+                    FlatStyle = FlatStyle.Flat,
+
+                };
+                endPointButton.Click += (s, e) => currEndPointSelected = buttonIndex;
+                endPointButton.Click += (s, e) => UpdateShopButtons();
+                endPointButton.Click += (s, e) => Console.WriteLine($"currEndPointSelected {currEndPointSelected}, buttonIndex: {buttonIndex}");
+                endPointTextureList.Add(endPointButton);
+
+                endPointPanel.Controls.Add(endPointButton);
+
+            }
+
+
+            ////////////////////////////////////////////////////////////////////
             // Texture panel section
             Panel texturePanel = new Panel
             {
@@ -682,6 +737,40 @@ namespace czu_sokoban
             };
             texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenHConst);
 
+            string[] texturesNames = {"Concrete", "Dirt", "Grass", "Sand"};
+
+            for (int i = 0; i < 8; i++)
+            {
+                int buttonIndex = i / 2;
+                // Determine column (0 or 1) and row (0 or 1)
+                int col = i % 2;
+
+                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
+                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+
+                // Y: 0 => 2/5 of height, 1 => 4/5 of height
+                int y = (int)(cratePanel.Height / 8 + (i - col) * (4 * buttonSize / 6));
+
+                Button texturesButton = new Button
+                {
+                    //Text = $"{i + 1}",
+                    Font = btnFont,
+                    Size = new Size(buttonSize, buttonSize),
+                    Location = new Point(x, y),
+                    BackgroundImageLayout = ImageLayout.Stretch,
+                    Image = i % 2 == 0 ? Storage.getImage($"Ground_{texturesNames[buttonIndex]}.png") : Storage.getImage($"GroundGravel_{texturesNames[buttonIndex]}.png"),
+                    Tag = buttonIndex,
+                    FlatStyle = FlatStyle.Flat,
+
+                };
+                texturesButton.Click += (s, e) => currEndPointSelected = buttonIndex;
+                texturesButton.Click += (s, e) => UpdateShopButtons();
+                texturesButton.Click += (s, e) => Console.WriteLine($"currEndPointSelected {currEndPointSelected}, buttonIndex: {buttonIndex}");
+                texturesTextureList.Add(texturesButton);
+
+                texturePanel.Controls.Add(texturesButton);
+
+            }
 
             // Add panels to shopPanel
             shopPanel.Controls.Add(wallsPanel);
@@ -691,6 +780,9 @@ namespace czu_sokoban
 
             // Add shopPanel to the form
             this.Controls.Add(shopPanel);
+
+            // need to update it at the first inicialization
+            UpdateShopButtons();
         }
         private void prepareLevel(string mapName)
         {
