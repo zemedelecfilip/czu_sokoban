@@ -25,7 +25,7 @@ public class Storage
     public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
 
     public static string selectedWall = "Wall_Black.png";
-    public static string selectedBox = "Crate  _Blue.png";
+    public static string selectedBox = "Crate_Blue.png";
     public static string selectedEndPoint = "EndPoint_Purple.png";
     public static string selectedTextures = "Ground_Concrete.png";
 

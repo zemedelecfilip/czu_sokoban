@@ -13,7 +13,11 @@ public class Box : PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.isThere = false;
-        this.Image = Storage.getImage(this.isThereBox() ? imagePath.Replace("Crate_", "CrateDark_") : imagePath);
+        if (isThere)
+        {
+            imagePath = imagePath.Replace("Crate_", "CrateDark_");
+        }
+        this.Image = Storage.getImage(imagePath);
         this.SizeMode = Storage.sizeMode;
 
     }

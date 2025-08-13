@@ -283,7 +283,9 @@ public class Maps
                     box.isThere = false;
                 }
             }
-            box.Image = Storage.getImage(box.isThereBox() ? "CrateDark_Blue.png" : "Crate_Blue.png");
+            string path = Storage.selectedBox;
+            path = box.isThere ? path.Replace("Crate_", "CrateDark_") : path;
+            box.Image = Storage.getImage(path);
         }
         return dests == 0 ? true : false;
     }
