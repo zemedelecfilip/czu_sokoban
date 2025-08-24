@@ -1,18 +1,7 @@
 // dependecies for this bad boy find in https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3#readme-body-tab
 // install like 5 mil nuggets
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using SQLitePCL;
-using System;
-using System.IO;
-using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
-using System.Xml.Linq;
-using System.Numerics;
 
 public class PeopleDatabase
 {

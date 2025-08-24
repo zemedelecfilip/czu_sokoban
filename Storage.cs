@@ -1,4 +1,3 @@
-using System.Drawing;
 public class Storage
 {
     //menu, levels, level, stats
@@ -79,12 +78,12 @@ public class Storage
         }
         catch (FileNotFoundException ex)
         {
-            //MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
         catch (Exception ex)
         {
-            //MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
 

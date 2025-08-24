@@ -1,15 +1,4 @@
-﻿//vytvoøení všech objektù na základì mapy
-using czu_sokoban;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Globalization;
-using System.Reflection.Emit;
-using System.Security;
-using System.Windows.Forms;
-using System.Xml.Linq;
-
-public class Maps
+﻿public class Maps
 {
     // Constants for grid size
     public static int Size = Storage.size;

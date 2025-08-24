@@ -40,6 +40,7 @@ namespace czu_sokoban
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label headerLabel;
         public PictureBox homeScreenRect;
         public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
         public Color btnColor = Color.FromArgb(174, 226, 255);
@@ -61,6 +62,7 @@ namespace czu_sokoban
         int currCrateSelected = 0;
         int currEndPointSelected = 0;
         int currTexturesSelected = 0;
+        bool roundTexture = false;
 
         ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
@@ -145,7 +147,7 @@ namespace czu_sokoban
                 {
                     Console.WriteLine($"[DEBUG TEXTURES] Crate_{crateNames[currCrateSelected]}.png");
                     Storage.selectedBox = $"Crate_{crateNames[currCrateSelected]}.png";
-                    Storage.selectedWall = $"Wall_{wallNames[currWallSelected]}.png";
+                    Storage.selectedWall = roundTexture ? $"WallRound_{wallNames[currWallSelected]}.png" : $"Wall_{wallNames[currWallSelected]}.png";
                     Storage.selectedEndPoint = $"EndPoint_{endPointNames[currEndPointSelected]}.png";
                     Storage.selectedTextures = $"Ground_{texturesNames[currTexturesSelected]}.png";
                     Console.WriteLine($"[TEXTURES]: box: Crate_{crateNames[currCrateSelected]}.png, wall: Wall_{wallNames[currWallSelected]}.png, EndPoint: EndPoint_{endPointNames[currEndPointSelected]}.png, Textures: Ground_{texturesNames[currTexturesSelected]}.png");
@@ -168,8 +170,7 @@ namespace czu_sokoban
             homePanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(homePanel);
 
@@ -177,8 +178,7 @@ namespace czu_sokoban
             levelsPanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(levelsPanel);
 
@@ -186,8 +186,7 @@ namespace czu_sokoban
             levelPanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(levelPanel);
 
@@ -195,8 +194,7 @@ namespace czu_sokoban
             endLevelPanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(endLevelPanel);
 
@@ -204,8 +202,7 @@ namespace czu_sokoban
             profilePanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(profilePanel);
 
@@ -213,8 +210,7 @@ namespace czu_sokoban
             shopPanel = new Panel
             {
                 Size = this.ClientSize,
-                BackColor = Color.White,
-                Visible = false
+                BackColor = Color.Transparent,
             };
             this.Controls.Add(shopPanel);
 
@@ -301,33 +297,32 @@ namespace czu_sokoban
         {
 
             // Create the header rectangle as a panel
+            // Create the header panel
             Panel headerPanel = new Panel
             {
                 Location = new Point(0, 0),
                 Width = screenW,
                 Height = screenH / 10, // Adjust as needed
                 Dock = DockStyle.Top,
-                BackColor = Color.FromArgb(177, 240, 247) // Choose your color
+                BackColor = Color.FromArgb(177, 240, 247)
             };
 
             // Create the label
-            System.Windows.Forms.Label headerLabel = new System.Windows.Forms.Label();
+            headerLabel = new System.Windows.Forms.Label
             {
-                Text = "SOKOBAN";
-                ForeColor = Color.Black;
-                //Font = btnFont;
-                AutoSize = false;
-                //TextAlign = ContentAlignment.MiddleCenter;
-                Dock = DockStyle.Fill;
-            }
-            ;
+                Text = "SOKOBAN",
+                ForeColor = Color.Black,
+                Font = new Font("Arial", 24, FontStyle.Bold), // adjust font as needed
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill
+            };
 
             // Add label to header, header to parent panel
-            parentPanel.Controls.Add(headerPanel);
             headerPanel.Controls.Add(headerLabel);
+            parentPanel.Controls.Add(headerPanel);
+
             // Ensure header is at the front
-            headerPanel.BringToFront();
-            headerLabel.BringToFront();
             AddGlobalButtonToPanel(parentPanel);
 
         }
@@ -533,6 +528,7 @@ namespace czu_sokoban
         {
             if (round)
             {
+                roundTexture = true;
                 textureName = textureName.Replace("Wall_", "WallRound_");
             }
 

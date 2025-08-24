@@ -12,6 +12,8 @@ public class Wall : PictureBox
         this.BackColor = Color.Transparent;
         this.Image = Storage.getImage(imagePath);
         this.SizeMode = Storage.sizeMode;
+        this.DoubleBuffered = true;
+
     }
 
 }

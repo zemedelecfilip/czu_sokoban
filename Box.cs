@@ -19,6 +19,7 @@ public class Box : PictureBox
         }
         this.Image = Storage.getImage(imagePath);
         this.SizeMode = Storage.sizeMode;
+        this.DoubleBuffered = true;
 
     }
     public void moveLeft()

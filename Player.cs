@@ -1,6 +1,3 @@
-
-using System.Runtime.CompilerServices;
-
 public class Player: PictureBox
 {
 	public int a = Storage.size;
@@ -17,6 +14,8 @@ public class Player: PictureBox
         this.Size = new Size(a, a);
         this.SizeMode = Storage.sizeMode;
         this.Image = Storage.getImage("Character_down.png");
+        this.DoubleBuffered = true;
+
     }
 
     public string getImagePath(string direction)
