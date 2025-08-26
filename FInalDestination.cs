@@ -1,3 +1,4 @@
+// Class for a player object in the game
 public class FinalDestination : PictureBox
 {
     public int x, y;

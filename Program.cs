@@ -1,3 +1,4 @@
+// generated automatically on win forms app program creatin
 namespace czu_sokoban
 {
     internal static class Program

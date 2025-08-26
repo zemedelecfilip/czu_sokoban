@@ -1,3 +1,4 @@
+// Class for a simple SQLite database to store player data and levels
 // dependecies for this bad boy find in https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3#readme-body-tab
 // install like 5 mil nuggets
 
@@ -14,7 +15,6 @@ public class PeopleDatabase
     public static List<int[,]> levels = new List<int[,]>();
     public static string[] players;
 
-
     public PeopleDatabase()
     {
         Batteries_V2.Init();
@@ -27,17 +27,7 @@ public class PeopleDatabase
         //insertShop();
         Console.WriteLine("Database initialized and tables created successfully.");
     }
-    public void dropTables()
-    {
-        using (var db = OpenConnection())
-        {
-            string dropSavesTableSql = "DROP TABLE IF EXISTS Saves;";
-            string dropLevelsTableSql = "DROP TABLE IF EXISTS Levels;";
-            raw.sqlite3_exec(db, dropSavesTableSql, null, IntPtr.Zero, out _);
-            raw.sqlite3_exec(db, dropLevelsTableSql, null, IntPtr.Zero, out _);
-            db.Close();
-        }
-    }
+    // Method for inserting all predefined grids into the levels list
     public void insertGrids()
     {
         levels.Add(MapGrid1);
@@ -51,6 +41,7 @@ public class PeopleDatabase
         levels.Add(MapGrid9);
         levels.Add(MapGrid10);
     }
+    // Method for database tables creation
     private void CreateTables()
     {
         Console.WriteLine("Creating tables...");
@@ -84,6 +75,8 @@ public class PeopleDatabase
             db.Close();
         }
     }
+    // Method for preparing statemets with error handling
+    // AI genetated
     private sqlite3_stmt PrepareStatement(sqlite3 db, string sql)
     {
         int rc = raw.sqlite3_prepare_v2(db, sql, out sqlite3_stmt stmt);
@@ -106,6 +99,8 @@ public class PeopleDatabase
         }
         return stmt;
     }
+    // Method for some db handling
+    // AI generated
     private sqlite3 OpenConnection()
     {
         raw.sqlite3_open(ConnectionString, out sqlite3 db);
@@ -115,6 +110,7 @@ public class PeopleDatabase
         raw.sqlite3_exec(db, "PRAGMA journal_mode=WAL;", null, IntPtr.Zero, out _);
         return db;
     }
+    // Method from grid to string
     public string SerializeMapGrid(int[,] grid)
     {
         int height = grid.GetLength(0);
@@ -131,6 +127,7 @@ public class PeopleDatabase
         }
         return string.Join(";", rows); // Use ';' to separate rows
     }
+    // Method from string to grid
     public int[,] DeserializeMapGrid(string data)
     {
         if (string.IsNullOrEmpty(data)) return new int[0, 0];
@@ -151,6 +148,7 @@ public class PeopleDatabase
         }
         return grid;
     }
+    // Method for inserting predefined levels into the database
     public void insertLevels()
     {
         using (var db = OpenConnection())
@@ -182,6 +180,7 @@ public class PeopleDatabase
             db.Close();
         }
     }
+    // Metohd for insert saves to database
     public void insertSaves()
     {
         using (var db = OpenConnection())
@@ -197,7 +196,7 @@ public class PeopleDatabase
         }
         Console.WriteLine("Saves inserted successfully.");
     }
-    // path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Textures\CrateDark_Blue.png");
+    // Method to get level based on a level name
     public int[,] getLevel(string level)
     {
         Console.WriteLine($"Retrieving level: {level}");
@@ -221,22 +220,7 @@ public class PeopleDatabase
         }
         return null;
     }
-    public void printArr (int [,] arr)
-    {
-        if (arr == null)
-        {
-            //Console.WriteLine("array in printArr args is null");
-            return;
-        }
-        for (int i = 0; i < arr.GetLength(0); i++)
-        {
-            for (int j = 0; j < arr.GetLength(1); j++)
-            {
-                Console.Write(arr[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-    }
+    // Method to get data for all levels for a specific save (best time and best count of steps)
     public List<(string LevelName, double Time, int Steps)> GetLevelTimesAndStepsByPlayer(int saveId, string level=null)
     {
         var results = new List<(string LevelName, double Time, int Steps)>();
@@ -263,9 +247,9 @@ public class PeopleDatabase
         }
         return results;
     }
-
+    // AI generated to solve database locked problem - 10h debuggind
     private static readonly object _dbLock = new object();
-
+    // Method to set level time and steps for a specific save and level
     public void SetLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
     {
         time = Convert.ToDouble(time.ToString("N3"));
@@ -305,6 +289,7 @@ public class PeopleDatabase
     }
 
     // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
+    // all levels data
     public int[,] MapGrid1 = new int[Height, Width]
     {
         {1, 1, 1, 1, 1, 1, 1, 1},

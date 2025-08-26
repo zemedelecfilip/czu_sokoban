@@ -17,10 +17,6 @@
     public Player player;
     public List<Texture> textures;
 
-    //export skore - cas
-    //menu - import progressu
-    //10 level?
-
     // Constructor
     public Maps()
     {
@@ -30,7 +26,7 @@
         textures = new List<Texture>(); 
         player = null;
     }
-
+    // Methods for adding objects to the lists
     public void AddBox(int x, int y)
     {
         Box newBox = new Box(x, y);
@@ -41,19 +37,16 @@
         Wall newBox = new Wall(x, y);
         walls.Add(newBox);
     }
-
     public void AddPlayer(int x, int y)
     {
         Player player = new Player(x, y);
         this.player = player;
     }
-
     public void AddFinalDestination(int x, int y)
     {
         FinalDestination newBox = new FinalDestination(x, y);
         finalDest.Add(newBox);
     }
-
     public void AddTexture(int x, int y, bool outside = false)
     {
         Texture newBox = new Texture(x, y, outside);
@@ -202,7 +195,6 @@
     //method for collision between box and box
     //return value is box so it can be moved in main
     //need for one more condition because box always collide with itself(same pos)
-
     public Box collided_bb(Box bob, List<Box> boxes)
     { 
         if (bob == null)
@@ -235,7 +227,6 @@
         }
         return null;
     }
-
     //method for collision between player and wall
     //return value is true or false - no need for exact object to be returned
     public bool collided_pw(Player player, List<Wall> walls)
@@ -253,7 +244,7 @@
         }
         return false;
     }
-
+    // Method for checking win - if all boxes are on final destinations
     public bool checkWin(List<Box> boxes, List<FinalDestination> finalDest)
     {
         int dests = finalDest.Count;

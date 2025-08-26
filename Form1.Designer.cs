@@ -33,6 +33,7 @@ namespace czu_sokoban
         private Panel endLevelPanel;
         private Panel profilePanel;
         private Panel shopPanel;
+        // labels inicialization
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
@@ -46,6 +47,7 @@ namespace czu_sokoban
         public Color btnColor = Color.FromArgb(174, 226, 255);
         public int stepsCount = 0;
         Stopwatch stopwatch = new Stopwatch();
+        // Inicialization for a shop panel
         public string currLevelName = "";
         public int currSave = 1;
         private List<Button> saveButtons = new List<Button>();
@@ -98,6 +100,7 @@ namespace czu_sokoban
             //Console.WriteLine($"screenSize: {screenW}x{screenH}");
         }
         // adding global button to return to home to all panels except homePanel;
+        // for every panel little bit different implementation of panels and with different variable changes
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
             if (targetPanel == homePanel) return;
@@ -231,6 +234,7 @@ namespace czu_sokoban
             AddHeaderToPanel(endLevelPanel);
 
         }
+        // Initializetion of home screen with design and all components
         private void InitializeHomeScreen()
         {
             // Button styles
@@ -293,6 +297,7 @@ namespace czu_sokoban
 
             this.Controls.Add(homePanel);
         }
+        // method to always show header panel for every panel with a label sokoban
         private void AddHeaderToPanel(Panel parentPanel)
         {
 
@@ -326,6 +331,7 @@ namespace czu_sokoban
             AddGlobalButtonToPanel(parentPanel);
 
         }
+        // Initialization of levels using loop, buttons to select level, labels for best times and steps
         private void InitializeLevelsScreen()
         {
             // Clear previous controls (except the header)
@@ -396,6 +402,7 @@ namespace czu_sokoban
                 timePb = 0;
             }
         }
+        // Main inicialization of the program, preparing level for use / movement / display
         private void InitializeLevelScreen(string level)
         {
             //Console.WriteLine($"Initializing Level Screen... with level: {level}");
@@ -404,6 +411,7 @@ namespace czu_sokoban
             this.prepareLevel(level);
 
         }
+        // Inicialization of labels for end level screen
         private void InitializeLabels()
         {
             label3 = new System.Windows.Forms.Label
@@ -430,18 +438,20 @@ namespace czu_sokoban
             };
             endLevelPanel.Controls.Add(label5);
         }
+        // Inicialization of end level screen with final time, steps and congratulation
         private void InitializeEndLevelScreen(string levelName, double time, int stepsCount)
         {
             // Update label texts
-            label3.Text = $"Finální počet kroků: {stepsCount}";
-            label4.Text = $"Výsledný čas: {time}";
-            label5.Text = $"Gratulace k dokončení {levelName}";
+            label3.Text = $"Final steps count: {stepsCount}";
+            label4.Text = $"Final time: {time}";
+            label5.Text = $"Congratulation for copleting {levelName}";
 
             // Recalculate positions after text update (Width changes)
             label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 + 2 * label3.Height);
             label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
             label5.Location = new Point((screenW - label5.Width) / 2, screenH / 5);
         }
+        // Inicialization of profile screen - can change save to upload to different save - with 3 save buttons, changing color of current save
         private void InitializeProfileScreen()
         {
             bool firstLoad = true;
@@ -473,6 +483,7 @@ namespace czu_sokoban
                 profilePanel.Controls.Add(profileBtn);
             }
         }
+        // Method to change save button colors
         private void UpdateButtonColors()
         {
             foreach (Button btn in saveButtons)
@@ -484,6 +495,7 @@ namespace czu_sokoban
                     : btnColor;
             }
         }
+        // Method for updating shop buttons color
         private void UpdateShopButtons()
         {
             Color selectedBtn = Color.FromArgb(200 ,195, 255, 153);
@@ -524,6 +536,7 @@ namespace czu_sokoban
             }
 
         }
+        // Method to update picture box in shop screen - to show what texture player selected
         private Image UpdatePreviewPictureBox(int size ,string textureName, bool round = true)
         {
             if (round)
@@ -545,6 +558,7 @@ namespace czu_sokoban
             }
 
         }
+        // Longest inicialization of this program to show all textures in shop screen, with buttons to select texture, and picture box to show what texture player selected
         private void InitializeShopScreen()
         {
             // Example screen width, adjust as needed
@@ -785,11 +799,11 @@ namespace czu_sokoban
             // need to update it at the first inicialization
             UpdateShopButtons();
         }
+        // Method to prepare level, adding textures to controls, adding movement ability, preparing labels
         private void prepareLevel(string mapName)
         {
             // get level data from db
             int[,] arr = database.getLevel(mapName);
-            //Console.WriteLine($"Preparing level: {mapName} with data: {arr.GetLength(0)}x{arr.GetLength(1)}");
             // depends on level create objs
             maps.addObjToList(arr, arr.GetLength(0));
             // make them able to move
@@ -823,12 +837,14 @@ namespace czu_sokoban
             levelPanel.Controls.Add(label2);
 
         }
+        // Method to show only one panel depending on application movement - buttons
         private void ShowPanel(Panel targetPanel)
         {
             foreach (Control c in this.Controls.OfType<Panel>())
                 c.Visible = false;
             targetPanel.Visible = true;
         }
+        // Method to handle key presses for player movement, collision detection, step counting, win checking
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (levelPanel.Visible)
@@ -1003,6 +1019,7 @@ namespace czu_sokoban
 
             }
         }
+        // Method to reset variables for new level start or restart
         private void resetVars()
         {
             stepsCount = 0;

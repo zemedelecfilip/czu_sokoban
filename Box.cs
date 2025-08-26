@@ -1,3 +1,4 @@
+// Class for boxes objects in the game
 public class Box : PictureBox
 {
     public int x, y;
@@ -22,6 +23,7 @@ public class Box : PictureBox
         this.DoubleBuffered = true;
 
     }
+    // Box movement methods
     public void moveLeft()
     {
         this.Left -= boxSpeed;
@@ -43,9 +45,4 @@ public class Box : PictureBox
         this.y = this.Top;
     }
     
-    public bool isThereBox()
-    {
-        return this.isThere;
-    }
-
 }

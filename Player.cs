@@ -1,10 +1,10 @@
+// Class for a player object in the game
 public class Player: PictureBox
 {
 	public int a = Storage.size;
 	public int playerSpeed = Storage.playerSpeed;
 	public int x, y;
     public string direction = "down";
-    //public bool firstLoead = true;
     public Player(int x, int y)
 	{
 		this.x = x;
@@ -18,32 +18,14 @@ public class Player: PictureBox
 
     }
 
-    public string getImagePath(string direction)
-    {
-        switch (direction)
-        {
-            case "up":
-                return "Character_up.png";
-            case "down":
-                return "Character_down.png";
-            case "left":
-                return "Character_left.png";
-            case "right":
-                return "Character_right.png";
-            default:
-                return null;
-
-        }
-    }
-    
+    // Movement methods for the player
     public void moveLeft(bool change_dir = false)
-	{
+    {
         this.Left -= playerSpeed;
-		this.x = this.Left;
+        this.x = this.Left;
         this.direction = change_dir ? "right" : "left";
         this.Image = Storage.getImage($"Character_{this.direction}.png");
     }
-
     public void moveRight(bool change_dir = false)
 	{
         this.Left += playerSpeed;
@@ -51,7 +33,6 @@ public class Player: PictureBox
         this.direction = change_dir ? "left" : "right";
         this.Image = Storage.getImage($"Character_{this.direction}.png");
     }
-
     public void moveUp(bool change_dir = false)
 	{
 		this.Top -= playerSpeed;
@@ -59,8 +40,6 @@ public class Player: PictureBox
         this.direction = change_dir ? "down" : "up";
         this.Image = Storage.getImage($"Character_{this.direction}.png");
     }
-
-
     public void moveDown(bool change_dir = false)
 	{
         this.Top += playerSpeed;
@@ -68,7 +47,5 @@ public class Player: PictureBox
         this.direction = change_dir ? "up" : "down";
         this.Image = Storage.getImage($"Character_{this.direction}.png");
     }
-
-    // use the getImage method from a storage combined with a case switch 
 
 }

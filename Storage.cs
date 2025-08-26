@@ -1,3 +1,4 @@
+// class for storing global variables and methods
 public class Storage
 {
     //menu, levels, level, stats

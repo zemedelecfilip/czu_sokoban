@@ -1,3 +1,4 @@
+// Class for the wall objects in the game
 public class Wall : PictureBox
 {
     public int x, y;
