@@ -13,6 +13,7 @@ public class Player: PictureBox
         this.Location = new Point(this.x, this.y);
         this.Size = new Size(a, a);
         this.SizeMode = Storage.sizeMode;
+        this.BackgroundImageLayout = ImageLayout.Stretch;
         this.Image = Storage.getImage("Character_down.png");
         this.DoubleBuffered = true;
 

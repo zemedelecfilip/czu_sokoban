@@ -855,12 +855,14 @@ namespace czu_sokoban
                 {
                     //player moved left
                     player.moveLeft();
+                    maps.UpdateBackgroundImage(player);
                     dif++;
 
                     if (maps.collided_pw(player, walls))
                     {
                         //player moved back to the original position
                         player.moveRight(true);
+                        maps.UpdateBackgroundImage(player);
                         dif--;
                     }
                     //check if player collided with box
@@ -871,6 +873,7 @@ namespace czu_sokoban
                     {
                         //box moved left
                         a.moveLeft();
+                        maps.UpdateBackgroundImage(a);
                         dif++;
                         //check if box collided with box
                         Box b = maps.collided_bb(a, boxes);      
@@ -880,7 +883,9 @@ namespace czu_sokoban
                         if (b != null || c != null)             
                         {
                             a.moveRight();
+                            maps.UpdateBackgroundImage(a);
                             player.moveRight(true);
+                            maps.UpdateBackgroundImage(player);
                             dif--;
                         }
                         dif--;
@@ -894,11 +899,13 @@ namespace czu_sokoban
                 {
                     
                     player.moveRight();
+                    maps.UpdateBackgroundImage(player);
                     dif++;
 
                     if (maps.collided_pw(player, walls))
                     {
                         player.moveLeft(true);
+                        maps.UpdateBackgroundImage(player);
                         dif--;
                     }                                           
                     Box a = maps.collided_pb(player, boxes);     
@@ -906,13 +913,16 @@ namespace czu_sokoban
                     if (a != null)                              
                     {
                         a.moveRight();
+                        maps.UpdateBackgroundImage(a);
                         dif++;
                         Box b = maps.collided_bb(a, boxes);      
                         Box c = maps.collided_bw(a, walls);      
                         if (b != null || c != null)             
                         {
                             a.moveLeft();
+                            maps.UpdateBackgroundImage(a);
                             player.moveLeft(true);
+                            maps.UpdateBackgroundImage(player);
                             dif--;
                         }
                         dif--;
@@ -923,11 +933,13 @@ namespace czu_sokoban
                 else if (e.KeyCode == Keys.Up)
                 {
                     player.moveUp();
+                    maps.UpdateBackgroundImage(player);
                     dif++;
 
                     if (maps.collided_pw(player, walls))
                     {
                         player.moveDown(true);
+                        maps.UpdateBackgroundImage(player);
                         dif--;
                     }
                     Box a = maps.collided_pb(player, boxes);   
@@ -935,13 +947,16 @@ namespace czu_sokoban
                     if (a != null)                              
                     {
                         a.moveUp();
+                        maps.UpdateBackgroundImage(a);
                         dif++;
                         Box b = maps.collided_bb(a, boxes);
                         Box c = maps.collided_bw(a, walls); 
                         if (b != null || c != null)          
                         {
                             a.moveDown();
+                            maps.UpdateBackgroundImage(a);
                             player.moveDown(true);
+                            maps.UpdateBackgroundImage(player);
                             dif--;
                         }
                         dif--;
@@ -952,10 +967,12 @@ namespace czu_sokoban
                 else if (e.KeyCode == Keys.Down)
                 {
                     player.moveDown();
+                    maps.UpdateBackgroundImage(player);
                     dif++;
                     if (maps.collided_pw(player, walls))
                     {
                         player.moveUp(true);
+                        maps.UpdateBackgroundImage(player);
                         dif--;
                     }
                     Box a = maps.collided_pb(player, boxes);
@@ -963,13 +980,16 @@ namespace czu_sokoban
                     if (a != null)
                     {
                         a.moveDown();
+                        maps.UpdateBackgroundImage(a);
                         dif++;
                         Box b = maps.collided_bb(a, boxes);
                         Box c = maps.collided_bw(a, walls);
                         if (b != null || c != null)
                         {
                             a.moveUp();
+                            maps.UpdateBackgroundImage(a);
                             player.moveUp(true);
+                            maps.UpdateBackgroundImage(player);
                             dif--;
                         }
                         dif--;

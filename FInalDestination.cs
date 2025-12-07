@@ -13,6 +13,7 @@ public class FinalDestination : PictureBox
         this.Size = new Size(a, a);
         this.Image = Storage.getImage(imagePath);
         this.SizeMode = Storage.sizeMode;
+        this.BackgroundImageLayout = ImageLayout.Stretch;
         this.DoubleBuffered = true;
 
     }

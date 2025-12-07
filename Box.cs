@@ -20,6 +20,7 @@ public class Box : PictureBox
         }
         this.Image = Storage.getImage(imagePath);
         this.SizeMode = Storage.sizeMode;
+        this.BackgroundImageLayout = ImageLayout.Stretch;
         this.DoubleBuffered = true;
 
     }

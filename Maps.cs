@@ -55,6 +55,7 @@
 
     //method for adding all objects to form, so can be moved / displayed
     //the order of adding is important, because the last added control is on top of the others
+    //textures are now used as BackgroundImage for other PictureBoxes
     public void AddToControls(Panel levelPanel)
     {
         // Clear previous controls;
@@ -66,6 +67,16 @@
             return;
         }
 
+        // First, add all textures as separate PictureBoxes for empty spaces
+        if (textures != null)
+        {
+            foreach (var texture in textures)
+            {
+                levelPanel.Controls.Add(texture);
+            }
+        }
+
+        // Then add walls (they don't need texture background)
         if (walls != null)
         {
             foreach (var box in walls)
@@ -74,32 +85,46 @@
             }
         }
 
+        // Add boxes with texture as background
         if (boxes != null)
         {
             foreach (var box in boxes)
             {
-                 levelPanel.Controls.Add(box);
+                // Find the texture at the same position to use as background
+                Texture textureAtPos = textures?.FirstOrDefault(t => t.x == box.x && t.y == box.y);
+                if (textureAtPos != null)
+                {
+                    box.BackgroundImage = textureAtPos.Image;
+                }
+                levelPanel.Controls.Add(box);
+                box.BringToFront();
             }
         }
 
+        // Add player with texture as background
         if (player != null)
         {
+            Texture textureAtPos = textures?.FirstOrDefault(t => t.x == player.x && t.y == player.y);
+            if (textureAtPos != null)
+            {
+                player.BackgroundImage = textureAtPos.Image;
+            }
             levelPanel.Controls.Add(player);
+            player.BringToFront();
         }
 
+        // Add final destinations with texture as background
         if (finalDest != null)
         {
-            foreach (var box in finalDest)
+            foreach (var dest in finalDest)
             {
-                 levelPanel.Controls.Add(box);
-            }
-        }
-
-        if (textures != null)
-        {
-            foreach (var texture in textures)
-            {
-                levelPanel.Controls.Add(texture);
+                Texture textureAtPos = textures?.FirstOrDefault(t => t.x == dest.x && t.y == dest.y);
+                if (textureAtPos != null)
+                {
+                    dest.BackgroundImage = textureAtPos.Image;
+                }
+                levelPanel.Controls.Add(dest);
+                dest.BringToFront();
             }
         }
 
@@ -268,5 +293,19 @@
             box.Image = Storage.getImage(path);
         }
         return dests == 0 ? true : false;
+    }
+    
+    // Helper method to update BackgroundImage for a PictureBox based on its current position
+    public void UpdateBackgroundImage(PictureBox pictureBox)
+    {
+        if (pictureBox == null || textures == null) return;
+        
+        Texture textureAtPos = textures.FirstOrDefault(t => t.x == pictureBox.Left && t.y == pictureBox.Top);
+        if (textureAtPos != null)
+        {
+            pictureBox.BackgroundImage = textureAtPos.Image;
+        }
+        // Ensure the element stays in front
+        pictureBox.BringToFront();
     }
 }
