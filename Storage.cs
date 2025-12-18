@@ -1,108 +1,126 @@
-// class for storing global variables and methods
-public class Storage
+using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace czu_sokoban
 {
-    //menu, levels, level, stats
-    public static int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-    public static int screenHeight = Screen.PrimaryScreen.Bounds.Height;
-
-    //headerpanel - H / 10
-    //bottom space - H / 10
-    // 8H / 100 - space between panel and empty space at the bottom
-    // --> 2H / 25
-
-    //size of the tiles in the game - bit smaller to make the 10x10 playable
-    public static int size = screenHeight * 2 / 25;
-
-    public static int playerSpeed = size;
-    
-
-    public const int gridSize = 8;
-    public static int leftMargin = screenWidth / 2 - (gridSize * size) / 2;
-    public static int topMargin = screenHeight / 2 - (gridSize * size) / 2;
-
-    public const int gridSize2 = 10;
-    public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
-    public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
-
-    public static string selectedWall = "Wall_Black.png";
-    public static string selectedBox = "Crate_Blue.png";
-    public static string selectedEndPoint = "EndPoint_Purple.png";
-    public static string selectedTextures = "Ground_Concrete.png";
-
-    //public static int leftMargin2 = screenWidth / 2 - (gridSize2 * size) / 2;
-    //public static int topMargin2 = screenHeight / 2 - (gridSize2 * size) / 2;
-
-    //Normal - not in the middle, StretchImage - full win, mid, decent, CenterImage - just center, Zoom - full win, mid
-    public static PictureBoxSizeMode sizeMode = PictureBoxSizeMode.StretchImage;
-    public static System.Drawing.Color Transparent { get; }
-
-    // PictureBoxSizeMode.Zoom;
-    // default: wall - black, player - red, box - blue / darkblue, final destination - purple, 
-    // Bitmap redSquare = CreateColoredSquare(64, Color.Red);
-    public static Image getImage(string filePath)
+    /// <summary>
+    /// Provides global configuration and utility methods for the Sokoban game.
+    /// </summary>
+    public static class Storage
     {
-        //Console.WriteLine($"Loading image from: {filePath}");
-        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..\..\..\Textures\{filePath}");
-        try
+        private const int TileSizeDenominator = 25;
+        private const int TileSizeMultiplier = 2;
+        private const string TexturesFolder = "Textures";
+        private const string WallImagePrefix = "Wall";
+        private const string CharacterImagePrefix = "Character";
+        private const string CrateImagePrefix = "Crate";
+        private const string EndPointImagePrefix = "EndPoint";
+        private const string GroundImagePrefix = "Ground";
+
+        public static int ScreenWidth { get; } = Screen.PrimaryScreen.Bounds.Width;
+        public static int ScreenHeight { get; } = Screen.PrimaryScreen.Bounds.Height;
+
+        public static int Size { get; } = ScreenHeight * TileSizeMultiplier / TileSizeDenominator;
+        public static int PlayerSpeed { get; } = Size;
+
+        public const int GridSize = 8;
+        public static int LeftMargin { get; } = ScreenWidth / 2 - (GridSize * Size) / 2;
+        public static int TopMargin { get; } = ScreenHeight / 2 - (GridSize * Size) / 2;
+
+        public const int GridSize2 = 10;
+        public static int LeftMargin2 { get; } = ScreenWidth / 2 - (GridSize2 * Size) / 2;
+        public static int TopMargin2 { get; } = ScreenHeight / 2 - (GridSize2 * Size) / 2;
+
+        public static string SelectedWall { get; set; } = "Wall_Black.png";
+        public static string SelectedBox { get; set; } = "Crate_Blue.png";
+        public static string SelectedEndPoint { get; set; } = "EndPoint_Purple.png";
+        public static string SelectedTextures { get; set; } = "Ground_Concrete.png";
+
+        public static PictureBoxSizeMode SizeMode { get; } = PictureBoxSizeMode.StretchImage;
+
+        /// <summary>
+        /// Loads an image from the Textures folder. Returns a default colored square if the image is not found.
+        /// </summary>
+        /// <param name="filePath">The filename of the image to load.</param>
+        /// <returns>The loaded image or a default colored square.</returns>
+        public static Image GetImage(string filePath)
         {
-            if (!File.Exists(path))
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..\..\..\{TexturesFolder}\{filePath}");
+            try
             {
-                if (filePath.Contains("Wall"))
+                if (!File.Exists(path))
                 {
-                    Bitmap defSquare = CreateColoredSquare(size, Color.Black);
-                    return defSquare;
+                    return CreateDefaultImage(filePath);
                 }
-                else if (filePath.Contains("Character"))
-                {
-                    Bitmap defSquare = CreateColoredSquare(size, Color.Red);
-                    return defSquare;
-                }
-                else if (filePath.Contains("Crate"))
-                {
-                    Bitmap defSquare = CreateColoredSquare(size, Color.Blue);
-                    return defSquare;
-                }
-                else if (filePath.Contains("EndPoint"))
-                {
-                    Bitmap defSquare = CreateColoredSquare(size, Color.Purple);
-                    return defSquare;
-                }
-                else if (filePath.Contains("Ground"))
-                {
-                    Bitmap defSquare = CreateColoredSquare(size, Color.Gray);
-                    return defSquare;
-                }
+                return Image.FromFile(path);
             }
-            Image image = Image.FromFile(path);
-            return image;
-
-        }
-        catch (FileNotFoundException ex)
-        {
-            MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return null;
-        }
-
-    }
-    public static Bitmap CreateColoredSquare(int size, Color color)
-    {
-        Bitmap bmp = new Bitmap(size, size);
-        using (Graphics g = Graphics.FromImage(bmp))
-        {
-            using (SolidBrush brush = new SolidBrush(color))
+            catch (FileNotFoundException ex)
             {
-                g.FillRectangle(brush, 0, 0, size, size);
+                MessageBox.Show($"Error: {ex.Message}", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return CreateDefaultImage(filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return CreateDefaultImage(filePath);
             }
         }
-        return bmp;
-    }
-    public static Point gridPos(int x, int y)
-    {
-        return new Point(x / size, y / size);
+
+        private static Image CreateDefaultImage(string filePath)
+        {
+            if (filePath.Contains(WallImagePrefix))
+            {
+                return CreateColoredSquare(Size, Color.Black);
+            }
+            if (filePath.Contains(CharacterImagePrefix))
+            {
+                return CreateColoredSquare(Size, Color.Red);
+            }
+            if (filePath.Contains(CrateImagePrefix))
+            {
+                return CreateColoredSquare(Size, Color.Blue);
+            }
+            if (filePath.Contains(EndPointImagePrefix))
+            {
+                return CreateColoredSquare(Size, Color.Purple);
+            }
+            if (filePath.Contains(GroundImagePrefix))
+            {
+                return CreateColoredSquare(Size, Color.Gray);
+            }
+            return CreateColoredSquare(Size, Color.White);
+        }
+
+        /// <summary>
+        /// Creates a colored square bitmap of the specified size and color.
+        /// </summary>
+        /// <param name="size">The size of the square in pixels.</param>
+        /// <param name="color">The color to fill the square with.</param>
+        /// <returns>A bitmap with the specified size and color.</returns>
+        public static Bitmap CreateColoredSquare(int size, Color color)
+        {
+            Bitmap bitmap = new Bitmap(size, size);
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    graphics.FillRectangle(brush, 0, 0, size, size);
+                }
+            }
+            return bitmap;
+        }
+
+        /// <summary>
+        /// Converts pixel coordinates to grid coordinates.
+        /// </summary>
+        /// <param name="x">The X coordinate in pixels.</param>
+        /// <param name="y">The Y coordinate in pixels.</param>
+        /// <returns>A Point representing the grid position.</returns>
+        public static Point GridPos(int x, int y)
+        {
+            return new Point(x / Size, y / Size);
+        }
     }
 }

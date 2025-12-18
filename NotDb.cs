@@ -196,8 +196,12 @@ public class PeopleDatabase
         }
         Console.WriteLine("Saves inserted successfully.");
     }
-    // Method to get level based on a level name
-    public int[,] getLevel(string level)
+    /// <summary>
+    /// Gets level data based on a level name.
+    /// </summary>
+    /// <param name="level">The name of the level to retrieve.</param>
+    /// <returns>A 2D array representing the level layout, or null if not found.</returns>
+    public int[,] GetLevel(string level)
     {
         Console.WriteLine($"Retrieving level: {level}");
 

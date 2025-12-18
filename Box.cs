@@ -1,49 +1,105 @@
-// Class for boxes objects in the game
-public class Box : PictureBox
-{
-    public int x, y;
-    public int a = Storage.size;
-    public int boxSpeed = Storage.playerSpeed;
-    public bool isThere;
-    private string imagePath = Storage.selectedBox;
-    public Box(int x, int y)
-    {
-        this.x = x;
-        this.y = y;
-        this.BackColor = Color.Transparent;
-        this.Location = new Point(this.x, this.y);
-        this.Size = new Size(a, a);
-        this.isThere = false;
-        if (isThere)
-        {
-            imagePath = imagePath.Replace("Crate_", "CrateDark_");
-        }
-        this.Image = Storage.getImage(imagePath);
-        this.SizeMode = Storage.sizeMode;
-        this.BackgroundImageLayout = ImageLayout.Stretch;
-        this.DoubleBuffered = true;
+using System.Drawing;
+using System.Windows.Forms;
 
-    }
-    // Box movement methods
-    public void moveLeft()
+namespace czu_sokoban.Domain
+{
+    /// <summary>
+    /// Represents a box (crate) that can be pushed by the player in the Sokoban game.
+    /// </summary>
+    public class Box : PictureBox
     {
-        this.Left -= boxSpeed;
-        this.x = this.Left;
+        private const string CratePrefix = "Crate_";
+        private const string CrateDarkPrefix = "CrateDark_";
+
+        private readonly int _tileSize;
+        private readonly int _boxSpeed;
+        private int _x;
+        private int _y;
+        private bool _isOnDestination;
+        private readonly string _baseImagePath;
+
+        public int X
+        {
+            get { return _x; }
+            private set { _x = value; }
+        }
+
+        public int Y
+        {
+            get { return _y; }
+            private set { _y = value; }
+        }
+
+        public bool IsOnDestination
+        {
+            get { return _isOnDestination; }
+            set
+            {
+                _isOnDestination = value;
+                UpdateBoxImage();
+            }
+        }
+
+        public Box(int x, int y)
+        {
+            _tileSize = Storage.Size;
+            _boxSpeed = Storage.PlayerSpeed;
+            _x = x;
+            _y = y;
+            _isOnDestination = false;
+            _baseImagePath = Storage.SelectedBox;
+
+            this.BackColor = Color.Transparent;
+            this.Location = new Point(_x, _y);
+            this.Size = new Size(_tileSize, _tileSize);
+            this.SizeMode = Storage.SizeMode;
+            this.BackgroundImageLayout = ImageLayout.Stretch;
+            this.DoubleBuffered = true;
+            UpdateBoxImage();
+        }
+
+        /// <summary>
+        /// Moves the box to the left.
+        /// </summary>
+        public void MoveLeft()
+        {
+            this.Left -= _boxSpeed;
+            _x = this.Left;
+        }
+
+        /// <summary>
+        /// Moves the box to the right.
+        /// </summary>
+        public void MoveRight()
+        {
+            this.Left += _boxSpeed;
+            _x = this.Left;
+        }
+
+        /// <summary>
+        /// Moves the box up.
+        /// </summary>
+        public void MoveUp()
+        {
+            this.Top -= _boxSpeed;
+            _y = this.Top;
+        }
+
+        /// <summary>
+        /// Moves the box down.
+        /// </summary>
+        public void MoveDown()
+        {
+            this.Top += _boxSpeed;
+            _y = this.Top;
+        }
+
+        private void UpdateBoxImage()
+        {
+            string imagePath = _isOnDestination 
+                ? _baseImagePath.Replace(CratePrefix, CrateDarkPrefix) 
+                : _baseImagePath;
+            this.Image = Storage.GetImage(imagePath);
+        }
     }
-    public void moveRight()
-    {
-        this.Left += boxSpeed;
-        this.x = this.Left;
-    }
-    public void moveUp()
-    {
-        this.Top -= boxSpeed;
-        this.y = this.Top;
-    }
-    public void moveDown()
-    {
-        this.Top += boxSpeed;
-        this.y = this.Top;
-    }
-    
 }

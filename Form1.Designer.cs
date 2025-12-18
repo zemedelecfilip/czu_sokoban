@@ -1,70 +1,57 @@
-﻿using System.Runtime.CompilerServices;
-using System.Windows.Forms;
-using System.Windows.Forms.Design.Behavior;
-using System.Drawing.Drawing2D;
-using System.Reflection.Emit;
-using static System.Windows.Forms.AxHost;
-using System.Numerics;
-using System.Diagnostics;
+﻿using System;
 using System.Collections.Generic;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
+using System.Diagnostics;
 using System.Drawing;
-using System.Net;
-//all textures from https://opengameart.org/content/sokoban-pack
+using System.Linq;
+using System.Windows.Forms;
+using czu_sokoban.BusinessLogic;
+using czu_sokoban.Domain;
+using czu_sokoban.Presentation;
 
 namespace czu_sokoban
 {
     partial class Form1
     {
-        public int screenW = Storage.screenWidth;
-        public int screenH = Storage.screenHeight;
+        private readonly int _screenWidth = Storage.ScreenWidth;
+        private readonly int _screenHeight = Storage.ScreenHeight;
+        private readonly PeopleDatabase _database = new PeopleDatabase();
+        private readonly Maps _maps = new Maps();
+        private readonly GameState _gameState = new GameState();
+        private GameController _gameController;
+        private LevelScreenPresenter _levelScreenPresenter;
 
-        PeopleDatabase database = new PeopleDatabase();
-        Maps maps = new Maps();
-        Player player;
-        List<Box> boxes;
-        List<Wall> walls;
-        List<FinalDestination> finalDest;
-        // deklarování panelů pro různé obrazovky
-        // Home, Levels, Level, Endlevel, profile, shop
-        private Panel homePanel;
-        private Panel levelsPanel;
-        private Panel levelPanel;
-        private Panel endLevelPanel;
-        private Panel profilePanel;
-        private Panel shopPanel;
-        // labels inicialization
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label headerLabel;
-        public PictureBox homeScreenRect;
-        public Font btnFont = new Font("Segoe UI", 18, FontStyle.Bold);
-        public Color btnColor = Color.FromArgb(174, 226, 255);
-        public int stepsCount = 0;
-        Stopwatch stopwatch = new Stopwatch();
-        // Inicialization for a shop panel
-        public string currLevelName = "";
-        public int currSave = 1;
-        private List<Button> saveButtons = new List<Button>();
-        private List<Button> wallTextureList = new List<Button>();
-        private string[] wallNames = {"Black", "Beige", "Brown", "Gray"};
-        private List<Button> crateTextureList = new List<Button>();
-        private string[] crateNames = {"Blue", "Beige", "Brown", "Red", "Yellow"};
-        private List<Button> endPointTextureList = new List<Button>();
-        string[] endPointNames = {"Purple", "Beige", "Black", "Blue", "Brown", "Gray", "Red", "Yellow"};
-        private List<Button> texturesTextureList = new List<Button>();
-        string[] texturesNames = {"Concrete", "Dirt", "Grass", "Sand"};
-        //default wall texture
-        int currWallSelected = 0;
-        int currCrateSelected = 0;
-        int currEndPointSelected = 0;
-        int currTexturesSelected = 0;
-        bool roundTexture = false;
+        private Panel _homePanel;
+        private Panel _levelsPanel;
+        private Panel _levelPanel;
+        private Panel _endLevelPanel;
+        private Panel _profilePanel;
+        private Panel _shopPanel;
+
+        private Label _stepsLabel;
+        private Label _timeLabel;
+        private Label _endLevelStepsLabel;
+        private Label _endLevelTimeLabel;
+        private Label _endLevelCongratulationLabel;
+        private Label _headerLabel;
+
+        private readonly Font _buttonFont = new Font("Segoe UI", 18, FontStyle.Bold);
+        private readonly Color _buttonColor = Color.FromArgb(174, 226, 255);
+
+        private readonly List<Button> _saveButtons = new List<Button>();
+        private readonly List<Button> _wallTextureButtons = new List<Button>();
+        private readonly string[] _wallNames = { "Black", "Beige", "Brown", "Gray" };
+        private readonly List<Button> _crateTextureButtons = new List<Button>();
+        private readonly string[] _crateNames = { "Blue", "Beige", "Brown", "Red", "Yellow" };
+        private readonly List<Button> _endPointTextureButtons = new List<Button>();
+        private readonly string[] _endPointNames = { "Purple", "Beige", "Black", "Blue", "Brown", "Gray", "Red", "Yellow" };
+        private readonly List<Button> _textureButtons = new List<Button>();
+        private readonly string[] _textureNames = { "Concrete", "Dirt", "Grass", "Sand" };
+
+        private int _currentWallSelected = 0;
+        private int _currentCrateSelected = 0;
+        private int _currentEndPointSelected = 0;
+        private int _currentTextureSelected = 0;
+        private bool _roundTexture = false;
 
         ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
@@ -77,14 +64,13 @@ namespace czu_sokoban
             // 
             this.AutoScaleMode = AutoScaleMode.None;
             this.BackColor = Color.White;
-            this.ClientSize = new Size(screenW, screenH);
+            this.ClientSize = new Size(_screenWidth, _screenHeight);
             this.Name = "Form1";
             this.Text = "Sokoban Game";
             this.Load += Form1_Load;
-            this.KeyDown += Form1_KeyDown;  // Add key handler
-            this.KeyPreview = true;         // Enable key preview
+            this.KeyDown += Form1_KeyDown;
+            this.KeyPreview = true;
 
-            // Initialize panels (better to do this in constructor)
             InitializePanels();
 
             this.ResumeLayout(false);
@@ -93,489 +79,544 @@ namespace czu_sokoban
         #endregion
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.StartPosition = FormStartPosition.Manual; // Important!
+            this.StartPosition = FormStartPosition.Manual;
             this.Location = new Point(0, 0);
             this.WindowState = FormWindowState.Maximized;
-            this.ShowPanel(homePanel);
-            //Console.WriteLine($"screenSize: {screenW}x{screenH}");
+            _gameController = new GameController(_maps, _gameState, _database);
+            _levelScreenPresenter = new LevelScreenPresenter(_levelPanel, _gameState, _gameController);
+            ShowPanel(_homePanel);
         }
-        // adding global button to return to home to all panels except homePanel;
-        // for every panel little bit different implementation of panels and with different variable changes
+        /// <summary>
+        /// Adds a global navigation button to panels (except home panel).
+        /// </summary>
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
-            if (targetPanel == homePanel) return;
+            if (targetPanel == _homePanel) return;
 
             Button backToMenu = new Button
             {
                 Text = "Menu",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = new Size(200, 100),
-                Location = new Point(screenW / 18, screenH / 7),
-                BackColor = btnColor
+                Location = new Point(_screenWidth / 18, _screenHeight / 7),
+                BackColor = _buttonColor
             };
 
             Button resetLevel = new Button
             {
                 Text = "RESTART",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = new Size(200, 100),
                 Location = new Point(0, 0),
-                BackColor = btnColor
+                BackColor = _buttonColor
             };
-            resetLevel.Location = new Point(16 * screenW / 18 - resetLevel.Width / 2, screenH / 7);
+            resetLevel.Location = new Point(16 * _screenWidth / 18 - resetLevel.Width / 2, _screenHeight / 7);
 
-            if (targetPanel == levelPanel)
+            if (targetPanel == _levelPanel)
             {
                 targetPanel.Controls.Add(resetLevel);
-                resetLevel.Click += (s, e) => InitializeLevelScreen(currLevelName);
-                resetLevel.Click += (s, e) => this.resetVars();
+                resetLevel.Click += (s, e) => InitializeLevelScreen(_gameState.CurrentLevelName);
+                resetLevel.Click += (s, e) => ResetVariables();
 
                 backToMenu.Text = "Levels";
-                backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
-                backToMenu.Click += (s, e) => this.resetVars();
+                backToMenu.Click += (s, e) => ShowPanel(_levelsPanel);
+                backToMenu.Click += (s, e) => ResetVariables();
             }
-            else if (targetPanel == endLevelPanel)
+            else if (targetPanel == _endLevelPanel)
             {
                 backToMenu.Size = new Size(400, 100);
-                backToMenu.Location = new Point(screenW / 2 - backToMenu.Width / 2, 2 * screenH / 3 - backToMenu.Height / 2);
+                backToMenu.Location = new Point(_screenWidth / 2 - backToMenu.Width / 2, 2 * _screenHeight / 3 - backToMenu.Height / 2);
                 backToMenu.Click += (s, e) => InitializeLevelsScreen();
-                backToMenu.Click += (s, e) => ShowPanel(levelsPanel);
-                backToMenu.Click += (s, e) => this.resetVars();
+                backToMenu.Click += (s, e) => ShowPanel(_levelsPanel);
+                backToMenu.Click += (s, e) => ResetVariables();
                 backToMenu.Text = "Back To Levels";
             }
-            else if (targetPanel == shopPanel)
+            else if (targetPanel == _shopPanel)
             {
-                backToMenu.Location = new Point(screenW / 18, screenH / 10 - backToMenu.Height);
+                backToMenu.Location = new Point(_screenWidth / 18, _screenHeight / 10 - backToMenu.Height);
                 backToMenu.Click += (s, e) =>
                 {
-                    Console.WriteLine($"[DEBUG TEXTURES] Crate_{crateNames[currCrateSelected]}.png");
-                    Storage.selectedBox = $"Crate_{crateNames[currCrateSelected]}.png";
-                    Storage.selectedWall = roundTexture ? $"WallRound_{wallNames[currWallSelected]}.png" : $"Wall_{wallNames[currWallSelected]}.png";
-                    Storage.selectedEndPoint = $"EndPoint_{endPointNames[currEndPointSelected]}.png";
-                    Storage.selectedTextures = $"Ground_{texturesNames[currTexturesSelected]}.png";
-                    Console.WriteLine($"[TEXTURES]: box: Crate_{crateNames[currCrateSelected]}.png, wall: Wall_{wallNames[currWallSelected]}.png, EndPoint: EndPoint_{endPointNames[currEndPointSelected]}.png, Textures: Ground_{texturesNames[currTexturesSelected]}.png");
+                    Storage.SelectedBox = $"Crate_{_crateNames[_currentCrateSelected]}.png";
+                    Storage.SelectedWall = _roundTexture ? $"WallRound_{_wallNames[_currentWallSelected]}.png" : $"Wall_{_wallNames[_currentWallSelected]}.png";
+                    Storage.SelectedEndPoint = $"EndPoint_{_endPointNames[_currentEndPointSelected]}.png";
+                    Storage.SelectedTextures = $"Ground_{_textureNames[_currentTextureSelected]}.png";
                 };
-                backToMenu.Click += (s, e) => ShowPanel(homePanel);
+                backToMenu.Click += (s, e) => ShowPanel(_homePanel);
             }
             else
             {
-                backToMenu.Click += (s, e) => ShowPanel(homePanel);
+                backToMenu.Click += (s, e) => ShowPanel(_homePanel);
             }
             targetPanel.Controls.Add(backToMenu);
             backToMenu.BringToFront();
         }
-        // process of making panels for different screens
+        /// <summary>
+        /// Initializes all panels for different screens.
+        /// </summary>
         private void InitializePanels()
         {
-            // Home, Levels, Level, Endlevel, profile, shop
-
-            // Home Panel
-            homePanel = new Panel
+            _homePanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(homePanel);
+            this.Controls.Add(_homePanel);
 
-            // Levels Panel
-            levelsPanel = new Panel
+            _levelsPanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(levelsPanel);
+            this.Controls.Add(_levelsPanel);
 
-            // Level Panel
-            levelPanel = new Panel
+            _levelPanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(levelPanel);
+            this.Controls.Add(_levelPanel);
 
-            // End Level Panel
-            endLevelPanel = new Panel
+            _endLevelPanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(endLevelPanel);
+            this.Controls.Add(_endLevelPanel);
 
-            // Profile Panel
-            profilePanel = new Panel
+            _profilePanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(profilePanel);
+            this.Controls.Add(_profilePanel);
 
-            // Shop Panel
-            shopPanel = new Panel
+            _shopPanel = new Panel
             {
                 Size = this.ClientSize,
                 BackColor = Color.Transparent,
             };
-            this.Controls.Add(shopPanel);
+            this.Controls.Add(_shopPanel);
 
-            // Add controls to panels (// Home, Levels, Level, Endlevel, profile, shop)
             InitializeHomeScreen();
-            //InitializeLevelsScreen();
-            //InitializeLevelScreen();
-            //InitializeEndLevelScreen();
-            //InitializeProfileScreen();
             InitializeShopScreen();
             InitializeLabels();
 
-            AddHeaderToPanel(homePanel);
-            AddHeaderToPanel(levelPanel);
-            AddHeaderToPanel(levelsPanel);
-            AddHeaderToPanel(profilePanel);
-            AddHeaderToPanel(shopPanel);
-            AddHeaderToPanel(endLevelPanel);
-
+            AddHeaderToPanel(_homePanel);
+            AddHeaderToPanel(_levelPanel);
+            AddHeaderToPanel(_levelsPanel);
+            AddHeaderToPanel(_profilePanel);
+            AddHeaderToPanel(_shopPanel);
+            AddHeaderToPanel(_endLevelPanel);
         }
-        // Initializetion of home screen with design and all components
+        /// <summary>
+        /// Initializes the home screen with all buttons and components.
+        /// </summary>
         private void InitializeHomeScreen()
         {
-            // Button styles
-            Size buttonSize = new Size(screenW / 5, screenH / 10);
-            int spacing = screenH / 10;
-            int startY = screenH / 6;
-            int centerX = (this.ClientSize.Width - buttonSize.Width) / 2; // 300 is button width
+            Size buttonSize = new Size(_screenWidth / 5, _screenHeight / 10);
+            int spacing = _screenHeight / 10;
+            int startY = _screenHeight / 6;
+            int centerX = (this.ClientSize.Width - buttonSize.Width) / 2;
 
-            // Play Button
-            Button btnPlay = new Button
+            Button playButton = new Button
             {
                 Text = "Play",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = buttonSize,
                 Location = new Point(centerX, startY),
                 BackColor = Color.LightGreen
             };
-            btnPlay.Click += (s, e) => InitializeLevelsScreen();
-            btnPlay.Click += (s, e) => ShowPanel(levelsPanel);
+            playButton.Click += (s, e) => InitializeLevelsScreen();
+            playButton.Click += (s, e) => ShowPanel(_levelsPanel);
 
-            // Profile Button
-            Button btnProfile = new Button
+            Button profileButton = new Button
             {
                 Text = "Profile",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = buttonSize,
                 Location = new Point(centerX, 2 * startY),
                 BackColor = Color.LightSkyBlue
             };
-            btnProfile.Click += (s, e) => InitializeProfileScreen();
-            btnProfile.Click += (s, e) => ShowPanel(profilePanel);
+            profileButton.Click += (s, e) => InitializeProfileScreen();
+            profileButton.Click += (s, e) => ShowPanel(_profilePanel);
 
-            // Shop Button
-            Button btnShop = new Button
+            Button shopButton = new Button
             {
                 Text = "Shop",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = buttonSize,
                 Location = new Point(centerX, 3 * startY),
                 BackColor = Color.Khaki
             };
-            btnShop.Click += (s, e) => ShowPanel(shopPanel);
+            shopButton.Click += (s, e) => ShowPanel(_shopPanel);
 
-            // Exit Button
-            Button btnExit = new Button
+            Button exitButton = new Button
             {
                 Text = "Exit",
-                Font = btnFont,
+                Font = _buttonFont,
                 Size = buttonSize,
                 Location = new Point(centerX, 4 * startY),
                 BackColor = Color.IndianRed
             };
-            btnExit.Click += (s, e) => this.Close();
+            exitButton.Click += (s, e) => this.Close();
 
-            // Add buttons to panel
-            homePanel.Controls.Add(btnPlay);
-            homePanel.Controls.Add(btnProfile);
-            homePanel.Controls.Add(btnShop);
-            homePanel.Controls.Add(btnExit);
-
-            this.Controls.Add(homePanel);
+            _homePanel.Controls.Add(playButton);
+            _homePanel.Controls.Add(profileButton);
+            _homePanel.Controls.Add(shopButton);
+            _homePanel.Controls.Add(exitButton);
         }
-        // method to always show header panel for every panel with a label sokoban
+        /// <summary>
+        /// Adds a header panel with "SOKOBAN" label to the specified panel.
+        /// </summary>
         private void AddHeaderToPanel(Panel parentPanel)
         {
-
-            // Create the header rectangle as a panel
-            // Create the header panel
             Panel headerPanel = new Panel
             {
                 Location = new Point(0, 0),
-                Width = screenW,
-                Height = screenH / 10, // Adjust as needed
+                Width = _screenWidth,
+                Height = _screenHeight / 10,
                 Dock = DockStyle.Top,
                 BackColor = Color.FromArgb(177, 240, 247)
             };
 
-            // Create the label
-            headerLabel = new System.Windows.Forms.Label
+            _headerLabel = new Label
             {
                 Text = "SOKOBAN",
                 ForeColor = Color.Black,
-                Font = new Font("Arial", 24, FontStyle.Bold), // adjust font as needed
+                Font = new Font("Arial", 24, FontStyle.Bold),
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Dock = DockStyle.Fill
             };
 
-            // Add label to header, header to parent panel
-            headerPanel.Controls.Add(headerLabel);
+            headerPanel.Controls.Add(_headerLabel);
             parentPanel.Controls.Add(headerPanel);
-
-            // Ensure header is at the front
             AddGlobalButtonToPanel(parentPanel);
-
         }
-        // Initialization of levels using loop, buttons to select level, labels for best times and steps
+        /// <summary>
+        /// Initializes the levels screen with buttons for each level and displays best times/steps.
+        /// </summary>
         private void InitializeLevelsScreen()
         {
-            // Clear previous controls (except the header)
-            levelsPanel.Controls.Clear();
-            AddHeaderToPanel(levelsPanel);
+            _levelsPanel.Controls.Clear();
+            AddHeaderToPanel(_levelsPanel);
 
-            int numLevels = 10;
-            Size btnSize = new Size(screenW / 8, screenH / 8);
-            int spacing = screenH / 8;
-            int startX = screenH / 7;
-            int[] rowY = { 7 * screenH / 20, 3 * screenH / 5 }; // Y positions for two rows
+            Size buttonSize = new Size(_screenWidth / 8, _screenHeight / 8);
+            int spacing = _screenHeight / 8;
+            int startX = _screenHeight / 7;
+            int[] rowYPositions = { 7 * _screenHeight / 20, 3 * _screenHeight / 5 };
 
-
-            for (int i = 0; i < numLevels; i++)
+            for (int levelIndex = 0; levelIndex < GameConstants.NumberOfLevels; levelIndex++)
             {
-                var results = database.GetLevelTimesAndStepsByPlayer(currSave, $"level{i+1}");
-                Console.WriteLine($"[InicializeLevelsScreen] level {i + 1}: for save ID {currSave}, data {results[0]}");
-                // Use the current save/profile
-                int stepPb = results[0].Steps;
-                double timePb = results[0].Time;
+                string levelName = $"level{levelIndex + 1}";
+                var results = _database.GetLevelTimesAndStepsByPlayer(_gameState.CurrentSaveId, levelName);
+                
+                int bestSteps = results.Count > 0 ? results[0].Steps : 0;
+                double bestTime = results.Count > 0 ? results[0].Time : 0.0;
 
-                int row = i < 5 ? 0 : 1; // First 5 buttons in row 0, next 5 in row 1
-                int col = i % 5 + 1;     // Columns: 1 to 5 in each row
+                int row = levelIndex < GameConstants.LevelsPerRow ? 0 : 1;
+                int column = levelIndex % GameConstants.LevelsPerRow + 1;
 
-                Button levelBtn = new Button
-                {
-                    Text = $"LEVEL {i + 1}",
-                    Font = btnFont,
-                    Size = btnSize,
-                    Location = new Point((startX + spacing) * col, rowY[row]),
-                    BackColor = btnColor
-                };
-
-                Font labelFont = new Font("Segoe UI", 12, FontStyle.Bold);
-                Color foreColor = Color.Black;
-
-                // Create unique labels for each level
-                var labelStep = new System.Windows.Forms.Label
-                {
-                    Text = $"Best step count: 0",
-                    Font = labelFont,
-                    ForeColor = foreColor,
-                    AutoSize = true,
-                    Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height)
-                };
-                levelsPanel.Controls.Add(labelStep);
-
-                var labelTime = new System.Windows.Forms.Label
-                {
-                    Text = $"Best time: 0",
-                    Font = labelFont,
-                    ForeColor = foreColor,
-                    AutoSize = true,
-                    Location = new Point(levelBtn.Location.X, levelBtn.Location.Y + btnSize.Height + labelStep.Height)
-                };
-                levelsPanel.Controls.Add(labelTime);
-
-                labelStep.Text = $"Best step count: {stepPb}";
-                labelTime.Text = $"Best time: {timePb:F3} s"; // Format time to 3 decimal places
-                string levelName = $"level{i + 1}";
-
-                levelBtn.Click += (s, e) => InitializeLevelScreen(levelName);
-                levelBtn.Click += (s, e) => ShowPanel(levelPanel);
-
-                levelsPanel.Controls.Add(levelBtn);
-
-                stepPb = 0;
-                timePb = 0;
+                Button levelButton = CreateLevelButton(levelIndex + 1, buttonSize, startX, spacing, column, rowYPositions[row]);
+                CreateLevelLabels(levelButton, buttonSize, bestSteps, bestTime, levelName);
             }
         }
-        // Main inicialization of the program, preparing level for use / movement / display
+
+        private Button CreateLevelButton(int levelNumber, Size buttonSize, int startX, int spacing, int column, int yPosition)
+        {
+            Button levelButton = new Button
+            {
+                Text = $"LEVEL {levelNumber}",
+                Font = _buttonFont,
+                Size = buttonSize,
+                Location = new Point((startX + spacing) * column, yPosition),
+                BackColor = _buttonColor
+            };
+
+            string levelName = $"level{levelNumber}";
+            levelButton.Click += (s, e) => InitializeLevelScreen(levelName);
+            levelButton.Click += (s, e) => ShowPanel(_levelPanel);
+
+            _levelsPanel.Controls.Add(levelButton);
+            return levelButton;
+        }
+
+        private void CreateLevelLabels(Button levelButton, Size buttonSize, int bestSteps, double bestTime, string levelName)
+        {
+            Font labelFont = new Font("Segoe UI", 12, FontStyle.Bold);
+
+            Label stepsLabel = new Label
+            {
+                Text = $"Best step count: {bestSteps}",
+                Font = labelFont,
+                ForeColor = Color.Black,
+                AutoSize = true,
+                Location = new Point(levelButton.Location.X, levelButton.Location.Y + buttonSize.Height)
+            };
+            _levelsPanel.Controls.Add(stepsLabel);
+
+            Label timeLabel = new Label
+            {
+                Text = $"Best time: {bestTime:F3} s",
+                Font = labelFont,
+                ForeColor = Color.Black,
+                AutoSize = true,
+                Location = new Point(levelButton.Location.X, levelButton.Location.Y + buttonSize.Height + stepsLabel.Height)
+            };
+            _levelsPanel.Controls.Add(timeLabel);
+        }
+        /// <summary>
+        /// Initializes the level screen for the specified level.
+        /// </summary>
         private void InitializeLevelScreen(string level)
         {
-            //Console.WriteLine($"Initializing Level Screen... with level: {level}");
-            // get level
-            currLevelName = level;
-            this.prepareLevel(level);
-
+            _gameState.CurrentLevelName = level;
+            _levelScreenPresenter?.InitializeLevelScreen(level, _maps);
         }
-        // Inicialization of labels for end level screen
+        /// <summary>
+        /// Initializes labels for the end level screen.
+        /// </summary>
         private void InitializeLabels()
         {
-            label3 = new System.Windows.Forms.Label
+            _endLevelStepsLabel = new Label
             {
                 AutoSize = true,
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.Black
             };
-            endLevelPanel.Controls.Add(label3);
+            _endLevelPanel.Controls.Add(_endLevelStepsLabel);
 
-            label4 = new System.Windows.Forms.Label
+            _endLevelTimeLabel = new Label
             {
                 AutoSize = true,
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.Black
             };
-            endLevelPanel.Controls.Add(label4);
+            _endLevelPanel.Controls.Add(_endLevelTimeLabel);
 
-            label5 = new System.Windows.Forms.Label
+            _endLevelCongratulationLabel = new Label
             {
                 AutoSize = true,
                 Font = new Font("Segoe UI", 42, FontStyle.Bold),
                 ForeColor = Color.Black
             };
-            endLevelPanel.Controls.Add(label5);
+            _endLevelPanel.Controls.Add(_endLevelCongratulationLabel);
         }
-        // Inicialization of end level screen with final time, steps and congratulation
+        /// <summary>
+        /// Initializes the end level screen with final time, steps, and congratulation message.
+        /// </summary>
         private void InitializeEndLevelScreen(string levelName, double time, int stepsCount)
         {
-            // Update label texts
-            label3.Text = $"Final steps count: {stepsCount}";
-            label4.Text = $"Final time: {time}";
-            label5.Text = $"Congratulation for copleting {levelName}";
+            _endLevelStepsLabel.Text = $"Final steps count: {stepsCount}";
+            _endLevelTimeLabel.Text = $"Final time: {time:F3} s";
+            _endLevelCongratulationLabel.Text = $"Congratulations for completing {levelName}";
 
-            // Recalculate positions after text update (Width changes)
-            label3.Location = new Point((screenW - label3.Width) / 2, screenH / 3 + 2 * label3.Height);
-            label4.Location = new Point((screenW - label4.Width) / 2, 2 * screenH / 5 + 2 * label4.Height);
-            label5.Location = new Point((screenW - label5.Width) / 2, screenH / 5);
+            UpdateEndLevelLabelPositions();
         }
-        // Inicialization of profile screen - can change save to upload to different save - with 3 save buttons, changing color of current save
+
+        private void UpdateEndLevelLabelPositions()
+        {
+            _endLevelStepsLabel.Location = new Point((_screenWidth - _endLevelStepsLabel.Width) / 2, _screenHeight / 3 + 2 * _endLevelStepsLabel.Height);
+            _endLevelTimeLabel.Location = new Point((_screenWidth - _endLevelTimeLabel.Width) / 2, 2 * _screenHeight / 5 + 2 * _endLevelTimeLabel.Height);
+            _endLevelCongratulationLabel.Location = new Point((_screenWidth - _endLevelCongratulationLabel.Width) / 2, _screenHeight / 5);
+        }
+        /// <summary>
+        /// Initializes the profile screen with save selection buttons.
+        /// </summary>
         private void InitializeProfileScreen()
         {
-            bool firstLoad = true;
-            for (var i = 0; i < 3; i++) 
+            for (int i = 0; i < GameConstants.NumberOfSaves; i++)
             {
                 int saveId = i + 1;
-                Button profileBtn = new Button
-                {
-                    Text = $"Save{saveId}",
-                    Font = btnFont,
-                    Size = new Size(screenW / 5, screenH / 6),
-                    BackColor = btnColor,
-                    Tag = saveId
-                };
-
-                if (firstLoad && i == 0)
-                {
-                    profileBtn.BackColor = Color.LightGreen; // Set current save to the first one on first load
-                    firstLoad = false;
-                }
-
-                saveButtons.Add(profileBtn);
-
-                profileBtn.Location = new Point((saveId) * screenW / 4 - profileBtn.Width / 2, screenH / 2 - profileBtn.Height / 2);
-                profileBtn.Click += (s, e) => currSave = saveId;
-                profileBtn.Click += (s, e) => UpdateButtonColors();
-                profileBtn.Click += (s, e) => Console.WriteLine($"Current save set to: {currSave}");
-
-                profilePanel.Controls.Add(profileBtn);
+                Button profileButton = CreateProfileButton(saveId);
+                _saveButtons.Add(profileButton);
+                _profilePanel.Controls.Add(profileButton);
             }
+
+            if (_gameState.CurrentSaveId == 0)
+            {
+                _gameState.CurrentSaveId = 1;
+            }
+            UpdateButtonColors();
         }
-        // Method to change save button colors
+
+        private Button CreateProfileButton(int saveId)
+        {
+            Button profileButton = new Button
+            {
+                Text = $"Save{saveId}",
+                Font = _buttonFont,
+                Size = new Size(_screenWidth / 5, _screenHeight / 6),
+                BackColor = _buttonColor,
+                Tag = saveId
+            };
+
+            profileButton.Location = new Point(saveId * _screenWidth / 4 - profileButton.Width / 2, _screenHeight / 2 - profileButton.Height / 2);
+            profileButton.Click += (s, e) =>
+            {
+                _gameState.CurrentSaveId = saveId;
+                UpdateButtonColors();
+            };
+
+            return profileButton;
+        }
+
+        /// <summary>
+        /// Updates the colors of save buttons to indicate the current selection.
+        /// </summary>
         private void UpdateButtonColors()
         {
-            foreach (Button btn in saveButtons)
+            foreach (Button button in _saveButtons)
             {
-                Console.WriteLine($"Updating button color for save ID: {btn.Tag}");
-                int buttonSaveId = (int)btn.Tag;
-                btn.BackColor = (buttonSaveId == currSave)
+                int buttonSaveId = (int)button.Tag;
+                button.BackColor = (buttonSaveId == _gameState.CurrentSaveId)
                     ? Color.LightGreen
-                    : btnColor;
+                    : _buttonColor;
             }
         }
-        // Method for updating shop buttons color
+        /// <summary>
+        /// Updates the colors of shop texture selection buttons to indicate current selections.
+        /// </summary>
         private void UpdateShopButtons()
         {
-            Color selectedBtn = Color.FromArgb(200 ,195, 255, 153);
-            Color notSelectedBtn = Color.FromArgb(120, 255, 102, 102);
+            const int selectedButtonAlpha = 200;
+            const int notSelectedButtonAlpha = 120;
+            Color selectedButtonColor = Color.FromArgb(selectedButtonAlpha, 195, 255, 153);
+            Color notSelectedButtonColor = Color.FromArgb(notSelectedButtonAlpha, 255, 102, 102);
 
-
-            foreach (Button btn in crateTextureList)
-            {
-                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
-                int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currCrateSelected)
-                    ? selectedBtn
-                    : notSelectedBtn;
-            }
-            foreach (Button btn in wallTextureList)
-            {
-                //0: Beige, 1: Black, 2: Brown, 3: Gray
-                int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currWallSelected)
-                    ? selectedBtn
-                    : notSelectedBtn;
-            }
-            foreach (Button btn in endPointTextureList)
-            {
-                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
-                int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currEndPointSelected)
-                    ? selectedBtn
-                    : notSelectedBtn;
-            }
-            foreach (Button btn in texturesTextureList)
-            {
-                //0: Blue, 1: Beige, 2: Brown, 3: Red, 4: Yellow
-                int buttonTextureID = (int)btn.Tag;
-                btn.BackColor = (buttonTextureID == currTexturesSelected)
-                    ? selectedBtn
-                    : notSelectedBtn;
-            }
-
+            UpdateTextureButtonColors(_crateTextureButtons, _currentCrateSelected, selectedButtonColor, notSelectedButtonColor);
+            UpdateTextureButtonColors(_wallTextureButtons, _currentWallSelected, selectedButtonColor, notSelectedButtonColor);
+            UpdateTextureButtonColors(_endPointTextureButtons, _currentEndPointSelected, selectedButtonColor, notSelectedButtonColor);
+            UpdateTextureButtonColors(_textureButtons, _currentTextureSelected, selectedButtonColor, notSelectedButtonColor);
         }
-        // Method to update picture box in shop screen - to show what texture player selected
-        private Image UpdatePreviewPictureBox(int size ,string textureName, bool round = true)
+
+        private void UpdateTextureButtonColors(List<Button> buttons, int selectedIndex, Color selectedColor, Color notSelectedColor)
         {
-            if (round)
+            foreach (Button button in buttons)
             {
-                roundTexture = true;
+                int buttonTextureId = (int)button.Tag;
+                button.BackColor = (buttonTextureId == selectedIndex) ? selectedColor : notSelectedColor;
+            }
+        }
+        /// <summary>
+        /// Updates the preview picture box in the shop screen to show the selected texture.
+        /// </summary>
+        private Image UpdatePreviewPictureBox(int size, string textureName, bool isRound = true)
+        {
+            if (isRound)
+            {
+                _roundTexture = true;
                 textureName = textureName.Replace("Wall_", "WallRound_");
             }
 
-            try 
+            try
             {
-                Image textureImage = Storage.getImage(textureName);
-                return textureImage;
+                return Storage.GetImage(textureName);
             }
             catch (Exception ex)
             {
-                // If the image is not found, log the error and return a default square
                 Console.WriteLine($"Error loading texture: {ex.Message}");
                 return Storage.CreateColoredSquare(size, Color.Black);
             }
-
         }
-        // Longest inicialization of this program to show all textures in shop screen, with buttons to select texture, and picture box to show what texture player selected
+        /// <summary>
+        /// Initializes the shop screen with texture selection panels for walls, crates, endpoints, and ground textures.
+        /// </summary>
         private void InitializeShopScreen()
         {
-            // Example screen width, adjust as needed
-            Size panelSize = new Size(screenW / 5, 4 * screenH / 5);
-            int screenWconst = screenW / 5;
-            int spacingX = screenW / 25 ;
-            int screenHConst = screenH / 8;
-            //$"Wall_{wallNames[i]}.png"
-            //$"WallRound_{wallNames[i]}.png"
+            Size panelSize = new Size(_screenWidth / 5, 4 * _screenHeight / 5);
+            int panelWidth = _screenWidth / 5;
+            int spacingX = _screenWidth / 25;
+            int panelStartY = _screenHeight / 8;
 
-            // Wall panel section
+            Panel wallsPanel = CreateWallsPanel(panelSize, spacingX, panelStartY);
+            Panel cratePanel = CreateCratePanel(panelSize, wallsPanel.Right + spacingX, panelStartY);
+            Panel endPointPanel = CreateEndPointPanel(panelSize, cratePanel.Right + spacingX, panelStartY);
+            Panel texturePanel = CreateTexturePanel(panelSize, endPointPanel.Right + spacingX, panelStartY);
+
+            _shopPanel.Controls.Add(wallsPanel);
+            _shopPanel.Controls.Add(cratePanel);
+            _shopPanel.Controls.Add(endPointPanel);
+            _shopPanel.Controls.Add(texturePanel);
+
+            UpdateShopButtons();
+        }
+
+        private Panel CreateWallsPanel(Size panelSize, int startX, int startY)
+        {
             Panel wallsPanel = new Panel
             {
-                Size = panelSize, // Increased height for buttons
+                Size = panelSize,
                 BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(startX, startY)
             };
-            wallsPanel.Location = new Point(spacingX + screenWconst * 0, screenHConst);
+
+            int buttonSize = panelSize.Width / 3;
+            int previewTextureSize = 5 * buttonSize / 4;
+
+            PictureBox wallTexturePreview = new PictureBox
+            {
+                Size = new Size(previewTextureSize, previewTextureSize),
+                Location = new Point(wallsPanel.Width / 2 - previewTextureSize / 2, wallsPanel.Height / 15),
+                Image = Storage.GetImage("Wall_Black.png"),
+                BackgroundImageLayout = ImageLayout.Stretch,
+                SizeMode = PictureBoxSizeMode.StretchImage
+            };
+
+            CheckBox wallRoundCheck = new CheckBox
+            {
+                Text = "SQUARE TEXTURE",
+                Font = _buttonFont,
+                BackColor = _buttonColor,
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 3 * wallsPanel.Height / 4),
+                Appearance = Appearance.Button,
+                AutoCheck = true,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            for (int i = 0; i < _wallNames.Length; i++)
+            {
+                Button wallButton = CreateWallButton(i, buttonSize, wallsPanel);
+                wallButton.Click += (s, e) =>
+                {
+                    _currentWallSelected = i;
+                    UpdateShopButtons();
+                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{_wallNames[_currentWallSelected]}.png", wallRoundCheck.Checked);
+                };
+                wallsPanel.Controls.Add(wallButton);
+                _wallTextureButtons.Add(wallButton);
+            }
+
+            wallRoundCheck.CheckedChanged += (s, e) =>
+            {
+                wallRoundCheck.Text = wallRoundCheck.Checked ? "ROUND TEXTURE" : "SQUARE TEXTURE";
+                wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{_wallNames[_currentWallSelected]}.png", wallRoundCheck.Checked);
+            };
+
+            wallsPanel.Controls.Add(wallRoundCheck);
+            wallsPanel.Controls.Add(wallTexturePreview);
+            return wallsPanel;
+        }
+
+        private Button CreateWallButton(int index, int buttonSize, Panel parentPanel)
+        {
+            int column = index % 2;
+            int row = index / 2;
+            int x = (int)((column == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+            int y = (int)((row == 0 ? 2f / 5f : 3f / 5f) * parentPanel.Height - buttonSize / 2);
+
+            return new Button
+            {
+                Font = _buttonFont,
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(x, y),
+                BackgroundImageLayout = ImageLayout.Stretch,
+                Image = Storage.GetImage($"Wall_{_wallNames[index]}.png"),
+                Tag = index,
+                FlatStyle = FlatStyle.Standard
+            };
+        }
 
             // Add buttons to wallsPanel
             int buttonSize = panelSize.Width / 3;
@@ -653,398 +694,180 @@ namespace czu_sokoban
             wallsPanel.Controls.Add(wallRoundCheck);
             wallsPanel.Controls.Add(wallTexturePreview);
 
-            /////////////////////////////////////////////////////////////////////
-            // Crate panel section
+        private Panel CreateCratePanel(Size panelSize, int startX, int startY)
+        {
             Panel cratePanel = new Panel
             {
-                Size = panelSize, // Increased height for buttons
+                Size = panelSize,
                 BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(startX, startY)
             };
-            cratePanel.Location = new Point(wallsPanel.Right + spacingX, screenHConst);
 
-            //VARS
-            //buttonSize = 7 * buttonSize / 8;
-            //$"Crate_{crateNames[i]}.png"
-            //$"WallDark_{crateNames[i]}.png"
-            int space = cratePanel.Width / 10; 
-            int rows = 5;
-            int columns = 2;
+            int buttonSize = panelSize.Width / 3;
+            const int totalCrateButtons = 10;
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < totalCrateButtons; i++)
             {
                 int buttonIndex = i / 2;
-                // Determine column (0 or 1) and row (0 or 1)
-                int col = i % 2;
+                int column = i % 2;
+                int x = (int)((column == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+                int y = (int)(cratePanel.Height / 28 + (i - column) * (4 * buttonSize / 6));
 
-                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
-                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
-
-                // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)(cratePanel.Height / 28 + (i - col) * (4 * buttonSize / 6));
+                bool isDark = i % 2 != 0;
+                string imageName = isDark 
+                    ? $"CrateDark_{_crateNames[buttonIndex]}.png" 
+                    : $"Crate_{_crateNames[buttonIndex]}.png";
 
                 Button crateButton = new Button
                 {
-                    //Text = $"{i + 1}",
-                    Font = btnFont,
+                    Font = _buttonFont,
                     Size = new Size(buttonSize, buttonSize),
                     Location = new Point(x, y),
                     BackgroundImageLayout = ImageLayout.Stretch,
-                    Image = i % 2 == 0 ? Storage.getImage($"Crate_{crateNames[buttonIndex]}.png") : Storage.getImage($"CrateDark_{crateNames[buttonIndex]}.png"),
+                    Image = Storage.GetImage(imageName),
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Standard,
-
+                    FlatStyle = FlatStyle.Standard
                 };
-                crateButton.Click += (s, e) => currCrateSelected = buttonIndex;
-                crateButton.Click += (s, e) => UpdateShopButtons();
-                crateButton.Click += (s, e) => Console.WriteLine($"currCrateSelected {currCrateSelected}, buttonIndex: {buttonIndex}");
-                crateTextureList.Add(crateButton);
+
+                crateButton.Click += (s, e) =>
+                {
+                    _currentCrateSelected = buttonIndex;
+                    UpdateShopButtons();
+                };
 
                 cratePanel.Controls.Add(crateButton);
-
+                _crateTextureButtons.Add(crateButton);
             }
 
-            ////////////////////////////////////////////////////////////////////
-            // EndPoint panel section
+            return cratePanel;
+        }
+
+        private Panel CreateEndPointPanel(Size panelSize, int startX, int startY)
+        {
             Panel endPointPanel = new Panel
             {
-                 Size = panelSize, // Increased height for buttons
-                 BorderStyle = BorderStyle.FixedSingle,
+                Size = panelSize,
+                BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(startX, startY)
             };
-            endPointPanel.Location = new Point(cratePanel.Right + spacingX, screenHConst);
 
-            for (int i = 0; i < 8; i++)
+            int buttonSize = panelSize.Width / 3;
+
+            for (int i = 0; i < _endPointNames.Length; i++)
             {
-                int buttonIndex = i;
-                // Determine column (0 or 1) and row (0 or 1)
-                int col = i % 2;
-
-                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
-                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
-
-                // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)(cratePanel.Height / 8 + (i - col) * (4 * buttonSize / 6));
+                int column = i % 2;
+                int x = (int)((column == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+                int y = (int)(endPointPanel.Height / 8 + (i - column) * (4 * buttonSize / 6));
 
                 Button endPointButton = new Button
                 {
-                    //Text = $"{i + 1}",
-                    Font = btnFont,
+                    Font = _buttonFont,
                     Size = new Size(buttonSize, buttonSize),
                     Location = new Point(x, y),
-                    Image = Storage.getImage($"EndPoint_{endPointNames[buttonIndex]}.png"),
+                    Image = Storage.GetImage($"EndPoint_{_endPointNames[i]}.png"),
                     BackgroundImageLayout = ImageLayout.Stretch,
-                    Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Standard,
-
+                    Tag = i,
+                    FlatStyle = FlatStyle.Standard
                 };
-                endPointButton.Click += (s, e) => currEndPointSelected = buttonIndex;
-                endPointButton.Click += (s, e) => UpdateShopButtons();
-                endPointButton.Click += (s, e) => Console.WriteLine($"currEndPointSelected {currEndPointSelected}, buttonIndex: {buttonIndex}");
-                endPointTextureList.Add(endPointButton);
+
+                int buttonIndex = i;
+                endPointButton.Click += (s, e) =>
+                {
+                    _currentEndPointSelected = buttonIndex;
+                    UpdateShopButtons();
+                };
 
                 endPointPanel.Controls.Add(endPointButton);
-
+                _endPointTextureButtons.Add(endPointButton);
             }
 
-            ////////////////////////////////////////////////////////////////////
-            // Texture panel section
+            return endPointPanel;
+        }
+
+        private Panel CreateTexturePanel(Size panelSize, int startX, int startY)
+        {
             Panel texturePanel = new Panel
             {
-                Size = panelSize, // Increased height for buttons
+                Size = panelSize,
                 BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(startX, startY)
             };
-            texturePanel.Location = new Point(endPointPanel.Right + spacingX, screenHConst);
 
-            for (int i = 0; i < 8; i++)
+            int buttonSize = panelSize.Width / 3;
+            const int totalTextureButtons = 8;
+
+            for (int i = 0; i < totalTextureButtons; i++)
             {
                 int buttonIndex = i / 2;
-                // Determine column (0 or 1) and row (0 or 1)
-                int col = i % 2;
+                int column = i % 2;
+                int x = (int)((column == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+                int y = (int)(texturePanel.Height / 8 + (i - column) * (4 * buttonSize / 6));
 
-                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
-                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
+                bool isGravel = i % 2 != 0;
+                string imageName = isGravel
+                    ? $"GroundGravel_{_textureNames[buttonIndex]}.png"
+                    : $"Ground_{_textureNames[buttonIndex]}.png";
 
-                // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)(cratePanel.Height / 8 + (i - col) * (4 * buttonSize / 6));
-
-                Button texturesButton = new Button
+                Button textureButton = new Button
                 {
-                    //Text = $"{i + 1}",
-                    Font = btnFont,
+                    Font = _buttonFont,
                     Size = new Size(buttonSize, buttonSize),
                     Location = new Point(x, y),
                     BackgroundImageLayout = ImageLayout.Stretch,
-                    Image = i % 2 == 0 ? Storage.getImage($"Ground_{texturesNames[buttonIndex]}.png") : Storage.getImage($"GroundGravel_{texturesNames[buttonIndex]}.png"),
+                    Image = Storage.GetImage(imageName),
                     Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Standard,
-
+                    FlatStyle = FlatStyle.Standard
                 };
-                texturesButton.Click += (s, e) => currTexturesSelected = buttonIndex;
-                texturesButton.Click += (s, e) => UpdateShopButtons();
-                texturesButton.Click += (s, e) => Console.WriteLine($"currEndPointSelected {currEndPointSelected}, buttonIndex: {buttonIndex}");
-                texturesTextureList.Add(texturesButton);
 
-                texturePanel.Controls.Add(texturesButton);
+                textureButton.Click += (s, e) =>
+                {
+                    _currentTextureSelected = buttonIndex;
+                    UpdateShopButtons();
+                };
 
+                texturePanel.Controls.Add(textureButton);
+                _textureButtons.Add(textureButton);
             }
 
-            // Add panels to shopPanel
-            shopPanel.Controls.Add(wallsPanel);
-            shopPanel.Controls.Add(cratePanel);
-            shopPanel.Controls.Add(endPointPanel);
-            shopPanel.Controls.Add(texturePanel);
-
-            // Add shopPanel to the form
-            this.Controls.Add(shopPanel);
-
-            // need to update it at the first inicialization
-            UpdateShopButtons();
+            return texturePanel;
         }
-        // Method to prepare level, adding textures to controls, adding movement ability, preparing labels
-        private void prepareLevel(string mapName)
-        {
-            // get level data from db
-            int[,] arr = database.getLevel(mapName);
-            // depends on level create objs
-            maps.addObjToList(arr, arr.GetLength(0));
-            // make them able to move
-            maps.AddToControls(levelPanel);
-            AddGlobalButtonToPanel(levelPanel);
-            AddHeaderToPanel(levelPanel);
-            // reset lists and prepare components
-            boxes = maps.boxes;
-            player = maps.player;
-            walls = maps.walls;
-            finalDest = maps.finalDest;
-            // movement count label
-            label1 = new System.Windows.Forms.Label
-            {
-                Text = "Počet kroků: 0",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                Location = new Point(screenW / 18, screenH / 4),
-                AutoSize = true,
-                ForeColor = Color.Black
-            };
-            levelPanel.Controls.Add(label1);
-
-            label2 = new System.Windows.Forms.Label
-            {
-                Text = "Počet kroků: 0.000",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                Location = new Point(screenW / 18, 11 * screenH / 28),
-                AutoSize = true,
-                ForeColor = Color.Black
-            };
-            levelPanel.Controls.Add(label2);
-
-        }
-        // Method to show only one panel depending on application movement - buttons
+        /// <summary>
+        /// Shows only the specified panel, hiding all others.
+        /// </summary>
         private void ShowPanel(Panel targetPanel)
         {
-            foreach (Control c in this.Controls.OfType<Panel>())
-                c.Visible = false;
+            foreach (Control control in this.Controls.OfType<Panel>())
+            {
+                control.Visible = false;
+            }
             targetPanel.Visible = true;
         }
-        // Method to handle key presses for player movement, collision detection, step counting, win checking
+        /// <summary>
+        /// Handles key presses for player movement. Delegates game logic to GameController.
+        /// </summary>
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (levelPanel.Visible)
+            if (_levelPanel.Visible && _gameController != null)
             {
-                int dif = 0;
-
-                if (e.KeyCode == Keys.Left)
+                bool hasWon = _gameController.ProcessPlayerMovement(e.KeyCode);
+                
+                if (hasWon)
                 {
-                    //player moved left
-                    player.moveLeft();
-                    maps.UpdateBackgroundImage(player);
-                    dif++;
-
-                    if (maps.collided_pw(player, walls))
-                    {
-                        //player moved back to the original position
-                        player.moveRight(true);
-                        maps.UpdateBackgroundImage(player);
-                        dif--;
-                    }
-                    //check if player collided with box
-                    Box a = maps.collided_pb(player, boxes);     
-
-                    //yes they collided so they moved
-                    if (a != null)                              
-                    {
-                        //box moved left
-                        a.moveLeft();
-                        maps.UpdateBackgroundImage(a);
-                        dif++;
-                        //check if box collided with box
-                        Box b = maps.collided_bb(a, boxes);      
-                        //check if box collided with wall
-                        Box c = maps.collided_bw(a, walls);      
-                        //yes they collided (wall / box) so they moved back to the original position
-                        if (b != null || c != null)             
-                        {
-                            a.moveRight();
-                            maps.UpdateBackgroundImage(a);
-                            player.moveRight(true);
-                            maps.UpdateBackgroundImage(player);
-                            dif--;
-                        }
-                        dif--;
-                    }
-                    // inceresement of steps count
-                    stepsCount += dif;
-                    
-
-                }
-                else if (e.KeyCode == Keys.Right)
-                {
-                    
-                    player.moveRight();
-                    maps.UpdateBackgroundImage(player);
-                    dif++;
-
-                    if (maps.collided_pw(player, walls))
-                    {
-                        player.moveLeft(true);
-                        maps.UpdateBackgroundImage(player);
-                        dif--;
-                    }                                           
-                    Box a = maps.collided_pb(player, boxes);     
-
-                    if (a != null)                              
-                    {
-                        a.moveRight();
-                        maps.UpdateBackgroundImage(a);
-                        dif++;
-                        Box b = maps.collided_bb(a, boxes);      
-                        Box c = maps.collided_bw(a, walls);      
-                        if (b != null || c != null)             
-                        {
-                            a.moveLeft();
-                            maps.UpdateBackgroundImage(a);
-                            player.moveLeft(true);
-                            maps.UpdateBackgroundImage(player);
-                            dif--;
-                        }
-                        dif--;
-
-                    }
-                    stepsCount += dif;
-                }
-                else if (e.KeyCode == Keys.Up)
-                {
-                    player.moveUp();
-                    maps.UpdateBackgroundImage(player);
-                    dif++;
-
-                    if (maps.collided_pw(player, walls))
-                    {
-                        player.moveDown(true);
-                        maps.UpdateBackgroundImage(player);
-                        dif--;
-                    }
-                    Box a = maps.collided_pb(player, boxes);   
-
-                    if (a != null)                              
-                    {
-                        a.moveUp();
-                        maps.UpdateBackgroundImage(a);
-                        dif++;
-                        Box b = maps.collided_bb(a, boxes);
-                        Box c = maps.collided_bw(a, walls); 
-                        if (b != null || c != null)          
-                        {
-                            a.moveDown();
-                            maps.UpdateBackgroundImage(a);
-                            player.moveDown(true);
-                            maps.UpdateBackgroundImage(player);
-                            dif--;
-                        }
-                        dif--;
-
-                    }
-                    stepsCount += dif;
-                }
-                else if (e.KeyCode == Keys.Down)
-                {
-                    player.moveDown();
-                    maps.UpdateBackgroundImage(player);
-                    dif++;
-                    if (maps.collided_pw(player, walls))
-                    {
-                        player.moveUp(true);
-                        maps.UpdateBackgroundImage(player);
-                        dif--;
-                    }
-                    Box a = maps.collided_pb(player, boxes);
-
-                    if (a != null)
-                    {
-                        a.moveDown();
-                        maps.UpdateBackgroundImage(a);
-                        dif++;
-                        Box b = maps.collided_bb(a, boxes);
-                        Box c = maps.collided_bw(a, walls);
-                        if (b != null || c != null)
-                        {
-                            a.moveUp();
-                            maps.UpdateBackgroundImage(a);
-                            player.moveUp(true);
-                            maps.UpdateBackgroundImage(player);
-                            dif--;
-                        }
-                        dif--;
-                    }
-                    stepsCount += dif;
+                    ShowPanel(_endLevelPanel);
+                    double currentTime = Convert.ToDouble(_gameController.Stopwatch.Elapsed.TotalSeconds.ToString("N3"));
+                    InitializeEndLevelScreen(_gameState.CurrentLevelName, currentTime, _gameState.StepsCount);
                 }
 
-                if (stepsCount > 0) {
-                    stopwatch.Start();
-                }
-
-                if (maps.checkWin(boxes, finalDest))
-                {
-                    stopwatch.Stop();
-
-                    ShowPanel(endLevelPanel);
-                    // get curr level best time to compare
-
-                    var bestResult = database.GetLevelTimesAndStepsByPlayer(currSave, currLevelName);
-                    double bestTime = bestResult[0].Time;
-                    bestTime = Convert.ToDouble(bestTime.ToString("N3"));
-
-                    var currTime = stopwatch.Elapsed.TotalSeconds;
-                    currTime = Convert.ToDouble(currTime.ToString("N3"));
-
-                    Console.WriteLine($"[checkWin] Current time for level {currLevelName} for save ID {currSave}: {currTime}");
-
-                    // time is primary
-                    Console.WriteLine($"[checkWin] Best result for level {currLevelName} for save ID {currSave}: {bestResult[0]}, bestTime {stopwatch.Elapsed.TotalSeconds}");
-                    if (bestTime > currTime || bestTime == 0.0)
-                    {
-                        database.SetLevelTimeAndSteps(currSave, currLevelName, currTime, stepsCount);
-                        Console.WriteLine($"[checkWin] Inserting: level: {currLevelName}, Time: {currTime}, steps: {stepsCount}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[checkWin] Not inserting: level: {currLevelName}, Time: {currTime}, steps: {stepsCount} - better time already exists");
-                    }
-
-                        //string levelName, double time, int stepsCount
-                        InitializeEndLevelScreen(currLevelName, currTime, stepsCount);
-                    //this.resetVars();
-                }
-
-                label1.Text = $"Počet kroků: {stepsCount}";
-                label2.Text = $"Čas: {stopwatch.Elapsed.TotalSeconds:F3} s";
-
+                _levelScreenPresenter?.UpdateLabels();
             }
         }
-        // Method to reset variables for new level start or restart
-        private void resetVars()
+
+        /// <summary>
+        /// Resets game variables for a new level start or restart.
+        /// </summary>
+        private void ResetVariables()
         {
-            stepsCount = 0;
-            stopwatch.Reset();
-            
+            _gameController?.ResetGame();
         }
     }
 }

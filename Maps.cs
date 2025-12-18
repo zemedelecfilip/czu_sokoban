@@ -1,311 +1,417 @@
-﻿public class Maps
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+using czu_sokoban.Domain;
+using czu_sokoban.BusinessLogic;
+
+namespace czu_sokoban.BusinessLogic
 {
-    // Constants for grid size
-    public static int Size = Storage.size;
-    public const int Width = Storage.gridSize;
-    public const int Height = Storage.gridSize;
-    public static int leftMargin = Storage.leftMargin;
-    public static int topMargin = Storage.topMargin;
-    public static int leftMargin2 = Storage.leftMargin;
-    public static int topMargin2 = Storage.topMargin;
-    public int screenWidth = Storage.screenWidth;
-    public int screenHeight = Storage.screenHeight;
+    /// <summary>
+    /// Manages game map objects including boxes, walls, player, final destinations, and textures.
+    /// </summary>
+    public class Maps
+    {
+        private List<Box> _boxes;
+        private List<Wall> _walls;
+        private List<FinalDestination> _finalDestinations;
+        private Player _player;
+        private List<Texture> _textures;
 
-    public List<Box> boxes;
-    public List<Wall> walls;
-    public List<FinalDestination> finalDest;
-    public Player player;
-    public List<Texture> textures;
-
-    // Constructor
-    public Maps()
-    {
-        boxes = new List<Box>();
-        walls = new List<Wall>();
-        finalDest = new List<FinalDestination>();
-        textures = new List<Texture>(); 
-        player = null;
-    }
-    // Methods for adding objects to the lists
-    public void AddBox(int x, int y)
-    {
-        Box newBox = new Box(x, y);
-        boxes.Add(newBox);
-    }
-    public void AddWall(int x, int y)
-    {
-        Wall newBox = new Wall(x, y);
-        walls.Add(newBox);
-    }
-    public void AddPlayer(int x, int y)
-    {
-        Player player = new Player(x, y);
-        this.player = player;
-    }
-    public void AddFinalDestination(int x, int y)
-    {
-        FinalDestination newBox = new FinalDestination(x, y);
-        finalDest.Add(newBox);
-    }
-    public void AddTexture(int x, int y, bool outside = false)
-    {
-        Texture newBox = new Texture(x, y, outside);
-        textures.Add(newBox);
-    }
-
-    //method for adding all objects to form, so can be moved / displayed
-    //the order of adding is important, because the last added control is on top of the others
-    //textures are now used as BackgroundImage for other PictureBoxes
-    public void AddToControls(Panel levelPanel)
-    {
-        // Clear previous controls;
-        levelPanel.Controls.Clear();
-        
-        if (levelPanel == null)
+        public List<Box> Boxes
         {
-            //Console.WriteLine("level panel kdo??? - null");
-            return;
+            get { return _boxes; }
         }
 
-        // First, add all textures as separate PictureBoxes for empty spaces
-        if (textures != null)
+        public List<Wall> Walls
         {
-            foreach (var texture in textures)
+            get { return _walls; }
+        }
+
+        public List<FinalDestination> FinalDestinations
+        {
+            get { return _finalDestinations; }
+        }
+
+        public Player Player
+        {
+            get { return _player; }
+        }
+
+        public List<Texture> Textures
+        {
+            get { return _textures; }
+        }
+
+        public Maps()
+        {
+            _boxes = new List<Box>();
+            _walls = new List<Wall>();
+            _finalDestinations = new List<FinalDestination>();
+            _textures = new List<Texture>();
+            _player = null;
+        }
+        /// <summary>
+        /// Adds a box to the map at the specified coordinates.
+        /// </summary>
+        public void AddBox(int x, int y)
+        {
+            Box newBox = new Box(x, y);
+            _boxes.Add(newBox);
+        }
+
+        /// <summary>
+        /// Adds a wall to the map at the specified coordinates.
+        /// </summary>
+        public void AddWall(int x, int y)
+        {
+            Wall newWall = new Wall(x, y);
+            _walls.Add(newWall);
+        }
+
+        /// <summary>
+        /// Adds a player to the map at the specified coordinates.
+        /// </summary>
+        public void AddPlayer(int x, int y)
+        {
+            _player = new Player(x, y);
+        }
+
+        /// <summary>
+        /// Adds a final destination to the map at the specified coordinates.
+        /// </summary>
+        public void AddFinalDestination(int x, int y)
+        {
+            FinalDestination newDestination = new FinalDestination(x, y);
+            _finalDestinations.Add(newDestination);
+        }
+
+        /// <summary>
+        /// Adds a texture to the map at the specified coordinates.
+        /// </summary>
+        /// <param name="x">The X coordinate.</param>
+        /// <param name="y">The Y coordinate.</param>
+        /// <param name="isOutside">True if this is an outside texture, false for inside texture.</param>
+        public void AddTexture(int x, int y, bool isOutside = false)
+        {
+            Texture newTexture = new Texture(x, y, isOutside);
+            _textures.Add(newTexture);
+        }
+
+        /// <summary>
+        /// Adds all map objects to the specified panel for display.
+        /// The order of adding is important: textures first, then walls, boxes, player, and final destinations.
+        /// </summary>
+        /// <param name="levelPanel">The panel to add controls to.</param>
+        public void AddToControls(Panel levelPanel)
+        {
+            if (levelPanel == null)
+            {
+                return;
+            }
+
+            levelPanel.Controls.Clear();
+            AddTexturesToPanel(levelPanel);
+            AddWallsToPanel(levelPanel);
+            AddBoxesToPanel(levelPanel);
+            AddPlayerToPanel(levelPanel);
+            AddFinalDestinationsToPanel(levelPanel);
+        }
+
+        private void AddTexturesToPanel(Panel levelPanel)
+        {
+            foreach (var texture in _textures)
             {
                 levelPanel.Controls.Add(texture);
             }
         }
 
-        // Then add walls (they don't need texture background)
-        if (walls != null)
+        private void AddWallsToPanel(Panel levelPanel)
         {
-            foreach (var box in walls)
+            foreach (var wall in _walls)
             {
-                 levelPanel.Controls.Add(box);
+                levelPanel.Controls.Add(wall);
             }
         }
 
-        // Add boxes with texture as background
-        if (boxes != null)
+        private void AddBoxesToPanel(Panel levelPanel)
         {
-            foreach (var box in boxes)
+            foreach (var box in _boxes)
             {
-                // Find the texture at the same position to use as background
-                Texture textureAtPos = textures?.FirstOrDefault(t => t.x == box.x && t.y == box.y);
-                if (textureAtPos != null)
+                Texture textureAtPosition = _textures?.FirstOrDefault(t => t.X == box.X && t.Y == box.Y);
+                if (textureAtPosition != null)
                 {
-                    box.BackgroundImage = textureAtPos.Image;
+                    box.BackgroundImage = textureAtPosition.Image;
                 }
                 levelPanel.Controls.Add(box);
                 box.BringToFront();
             }
         }
 
-        // Add player with texture as background
-        if (player != null)
+        private void AddPlayerToPanel(Panel levelPanel)
         {
-            Texture textureAtPos = textures?.FirstOrDefault(t => t.x == player.x && t.y == player.y);
-            if (textureAtPos != null)
+            if (_player != null)
             {
-                player.BackgroundImage = textureAtPos.Image;
-            }
-            levelPanel.Controls.Add(player);
-            player.BringToFront();
-        }
-
-        // Add final destinations with texture as background
-        if (finalDest != null)
-        {
-            foreach (var dest in finalDest)
-            {
-                Texture textureAtPos = textures?.FirstOrDefault(t => t.x == dest.x && t.y == dest.y);
-                if (textureAtPos != null)
+                Texture textureAtPosition = _textures?.FirstOrDefault(t => t.X == _player.X && t.Y == _player.Y);
+                if (textureAtPosition != null)
                 {
-                    dest.BackgroundImage = textureAtPos.Image;
+                    _player.BackgroundImage = textureAtPosition.Image;
                 }
-                levelPanel.Controls.Add(dest);
-                dest.BringToFront();
+                levelPanel.Controls.Add(_player);
+                _player.BringToFront();
             }
         }
 
-    }
-
-    //create and add all objects to lists
-    //FIXME na db verzi
-    public void addObjToList(int [,] MapGrid, int arrSize)
-    {
-        //Console.WriteLine($"boxes: {boxes.Count}, walls: {walls.Count}, finalDest: {finalDest.Count}, player: {player}");
-        // to nor oversize the lists
-        boxes.Clear();
-        finalDest.Clear();
-        walls.Clear();
-        textures.Clear();
-        player = null;
-        int topM = 0;
-        int leftM = 0;
-
-        
-        if (arrSize == 10)
+        private void AddFinalDestinationsToPanel(Panel levelPanel)
         {
-            topM = Storage.topMargin2;
-            leftM = Storage.leftMargin2;
-        }
-        else if (arrSize == 8)
-        {
-            topM = Storage.topMargin;
-            leftM = Storage.leftMargin;
-        }
-        
-        for (int i = 0; i < arrSize; i++)
-        {
-            for (int j = 0; j < arrSize; j++)
+            foreach (var destination in _finalDestinations)
             {
-                // 0 = empty, 1 - wall, 2 - outside texture, 3 = player, 4 = box, 5 - final destination, 6 - inside texture
-                switch (MapGrid[i, j])
+                Texture textureAtPosition = _textures?.FirstOrDefault(t => t.X == destination.X && t.Y == destination.Y);
+                if (textureAtPosition != null)
                 {
-                    case 1:
-                        AddWall((j * Size + leftM), (i * Size + topM));
-                        break;
+                    destination.BackgroundImage = textureAtPosition.Image;
+                }
+                levelPanel.Controls.Add(destination);
+                destination.BringToFront();
+            }
+        }
 
-                    case 2:
-                        AddTexture((j * Size + leftM), (i * Size + topM), true);
-                        break;
-                    case 3:
-                        AddPlayer((j * Size + leftM), (i * Size + topM));
-                        AddTexture((j * Size + leftM), (i * Size + topM));
-                        break;
+        /// <summary>
+        /// Creates and adds all game objects to lists based on the map grid data.
+        /// </summary>
+        /// <param name="mapGrid">The 2D array representing the map layout.</param>
+        /// <param name="arraySize">The size of the map grid (8 or 10).</param>
+        public void AddObjectsToList(int[,] mapGrid, int arraySize)
+        {
+            ClearAllObjects();
+            int topMargin = GetTopMargin(arraySize);
+            int leftMargin = GetLeftMargin(arraySize);
+            int tileSize = Storage.Size;
 
-                    case 4:
-                        AddBox((j * Size + leftM), (i * Size + topM));
-                        AddTexture((j * Size + leftM), (i * Size + topM));
-                        break;
-
-                    case 5:
-                        AddTexture((j * Size + leftM), (i * Size + topM));
-                        AddFinalDestination((j * Size + leftM), (i * Size + topM));
-                        break;
-
-                    case 6:
-                        AddTexture((j * Size + leftM), (i * Size + topM));
-                        break;
-
-                    case 7:
-                        AddFinalDestination((j * Size + leftM), (i * Size + topM));
-                        AddWall((j * Size + leftM), (i * Size + topM));
-                        break;
-                    default:
-                        // Empty
-                        break;
+            for (int row = 0; row < arraySize; row++)
+            {
+                for (int column = 0; column < arraySize; column++)
+                {
+                    int x = column * tileSize + leftMargin;
+                    int y = row * tileSize + topMargin;
+                    ProcessMapCell(mapGrid[row, column], x, y);
                 }
             }
         }
-    }
-    //method for checking collision between player and box
-    //return value is box so it can be moved in main
-    public Box collided_pb(Player player, List<Box> boxes)
-    {
-        if (player == null)
+
+        private void ClearAllObjects()
         {
-            return null;
+            _boxes.Clear();
+            _finalDestinations.Clear();
+            _walls.Clear();
+            _textures.Clear();
+            _player = null;
         }
-        foreach (var box in boxes)
+
+        private int GetTopMargin(int arraySize)
         {
-            if (Storage.gridPos(player.x, player.y).Equals(Storage.gridPos(box.x, box.y)))
+            return arraySize == GameConstants.LargeGridSize 
+                ? Storage.TopMargin2 
+                : Storage.TopMargin;
+        }
+
+        private int GetLeftMargin(int arraySize)
+        {
+            return arraySize == GameConstants.LargeGridSize 
+                ? Storage.LeftMargin2 
+                : Storage.LeftMargin;
+        }
+
+        private void ProcessMapCell(int cellValue, int x, int y)
+        {
+            switch (cellValue)
             {
-                return box;
+                case GameConstants.MapValueWall:
+                    AddWall(x, y);
+                    break;
+
+                case GameConstants.MapValueOutsideTexture:
+                    AddTexture(x, y, true);
+                    break;
+
+                case GameConstants.MapValuePlayer:
+                    AddPlayer(x, y);
+                    AddTexture(x, y);
+                    break;
+
+                case GameConstants.MapValueBox:
+                    AddBox(x, y);
+                    AddTexture(x, y);
+                    break;
+
+                case GameConstants.MapValueFinalDestination:
+                    AddTexture(x, y);
+                    AddFinalDestination(x, y);
+                    break;
+
+                case GameConstants.MapValueInsideTexture:
+                    AddTexture(x, y);
+                    break;
+
+                case GameConstants.MapValueFinalDestinationWithWall:
+                    AddFinalDestination(x, y);
+                    AddWall(x, y);
+                    break;
+
+                default:
+                    break;
             }
         }
-        return null;
-    }
-    //method for collision between box and box
-    //return value is box so it can be moved in main
-    //need for one more condition because box always collide with itself(same pos)
-    public Box collided_bb(Box bob, List<Box> boxes)
-    { 
-        if (bob == null)
+        /// <summary>
+        /// Checks if the player collides with any box.
+        /// </summary>
+        /// <param name="player">The player to check.</param>
+        /// <param name="boxes">The list of boxes to check against.</param>
+        /// <returns>The collided box, or null if no collision.</returns>
+        public Box CollidedPlayerBox(Player player, List<Box> boxes)
         {
+            if (player == null)
+            {
+                return null;
+            }
+
+            Point playerGridPos = Storage.GridPos(player.X, player.Y);
+            foreach (var box in boxes)
+            {
+                Point boxGridPos = Storage.GridPos(box.X, box.Y);
+                if (playerGridPos.Equals(boxGridPos))
+                {
+                    return box;
+                }
+            }
             return null;
         }
-        foreach (var box in boxes)
+
+        /// <summary>
+        /// Checks if a box collides with another box.
+        /// </summary>
+        /// <param name="boxToCheck">The box to check.</param>
+        /// <param name="boxes">The list of boxes to check against.</param>
+        /// <returns>The collided box, or null if no collision.</returns>
+        public Box CollidedBoxBox(Box boxToCheck, List<Box> boxes)
         {
-            if (Storage.gridPos(bob.x, bob.y) == Storage.gridPos(box.x, box.y) && bob != box)
+            if (boxToCheck == null)
             {
-                return box;
+                return null;
             }
-        }
-        return null;
-    }
-    //method for collision between box and wall
-    //return value is box so it can be moved in main
-    public Box collided_bw(Box box, List<Wall> walls)
-    {
-        if (box == null)
-        {
+
+            Point boxGridPos = Storage.GridPos(boxToCheck.X, boxToCheck.Y);
+            foreach (var box in boxes)
+            {
+                Point otherBoxGridPos = Storage.GridPos(box.X, box.Y);
+                if (boxGridPos == otherBoxGridPos && boxToCheck != box)
+                {
+                    return box;
+                }
+            }
             return null;
         }
-        foreach (var wall in walls)
+
+        /// <summary>
+        /// Checks if a box collides with any wall.
+        /// </summary>
+        /// <param name="box">The box to check.</param>
+        /// <param name="walls">The list of walls to check against.</param>
+        /// <returns>The collided box, or null if no collision.</returns>
+        public Box CollidedBoxWall(Box box, List<Wall> walls)
         {
-            if (Storage.gridPos(box.x, box.y) == Storage.gridPos(wall.x, wall.y))
+            if (box == null)
             {
-                return box;
+                return null;
             }
+
+            Point boxGridPos = Storage.GridPos(box.X, box.Y);
+            foreach (var wall in walls)
+            {
+                Point wallGridPos = Storage.GridPos(wall.X, wall.Y);
+                if (boxGridPos == wallGridPos)
+                {
+                    return box;
+                }
+            }
+            return null;
         }
-        return null;
-    }
-    //method for collision between player and wall
-    //return value is true or false - no need for exact object to be returned
-    public bool collided_pw(Player player, List<Wall> walls)
-    {
-        if (player == null)
+
+        /// <summary>
+        /// Checks if the player collides with any wall.
+        /// </summary>
+        /// <param name="player">The player to check.</param>
+        /// <param name="walls">The list of walls to check against.</param>
+        /// <returns>True if collision detected, false otherwise.</returns>
+        public bool CollidedPlayerWall(Player player, List<Wall> walls)
         {
+            if (player == null)
+            {
+                return false;
+            }
+
+            Point playerGridPos = Storage.GridPos(player.X, player.Y);
+            foreach (var wall in walls)
+            {
+                Point wallGridPos = Storage.GridPos(wall.X, wall.Y);
+                if (playerGridPos == wallGridPos)
+                {
+                    return true;
+                }
+            }
             return false;
         }
-        foreach (var wall in walls)
+
+        /// <summary>
+        /// Checks if all boxes are placed on final destinations (win condition).
+        /// </summary>
+        /// <param name="boxes">The list of boxes to check.</param>
+        /// <param name="finalDestinations">The list of final destinations.</param>
+        /// <returns>True if all boxes are on destinations, false otherwise.</returns>
+        public bool CheckWin(List<Box> boxes, List<FinalDestination> finalDestinations)
         {
-            if (Storage.gridPos(player.x, player.y) == Storage.gridPos(wall.x, wall.y))
+            int remainingDestinations = finalDestinations.Count;
+            foreach (var box in boxes)
             {
-                return true;
+                bool boxPlaced = false;
+                Point boxGridPos = Storage.GridPos(box.X, box.Y);
+                
+                foreach (var destination in finalDestinations)
+                {
+                    Point destGridPos = Storage.GridPos(destination.X, destination.Y);
+                    if (boxGridPos == destGridPos)
+                    {
+                        box.IsOnDestination = true;
+                        remainingDestinations--;
+                        boxPlaced = true;
+                        break;
+                    }
+                }
+
+                if (!boxPlaced)
+                {
+                    box.IsOnDestination = false;
+                }
             }
+            return remainingDestinations == 0;
         }
-        return false;
-    }
-    // Method for checking win - if all boxes are on final destinations
-    public bool checkWin(List<Box> boxes, List<FinalDestination> finalDest)
-    {
-        int dests = finalDest.Count;
-        foreach (var box in boxes)
+
+        /// <summary>
+        /// Updates the background image of a PictureBox based on its current position.
+        /// </summary>
+        /// <param name="pictureBox">The PictureBox to update.</param>
+        public void UpdateBackgroundImage(PictureBox pictureBox)
         {
-            foreach (var dest in finalDest)
+            if (pictureBox == null || _textures == null)
             {
-                if (Storage.gridPos(box.x, box.y) == Storage.gridPos(dest.x, dest.y))
-                {
-                    box.isThere = true;
-                    dests--;
-                    break;
-                }
-                else
-                {
-                    box.isThere = false;
-                }
+                return;
             }
-            string path = Storage.selectedBox;
-            path = box.isThere ? path.Replace("Crate_", "CrateDark_") : path;
-            box.Image = Storage.getImage(path);
+
+            Texture textureAtPosition = _textures.FirstOrDefault(t => t.X == pictureBox.Left && t.Y == pictureBox.Top);
+            if (textureAtPosition != null)
+            {
+                pictureBox.BackgroundImage = textureAtPosition.Image;
+            }
+            pictureBox.BringToFront();
         }
-        return dests == 0 ? true : false;
-    }
-    
-    // Helper method to update BackgroundImage for a PictureBox based on its current position
-    public void UpdateBackgroundImage(PictureBox pictureBox)
-    {
-        if (pictureBox == null || textures == null) return;
-        
-        Texture textureAtPos = textures.FirstOrDefault(t => t.x == pictureBox.Left && t.y == pictureBox.Top);
-        if (textureAtPos != null)
-        {
-            pictureBox.BackgroundImage = textureAtPos.Image;
-        }
-        // Ensure the element stays in front
-        pictureBox.BringToFront();
     }
 }
