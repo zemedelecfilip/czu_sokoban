@@ -163,7 +163,7 @@ namespace czu_sokoban.BusinessLogic
                 return 0;
             }
 
-            return 0;
+            return 1;
         }
 
         private int ProcessBoxMovementRight(Box box)
@@ -180,7 +180,7 @@ namespace czu_sokoban.BusinessLogic
                 return 0;
             }
 
-            return 0;
+            return 1;
         }
 
         private int ProcessBoxMovementUp(Box box)
@@ -197,7 +197,7 @@ namespace czu_sokoban.BusinessLogic
                 return 0;
             }
 
-            return 0;
+            return 1;
         }
 
         private int ProcessBoxMovementDown(Box box)
@@ -214,7 +214,7 @@ namespace czu_sokoban.BusinessLogic
                 return 0;
             }
 
-            return 0;
+            return 1;
         }
 
         private bool IsBoxCollisionInvalid(Box box)
@@ -239,6 +239,9 @@ namespace czu_sokoban.BusinessLogic
 
         private void SaveLevelResult()
         {
+            // Ensure CurrentSaveId is valid and the save exists in the database
+            _gameState.CurrentSaveId = _database.EnsureSaveExists(_gameState.CurrentSaveId);
+
             double currentTime = Convert.ToDouble(_stopwatch.Elapsed.TotalSeconds.ToString("N3"));
             var bestResult = _database.GetLevelTimesAndStepsByPlayer(_gameState.CurrentSaveId, _gameState.CurrentLevelName);
             
@@ -250,6 +253,11 @@ namespace czu_sokoban.BusinessLogic
                 {
                     _database.SetLevelTimeAndSteps(_gameState.CurrentSaveId, _gameState.CurrentLevelName, currentTime, _gameState.StepsCount);
                 }
+            }
+            else
+            {
+                // No existing record found, insert a new one
+                _database.InsertLevelTimeAndSteps(_gameState.CurrentSaveId, _gameState.CurrentLevelName, currentTime, _gameState.StepsCount);
             }
         }
 

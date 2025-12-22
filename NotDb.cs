@@ -3,14 +3,15 @@
 // install like 5 mil nuggets
 
 using SQLitePCL;
+using czu_sokoban;
 
 public class PeopleDatabase
 {
-    public const int Width = Storage.gridSize;
-    public const int Height = Storage.gridSize;
+    public const int Width = Storage.GridSize;
+    public const int Height = Storage.GridSize;
 
-    public const int Width2 = Storage.gridSize2;
-    public const int Height2 = Storage.gridSize2;
+    public const int Width2 = Storage.GridSize2;
+    public const int Height2 = Storage.GridSize2;
     private const string ConnectionString = "Data Source=mydb.db;Pooling=False;";
     public static List<int[,]> levels = new List<int[,]>();
     public static string[] players;
@@ -49,7 +50,7 @@ public class PeopleDatabase
         {
             // Players table
             string savesTableSql = @"
-            CREATE TABLE Saves (
+            CREATE TABLE IF NOT EXISTS Saves (
                 save_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Name TEXT,
                 Shop int not null default 1,
@@ -58,7 +59,7 @@ public class PeopleDatabase
 
             // Levels table (now linked to players)
             string levelsTableSql = @"
-            CREATE TABLE Levels (
+            CREATE TABLE IF NOT EXISTS Levels (
                 level_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 save_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
@@ -158,26 +159,43 @@ public class PeopleDatabase
                 int levelCount = 1;
                 foreach (var level in levels)
                 {
-                    string serialized = SerializeMapGrid(level);
-                    // Corrected SQL with player_id
-                    string sql = "INSERT INTO levels (save_id, name, best_time, best_steps_count, levels_data) VALUES (?, ?, ?, ?, ?);";
+                    string levelName = $"level{levelCount}";
+                    
+                    // Check if level already exists for this save
+                    string checkSql = "SELECT COUNT(*) FROM Levels WHERE save_id = ? AND name = ?;";
+                    var checkStmt = PrepareStatement(db, checkSql);
+                    raw.sqlite3_bind_int(checkStmt, 1, i + 1);
+                    raw.sqlite3_bind_text(checkStmt, 2, levelName);
+                    
+                    bool exists = false;
+                    if (raw.sqlite3_step(checkStmt) == raw.SQLITE_ROW)
+                    {
+                        int count = raw.sqlite3_column_int(checkStmt, 0);
+                        exists = count > 0;
+                    }
+                    raw.sqlite3_finalize(checkStmt);
+                    
+                    if (!exists)
+                    {
+                        string serialized = SerializeMapGrid(level);
+                        // Corrected SQL with player_id
+                        string sql = "INSERT INTO levels (save_id, name, best_time, best_steps_count, levels_data) VALUES (?, ?, ?, ?, ?);";
 
-                    var stmt = PrepareStatement(db, sql);
+                        var stmt = PrepareStatement(db, sql);
 
-                    // Correct parameter binding order:
-                    raw.sqlite3_bind_int(stmt, 1, i + 1);
-                    raw.sqlite3_bind_text(stmt, 2, $"level{levelCount}");
-                    raw.sqlite3_bind_double(stmt, 3, 0.0);
-                    raw.sqlite3_bind_int(stmt, 4, 0);
-                    raw.sqlite3_bind_text(stmt, 5, serialized);
+                        // Correct parameter binding order:
+                        raw.sqlite3_bind_int(stmt, 1, i + 1);
+                        raw.sqlite3_bind_text(stmt, 2, levelName);
+                        raw.sqlite3_bind_double(stmt, 3, 0.0);
+                        raw.sqlite3_bind_int(stmt, 4, 0);
+                        raw.sqlite3_bind_text(stmt, 5, serialized);
 
-                    raw.sqlite3_step(stmt);
-                    //Console.WriteLine($"raw.sqlite3_step(stmt): {raw.sqlite3_step(stmt)}");
-                    raw.sqlite3_finalize(stmt);
+                        raw.sqlite3_step(stmt);
+                        raw.sqlite3_finalize(stmt);
+                    }
                     levelCount++;
                 }
             }
-            db.Close();
         }
     }
     // Metohd for insert saves to database
@@ -187,14 +205,118 @@ public class PeopleDatabase
         {
             for (int i = 0; i < 3; i++)
             {
-                string sql = "INSERT INTO Saves (Name) VALUES (?);";
-                var stmt = PrepareStatement(db, sql);
-                raw.sqlite3_bind_text(stmt, 1, $"save{i}");
-                raw.sqlite3_step(stmt);
-                raw.sqlite3_finalize(stmt);
+                // Check if save already exists
+                string checkSql = "SELECT COUNT(*) FROM Saves WHERE Name = ?;";
+                var checkStmt = PrepareStatement(db, checkSql);
+                raw.sqlite3_bind_text(checkStmt, 1, $"save{i}");
+                
+                bool exists = false;
+                if (raw.sqlite3_step(checkStmt) == raw.SQLITE_ROW)
+                {
+                    int count = raw.sqlite3_column_int(checkStmt, 0);
+                    exists = count > 0;
+                }
+                raw.sqlite3_finalize(checkStmt);
+                
+                if (!exists)
+                {
+                    string sql = "INSERT INTO Saves (Name) VALUES (?);";
+                    var stmt = PrepareStatement(db, sql);
+                    raw.sqlite3_bind_text(stmt, 1, $"save{i}");
+                    raw.sqlite3_step(stmt);
+                    raw.sqlite3_finalize(stmt);
+                }
             }
         }
         Console.WriteLine("Saves inserted successfully.");
+    }
+
+    /// <summary>
+    /// Ensures that a save with the given save_id exists in the database.
+    /// If it doesn't exist, creates it. Returns the actual save_id used.
+    /// </summary>
+    /// <param name="saveId">The save_id to check/create.</param>
+    /// <returns>The save_id that exists (may be different if the original didn't exist).</returns>
+    public int EnsureSaveExists(int saveId)
+    {
+        // Validate save_id is in valid range (1-3)
+        if (saveId <= 0 || saveId > 3)
+        {
+            saveId = 1;
+        }
+
+        lock (_dbLock)
+        {
+            using (var db = OpenConnection())
+            {
+                string checkSql = "SELECT COUNT(*) FROM Saves WHERE save_id = ?;";
+                var checkStmt = PrepareStatement(db, checkSql);
+                raw.sqlite3_bind_int(checkStmt, 1, saveId);
+                
+                bool exists = false;
+                if (raw.sqlite3_step(checkStmt) == raw.SQLITE_ROW)
+                {
+                    int count = raw.sqlite3_column_int(checkStmt, 0);
+                    exists = count > 0;
+                }
+                raw.sqlite3_finalize(checkStmt);
+
+                if (!exists)
+                {
+                    // Try to insert with specific save_id
+                    string insertSql = "INSERT INTO Saves (save_id, Name) VALUES (?, ?);";
+                    var insertStmt = PrepareStatement(db, insertSql);
+                    raw.sqlite3_bind_int(insertStmt, 1, saveId);
+                    raw.sqlite3_bind_text(insertStmt, 2, $"save{saveId}");
+                    
+                    var result = raw.sqlite3_step(insertStmt);
+                    raw.sqlite3_finalize(insertStmt);
+                    
+                    if (result != raw.SQLITE_DONE)
+                    {
+                        // If that fails, find the first available save (1, 2, or 3)
+                        for (int fallbackId = 1; fallbackId <= 3; fallbackId++)
+                        {
+                            checkStmt = PrepareStatement(db, checkSql);
+                            raw.sqlite3_bind_int(checkStmt, 1, fallbackId);
+                            exists = false;
+                            if (raw.sqlite3_step(checkStmt) == raw.SQLITE_ROW)
+                            {
+                                int count = raw.sqlite3_column_int(checkStmt, 0);
+                                exists = count > 0;
+                            }
+                            raw.sqlite3_finalize(checkStmt);
+                            
+                            if (exists)
+                            {
+                                return fallbackId;
+                            }
+                        }
+                        
+                        // If no saves exist, create one without specifying ID
+                        insertSql = "INSERT INTO Saves (Name) VALUES (?);";
+                        insertStmt = PrepareStatement(db, insertSql);
+                        raw.sqlite3_bind_text(insertStmt, 1, "save1");
+                        result = raw.sqlite3_step(insertStmt);
+                        raw.sqlite3_finalize(insertStmt);
+                        
+                        if (result == raw.SQLITE_DONE)
+                        {
+                            // Get the newly created save_id
+                            string getLastIdSql = "SELECT last_insert_rowid();";
+                            var getLastIdStmt = PrepareStatement(db, getLastIdSql);
+                            if (raw.sqlite3_step(getLastIdStmt) == raw.SQLITE_ROW)
+                            {
+                                saveId = raw.sqlite3_column_int(getLastIdStmt, 0);
+                            }
+                            raw.sqlite3_finalize(getLastIdStmt);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return saveId;
     }
     /// <summary>
     /// Gets level data based on a level name.
@@ -217,10 +339,10 @@ public class PeopleDatabase
                 string serializedData = raw.sqlite3_column_text(stmt, 0).utf8_to_string();
                 // Deserialize the data back to int[,]
                 var finGrid = DeserializeMapGrid(serializedData);
+                raw.sqlite3_finalize(stmt);
                 return finGrid;
             }
             raw.sqlite3_finalize(stmt);
-            db.Close();
         }
         return null;
     }
@@ -288,6 +410,118 @@ public class PeopleDatabase
                 }
 
                 raw.sqlite3_finalize(stmt);
+            }
+        }
+    }
+    /// <summary>
+    /// Inserts a new level record with time and steps for a specific save and level.
+    /// Gets the level data from an existing record if available.
+    /// </summary>
+    public void InsertLevelTimeAndSteps(int saveId, string levelName, double time, int steps)
+    {
+        time = Convert.ToDouble(time.ToString("N3"));
+        Console.WriteLine($"[Inserting] level record: save_id={saveId}, level={levelName}, time={time}, steps={steps}");
+        lock (_dbLock)
+        {
+            using (var db = OpenConnection())
+            {
+                // Validate that save_id exists in Saves table
+                string checkSaveSql = "SELECT COUNT(*) FROM Saves WHERE save_id = ?;";
+                var checkSaveStmt = PrepareStatement(db, checkSaveSql);
+                raw.sqlite3_bind_int(checkSaveStmt, 1, saveId);
+                
+                bool saveExists = false;
+                if (raw.sqlite3_step(checkSaveStmt) == raw.SQLITE_ROW)
+                {
+                    int count = raw.sqlite3_column_int(checkSaveStmt, 0);
+                    saveExists = count > 0;
+                }
+                raw.sqlite3_finalize(checkSaveStmt);
+
+                // If save doesn't exist, use save_id = 1 as fallback (should always exist after initialization)
+                if (!saveExists)
+                {
+                    Console.WriteLine($"Warning: Save with save_id={saveId} does not exist. Using save_id=1 as fallback.");
+                    saveId = 1;
+                    
+                    // Verify save_id=1 exists
+                    checkSaveStmt = PrepareStatement(db, checkSaveSql);
+                    raw.sqlite3_bind_int(checkSaveStmt, 1, saveId);
+                    saveExists = false;
+                    if (raw.sqlite3_step(checkSaveStmt) == raw.SQLITE_ROW)
+                    {
+                        int count = raw.sqlite3_column_int(checkSaveStmt, 0);
+                        saveExists = count > 0;
+                    }
+                    raw.sqlite3_finalize(checkSaveStmt);
+                    
+                    // If save_id=1 also doesn't exist, create it
+                    if (!saveExists)
+                    {
+                        string insertSaveSql = "INSERT INTO Saves (Name) VALUES (?);";
+                        var insertSaveStmt = PrepareStatement(db, insertSaveSql);
+                        raw.sqlite3_bind_text(insertSaveStmt, 1, "save1");
+                        var saveResult = raw.sqlite3_step(insertSaveStmt);
+                        raw.sqlite3_finalize(insertSaveStmt);
+                        
+                        if (saveResult != raw.SQLITE_DONE)
+                        {
+                            string errMsg = raw.sqlite3_errmsg(db).utf8_to_string();
+                            throw new Exception($"SQL error creating save ({saveResult}): {errMsg}");
+                        }
+                        Console.WriteLine($"Created save with save_id=1");
+                    }
+                }
+
+                // First, try to get level data from any existing record for this level (from any save)
+                string levelData = null;
+                string selectSql = "SELECT levels_data FROM Levels WHERE name = ? LIMIT 1;";
+                var selectStmt = PrepareStatement(db, selectSql);
+                raw.sqlite3_bind_text(selectStmt, 1, levelName);
+                
+                if (raw.sqlite3_step(selectStmt) == raw.SQLITE_ROW)
+                {
+                    levelData = raw.sqlite3_column_text(selectStmt, 0).utf8_to_string();
+                }
+                raw.sqlite3_finalize(selectStmt);
+
+                // If no level data found, try to get it from the levels list
+                if (string.IsNullOrEmpty(levelData))
+                {
+                    // Extract level number from levelName (e.g., "level1" -> 1)
+                    if (int.TryParse(levelName.Replace("level", ""), out int levelNumber) && levelNumber > 0 && levelNumber <= levels.Count)
+                    {
+                        levelData = SerializeMapGrid(levels[levelNumber - 1]);
+                    }
+                    else
+                    {
+                        // Fallback: create empty grid
+                        int[,] emptyGrid = new int[Height, Width];
+                        levelData = SerializeMapGrid(emptyGrid);
+                    }
+                }
+
+                // Insert the new record
+                string insertSql = @"
+                INSERT INTO Levels (save_id, name, best_time, best_steps_count, levels_data)
+                VALUES (?, ?, ?, ?, ?);";
+
+                var stmt = PrepareStatement(db, insertSql);
+                raw.sqlite3_bind_int(stmt, 1, saveId);
+                raw.sqlite3_bind_text(stmt, 2, levelName);
+                raw.sqlite3_bind_double(stmt, 3, time);
+                raw.sqlite3_bind_int(stmt, 4, steps);
+                raw.sqlite3_bind_text(stmt, 5, levelData);
+
+                var result = raw.sqlite3_step(stmt);
+                if (result != raw.SQLITE_DONE)
+                {
+                    string errMsg = raw.sqlite3_errmsg(db).utf8_to_string();
+                    throw new Exception($"SQL insert error ({result}): {errMsg}");
+                }
+
+                raw.sqlite3_finalize(stmt);
+                Console.WriteLine($"Successfully inserted level record for save_id={saveId}, level={levelName}");
             }
         }
     }

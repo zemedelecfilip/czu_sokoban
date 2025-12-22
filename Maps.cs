@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using czu_sokoban.Domain;
@@ -99,7 +99,7 @@ namespace czu_sokoban.BusinessLogic
 
         /// <summary>
         /// Adds all map objects to the specified panel for display.
-        /// The order of adding is important: textures first, then walls, boxes, player, and final destinations.
+        /// Layer order from bottom to top: textures (ground), final destinations, player, boxes, walls.
         /// </summary>
         /// <param name="levelPanel">The panel to add controls to.</param>
         public void AddToControls(Panel levelPanel)
@@ -110,11 +110,22 @@ namespace czu_sokoban.BusinessLogic
             }
 
             levelPanel.Controls.Clear();
+            // Add in order: textures (ground) first (bottom layer)
             AddTexturesToPanel(levelPanel);
-            AddWallsToPanel(levelPanel);
-            AddBoxesToPanel(levelPanel);
-            AddPlayerToPanel(levelPanel);
+            // Then final destinations
             AddFinalDestinationsToPanel(levelPanel);
+            // Then player
+            AddPlayerToPanel(levelPanel);
+            // Then boxes
+            AddBoxesToPanel(levelPanel);
+            // Then walls (top layer)
+            AddWallsToPanel(levelPanel);
+            
+            // Bring to front in order to establish proper layering
+            BringFinalDestinationsToFront(levelPanel);
+            BringPlayerToFront(levelPanel);
+            BringBoxesToFront(levelPanel);
+            BringWallsToFront(levelPanel);
         }
 
         private void AddTexturesToPanel(Panel levelPanel)
@@ -143,7 +154,6 @@ namespace czu_sokoban.BusinessLogic
                     box.BackgroundImage = textureAtPosition.Image;
                 }
                 levelPanel.Controls.Add(box);
-                box.BringToFront();
             }
         }
 
@@ -157,7 +167,6 @@ namespace czu_sokoban.BusinessLogic
                     _player.BackgroundImage = textureAtPosition.Image;
                 }
                 levelPanel.Controls.Add(_player);
-                _player.BringToFront();
             }
         }
 
@@ -171,7 +180,54 @@ namespace czu_sokoban.BusinessLogic
                     destination.BackgroundImage = textureAtPosition.Image;
                 }
                 levelPanel.Controls.Add(destination);
+            }
+        }
+
+        /// <summary>
+        /// Brings all final destinations to the front to ensure they are displayed above ground textures.
+        /// </summary>
+        /// <param name="levelPanel">The panel containing the final destinations.</param>
+        private void BringFinalDestinationsToFront(Panel levelPanel)
+        {
+            foreach (var destination in _finalDestinations)
+            {
                 destination.BringToFront();
+            }
+        }
+
+        /// <summary>
+        /// Brings the player to the front to ensure it is displayed above final destinations.
+        /// </summary>
+        /// <param name="levelPanel">The panel containing the player.</param>
+        private void BringPlayerToFront(Panel levelPanel)
+        {
+            if (_player != null)
+            {
+                _player.BringToFront();
+            }
+        }
+
+        /// <summary>
+        /// Brings all boxes to the front to ensure they are displayed above the player.
+        /// </summary>
+        /// <param name="levelPanel">The panel containing the boxes.</param>
+        private void BringBoxesToFront(Panel levelPanel)
+        {
+            foreach (var box in _boxes)
+            {
+                box.BringToFront();
+            }
+        }
+
+        /// <summary>
+        /// Brings all walls to the front to ensure they are displayed above all other objects (top layer).
+        /// </summary>
+        /// <param name="levelPanel">The panel containing the walls.</param>
+        private void BringWallsToFront(Panel levelPanel)
+        {
+            foreach (var wall in _walls)
+            {
+                wall.BringToFront();
             }
         }
 
@@ -369,7 +425,15 @@ namespace czu_sokoban.BusinessLogic
         /// <returns>True if all boxes are on destinations, false otherwise.</returns>
         public bool CheckWin(List<Box> boxes, List<FinalDestination> finalDestinations)
         {
-            int remainingDestinations = finalDestinations.Count;
+            if (boxes == null || finalDestinations == null || boxes.Count != finalDestinations.Count)
+            {
+                return false;
+            }
+
+            // Track which destinations have been covered
+            HashSet<Point> coveredDestinations = new HashSet<Point>();
+            
+            // Update box states and check if each box is on a destination
             foreach (var box in boxes)
             {
                 bool boxPlaced = false;
@@ -381,7 +445,7 @@ namespace czu_sokoban.BusinessLogic
                     if (boxGridPos == destGridPos)
                     {
                         box.IsOnDestination = true;
-                        remainingDestinations--;
+                        coveredDestinations.Add(destGridPos);
                         boxPlaced = true;
                         break;
                     }
@@ -392,11 +456,15 @@ namespace czu_sokoban.BusinessLogic
                     box.IsOnDestination = false;
                 }
             }
-            return remainingDestinations == 0;
+
+            // Win condition: all destinations must be covered and all boxes must be on destinations
+            return coveredDestinations.Count == finalDestinations.Count && 
+                   boxes.All(box => box.IsOnDestination);
         }
 
         /// <summary>
         /// Updates the background image of a PictureBox based on its current position.
+        /// Maintains proper layer order: textures (bottom), final destinations, player, boxes, walls (top).
         /// </summary>
         /// <param name="pictureBox">The PictureBox to update.</param>
         public void UpdateBackgroundImage(PictureBox pictureBox)
@@ -411,7 +479,51 @@ namespace czu_sokoban.BusinessLogic
             {
                 pictureBox.BackgroundImage = textureAtPosition.Image;
             }
-            pictureBox.BringToFront();
+            
+            // Maintain proper layer order after movement
+            if (pictureBox is Player)
+            {
+                // Player layer: bring final destinations first, then player, then boxes, then walls
+                foreach (var destination in _finalDestinations)
+                {
+                    destination.BringToFront();
+                }
+                pictureBox.BringToFront();
+                foreach (var box in _boxes)
+                {
+                    box.BringToFront();
+                }
+                foreach (var wall in _walls)
+                {
+                    wall.BringToFront();
+                }
+            }
+            else if (pictureBox is Box)
+            {
+                // Box layer: bring final destinations, then player, then ALL boxes, then walls
+                // Important: bring ALL boxes to front, not just the moved one, to prevent boxes from disappearing
+                foreach (var destination in _finalDestinations)
+                {
+                    destination.BringToFront();
+                }
+                if (_player != null)
+                {
+                    _player.BringToFront();
+                }
+                // Bring all boxes to front to ensure proper layering for all boxes
+                foreach (var box in _boxes)
+                {
+                    box.BringToFront();
+                }
+                foreach (var wall in _walls)
+                {
+                    wall.BringToFront();
+                }
+            }
+            else
+            {
+                pictureBox.BringToFront();
+            }
         }
     }
 }

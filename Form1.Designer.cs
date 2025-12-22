@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -107,20 +107,28 @@ namespace czu_sokoban
                 Text = "RESTART",
                 Font = _buttonFont,
                 Size = new Size(200, 100),
-                Location = new Point(0, 0),
+                Location = new Point(_screenWidth - 220, 20),
                 BackColor = _buttonColor
             };
-            resetLevel.Location = new Point(16 * _screenWidth / 18 - resetLevel.Width / 2, _screenHeight / 7);
 
             if (targetPanel == _levelPanel)
             {
+                // Add restart button
                 targetPanel.Controls.Add(resetLevel);
-                resetLevel.Click += (s, e) => InitializeLevelScreen(_gameState.CurrentLevelName);
-                resetLevel.Click += (s, e) => ResetVariables();
+                resetLevel.Click += (s, e) => 
+                {
+                    ResetVariables();
+                    InitializeLevelScreen(_gameState.CurrentLevelName);
+                };
 
-                backToMenu.Text = "Levels";
-                backToMenu.Click += (s, e) => ShowPanel(_levelsPanel);
-                backToMenu.Click += (s, e) => ResetVariables();
+                // Configure back to menu button
+                backToMenu.Text = "Back to Levels";
+                backToMenu.Click += (s, e) => 
+                {
+                    ResetVariables();
+                    InitializeLevelsScreen();
+                    ShowPanel(_levelsPanel);
+                };
             }
             else if (targetPanel == _endLevelPanel)
             {
@@ -136,10 +144,26 @@ namespace czu_sokoban
                 backToMenu.Location = new Point(_screenWidth / 18, _screenHeight / 10 - backToMenu.Height);
                 backToMenu.Click += (s, e) =>
                 {
-                    Storage.SelectedBox = $"Crate_{_crateNames[_currentCrateSelected]}.png";
-                    Storage.SelectedWall = _roundTexture ? $"WallRound_{_wallNames[_currentWallSelected]}.png" : $"Wall_{_wallNames[_currentWallSelected]}.png";
-                    Storage.SelectedEndPoint = $"EndPoint_{_endPointNames[_currentEndPointSelected]}.png";
-                    Storage.SelectedTextures = $"Ground_{_textureNames[_currentTextureSelected]}.png";
+                    // Validate indices to prevent IndexOutOfRangeException
+                    if (_currentCrateSelected >= 0 && _currentCrateSelected < _crateNames.Length)
+                    {
+                        Storage.SelectedBox = $"Crate_{_crateNames[_currentCrateSelected]}.png";
+                    }
+                    
+                    if (_currentWallSelected >= 0 && _currentWallSelected < _wallNames.Length)
+                    {
+                        Storage.SelectedWall = _roundTexture ? $"WallRound_{_wallNames[_currentWallSelected]}.png" : $"Wall_{_wallNames[_currentWallSelected]}.png";
+                    }
+                    
+                    if (_currentEndPointSelected >= 0 && _currentEndPointSelected < _endPointNames.Length)
+                    {
+                        Storage.SelectedEndPoint = $"EndPoint_{_endPointNames[_currentEndPointSelected]}.png";
+                    }
+                    
+                    if (_currentTextureSelected >= 0 && _currentTextureSelected < _textureNames.Length)
+                    {
+                        Storage.SelectedTextures = $"Ground_{_textureNames[_currentTextureSelected]}.png";
+                    }
                 };
                 backToMenu.Click += (s, e) => ShowPanel(_homePanel);
             }
@@ -301,6 +325,9 @@ namespace czu_sokoban
             _levelsPanel.Controls.Clear();
             AddHeaderToPanel(_levelsPanel);
 
+            // Ensure CurrentSaveId is valid and the save exists in the database
+            _gameState.CurrentSaveId = _database.EnsureSaveExists(_gameState.CurrentSaveId);
+
             Size buttonSize = new Size(_screenWidth / 8, _screenHeight / 8);
             int spacing = _screenHeight / 8;
             int startX = _screenHeight / 7;
@@ -372,6 +399,102 @@ namespace czu_sokoban
         {
             _gameState.CurrentLevelName = level;
             _levelScreenPresenter?.InitializeLevelScreen(level, _maps);
+            
+            // Re-add header panel after level is loaded (since AddToControls clears all controls)
+            AddHeaderPanelToLevelPanel();
+            
+            // Add restart button after level is loaded (since AddToControls clears all controls)
+            AddRestartButtonToLevelPanel();
+        }
+
+        /// <summary>
+        /// Adds the header panel with "SOKOBAN" text to the level panel.
+        /// </summary>
+        private void AddHeaderPanelToLevelPanel()
+        {
+            // Remove existing header panel if it exists
+            var existingHeader = _levelPanel.Controls.OfType<Panel>()
+                .FirstOrDefault(p => p.Dock == DockStyle.Top && p.BackColor == Color.FromArgb(177, 240, 247));
+            if (existingHeader != null)
+            {
+                _levelPanel.Controls.Remove(existingHeader);
+            }
+
+            Panel headerPanel = new Panel
+            {
+                Location = new Point(0, 0),
+                Width = _screenWidth,
+                Height = _screenHeight / 10,
+                Dock = DockStyle.Top,
+                BackColor = Color.FromArgb(177, 240, 247)
+            };
+
+            Label headerLabel = new Label
+            {
+                Text = "SOKOBAN",
+                ForeColor = Color.Black,
+                Font = new Font("Arial", 24, FontStyle.Bold),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill
+            };
+
+            headerPanel.Controls.Add(headerLabel);
+            _levelPanel.Controls.Add(headerPanel);
+            headerPanel.BringToFront();
+        }
+
+        /// <summary>
+        /// Adds the restart button and back to levels button to the level panel.
+        /// </summary>
+        private void AddRestartButtonToLevelPanel()
+        {
+            // Remove existing buttons if they exist
+            var existingButtons = _levelPanel.Controls.OfType<Button>()
+                .Where(b => b.Text == "RESTART" || b.Text == "Back to Levels")
+                .ToList();
+            foreach (var button in existingButtons)
+            {
+                _levelPanel.Controls.Remove(button);
+            }
+
+            // Add restart button to the right of level textures
+            int headerHeight = _screenHeight / 10;
+            int buttonX = Storage.LeftMargin2 + (Storage.GridSize2 * Storage.Size) + 20; // Position to the right of the level grid
+            int buttonY = headerHeight + Storage.TopMargin - 50; // Align with level start, slightly above
+            Button restartButton = new Button
+            {
+                Text = "RESTART",
+                Font = _buttonFont,
+                Size = new Size(200, 100),
+                Location = new Point(buttonX, buttonY),
+                BackColor = _buttonColor
+            };
+            restartButton.Click += (s, e) =>
+            {
+                ResetVariables();
+                InitializeLevelScreen(_gameState.CurrentLevelName);
+            };
+            _levelPanel.Controls.Add(restartButton);
+            restartButton.BringToFront();
+
+            // Add back to levels button in top left
+            Button backToLevelsButton = new Button
+            {
+                Text = "Back to Levels",
+                Font = _buttonFont,
+                Size = new Size(200, 100),
+                Location = new Point(_screenWidth / 18, _screenHeight / 7),
+                BackColor = _buttonColor
+            };
+            backToLevelsButton.Click += (s, e) =>
+            {
+                ResetVariables();
+                InitializeLevelsScreen();
+                ShowPanel(_levelsPanel);
+            };
+            _levelPanel.Controls.Add(backToLevelsButton);
+            backToLevelsButton.BringToFront();
         }
         /// <summary>
         /// Initializes labels for the end level screen.
@@ -578,11 +701,15 @@ namespace czu_sokoban
             for (int i = 0; i < _wallNames.Length; i++)
             {
                 Button wallButton = CreateWallButton(i, buttonSize, wallsPanel);
+                int wallIndex = i; // Capture loop variable
                 wallButton.Click += (s, e) =>
                 {
-                    _currentWallSelected = i;
-                    UpdateShopButtons();
-                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{_wallNames[_currentWallSelected]}.png", wallRoundCheck.Checked);
+                    if (wallIndex >= 0 && wallIndex < _wallNames.Length)
+                    {
+                        _currentWallSelected = wallIndex;
+                        UpdateShopButtons();
+                        wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{_wallNames[_currentWallSelected]}.png", wallRoundCheck.Checked);
+                    }
                 };
                 wallsPanel.Controls.Add(wallButton);
                 _wallTextureButtons.Add(wallButton);
@@ -617,82 +744,6 @@ namespace czu_sokoban
                 FlatStyle = FlatStyle.Standard
             };
         }
-
-            // Add buttons to wallsPanel
-            int buttonSize = panelSize.Width / 3;
-
-            //Picture box on top to show what texture player selected
-            int previewTextureSize = 5 * buttonSize / 4;
-
-            PictureBox wallTexturePreview = new PictureBox
-            {
-                Size = new Size(previewTextureSize, previewTextureSize),
-                Location = new Point(wallsPanel.Width / 2 - previewTextureSize / 2, wallsPanel.Height / 15),
-                //+BackColor = Color.Red,
-                Image = Storage.getImage($"Wall_Black.png"),
-                BackgroundImageLayout = ImageLayout.Stretch,
-                SizeMode = PictureBoxSizeMode.StretchImage,
-
-            };
-
-            CheckBox wallRoundCheck = new CheckBox
-            {
-                Text = "SQUARE TEXTURE",
-                Font = btnFont,
-                BackColor = btnColor,
-                Size = new Size(buttonSize, buttonSize),
-                Location = new Point(wallsPanel.Width / 2 - buttonSize / 2, 3 * wallsPanel.Height / 4),
-                Appearance = Appearance.Button,
-                AutoCheck = true, // Enable user interaction
-            };
-
-            //form of the loop from ai, other stuff from my design
-            for (int i = 0; i < 4; i++)
-            {
-                int buttonIndex = i;
-                // Determine column (0 or 1) and row (0 or 1)
-                int col = i % 2;
-                int row = i / 2;
-
-                // X: 0 => 1/3 of buttonsize, 1 => 5/3 of button size
-                int x = (int)((col == 0 ? 1f / 3f : 5f / 3f) * buttonSize);
-            
-                // Y: 0 => 2/5 of height, 1 => 4/5 of height
-                int y = (int)((row == 0 ? 2f / 5f : 3f / 5f) * wallsPanel.Height - buttonSize / 2);
-
-                Button wallButton = new Button
-                {
-                    //Text = $"{i + 1}",
-                    Font = btnFont,
-                    Size = new Size(buttonSize, buttonSize),
-                    Location = new Point(x, y),
-                    BackgroundImageLayout = ImageLayout.Stretch,
-                    Image = Storage.getImage($"Wall_{wallNames[i]}.png"),
-                    Tag = buttonIndex,
-                    FlatStyle = FlatStyle.Standard,
-                    
-                };
-                //0: Beige, 1: Black, 2: Brown, 3: Gray
-                wallButton.Click += (s, e) => currWallSelected = buttonIndex;
-                wallButton.Click += (s, e) => UpdateShopButtons();
-                wallButton.Click += (s, e) =>
-                {
-                    wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelected]}.png", wallRoundCheck.Checked);
-                };
-                wallsPanel.Controls.Add(wallButton);
-                wallTextureList.Add(wallButton);
-
-            }
-            wallRoundCheck.TextAlign = ContentAlignment.MiddleCenter;
-
-            wallRoundCheck.CheckedChanged += (s, e) =>
-            {
-                wallRoundCheck.Text = wallRoundCheck.Checked ? "ROUND TEXTURE" : "SQUARE TEXTURE";
-                wallTexturePreview.Image = UpdatePreviewPictureBox(previewTextureSize, $"Wall_{wallNames[currWallSelected]}.png", wallRoundCheck.Checked);
-            };
-
-            wallsPanel.Controls.Add(wallRoundCheck);
-            wallsPanel.Controls.Add(wallTexturePreview);
 
         private Panel CreateCratePanel(Size panelSize, int startX, int startY)
         {
@@ -731,8 +782,11 @@ namespace czu_sokoban
 
                 crateButton.Click += (s, e) =>
                 {
-                    _currentCrateSelected = buttonIndex;
-                    UpdateShopButtons();
+                    if (buttonIndex >= 0 && buttonIndex < _crateNames.Length)
+                    {
+                        _currentCrateSelected = buttonIndex;
+                        UpdateShopButtons();
+                    }
                 };
 
                 cratePanel.Controls.Add(crateButton);
@@ -773,8 +827,11 @@ namespace czu_sokoban
                 int buttonIndex = i;
                 endPointButton.Click += (s, e) =>
                 {
-                    _currentEndPointSelected = buttonIndex;
-                    UpdateShopButtons();
+                    if (buttonIndex >= 0 && buttonIndex < _endPointNames.Length)
+                    {
+                        _currentEndPointSelected = buttonIndex;
+                        UpdateShopButtons();
+                    }
                 };
 
                 endPointPanel.Controls.Add(endPointButton);
@@ -821,8 +878,11 @@ namespace czu_sokoban
 
                 textureButton.Click += (s, e) =>
                 {
-                    _currentTextureSelected = buttonIndex;
-                    UpdateShopButtons();
+                    if (buttonIndex >= 0 && buttonIndex < _textureNames.Length)
+                    {
+                        _currentTextureSelected = buttonIndex;
+                        UpdateShopButtons();
+                    }
                 };
 
                 texturePanel.Controls.Add(textureButton);
