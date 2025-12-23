@@ -1,5 +1,7 @@
-/// Class for a simple SQLite database to store player data and levels
-/// Dependencies: SQLitePCLRaw.lib.e_sqlite3
+/// <summary>
+/// Provides database operations for storing and retrieving player data and game levels.
+/// Uses SQLite database with SQLitePCLRaw library for data persistence.
+/// </summary>
 
 using SQLitePCL;
 using czu_sokoban;

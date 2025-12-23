@@ -51,7 +51,6 @@ namespace czu_sokoban
         private int _currentTextureSelected = 0;
         private bool _roundTexture = false;
 
-        ////////////////////////////////////////////////////////////////////////
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {

@@ -44,7 +44,7 @@ namespace czu_sokoban.Presentation
 
             _stepsLabel = new Label
             {
-                Text = "Počet kroků: 0",
+                Text = "Steps: 0",
                 Font = new System.Drawing.Font("Segoe UI", 16, System.Drawing.FontStyle.Bold),
                 Location = new System.Drawing.Point(screenWidth / 18, screenHeight / 4),
                 AutoSize = true,
@@ -54,7 +54,7 @@ namespace czu_sokoban.Presentation
 
             _timeLabel = new Label
             {
-                Text = "Čas: 0.000 s",
+                Text = "Time: 0.000 s",
                 Font = new System.Drawing.Font("Segoe UI", 16, System.Drawing.FontStyle.Bold),
                 Location = new System.Drawing.Point(screenWidth / 18, 11 * screenHeight / 28),
                 AutoSize = true,
@@ -67,12 +67,12 @@ namespace czu_sokoban.Presentation
         {
             if (_stepsLabel != null)
             {
-                _stepsLabel.Text = $"Počet kroků: {_gameState.StepsCount}";
+                _stepsLabel.Text = $"Steps: {_gameState.StepsCount}";
             }
 
             if (_timeLabel != null)
             {
-                _timeLabel.Text = $"Čas: {_gameController.Stopwatch.Elapsed.TotalSeconds:F3} s";
+                _timeLabel.Text = $"Time: {_gameController.Stopwatch.Elapsed.TotalSeconds:F3} s";
             }
         }
     }
