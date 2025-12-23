@@ -27,8 +27,6 @@ namespace czu_sokoban
         private Panel _profilePanel;
         private Panel _shopPanel;
 
-        private Label _stepsLabel;
-        private Label _timeLabel;
         private Label _endLevelStepsLabel;
         private Label _endLevelTimeLabel;
         private Label _endLevelCongratulationLabel;
@@ -86,9 +84,7 @@ namespace czu_sokoban
             _levelScreenPresenter = new LevelScreenPresenter(_levelPanel, _gameState, _gameController);
             ShowPanel(_homePanel);
         }
-        /// <summary>
         /// Adds a global navigation button to panels (except home panel).
-        /// </summary>
         private void AddGlobalButtonToPanel(Panel targetPanel)
         {
             if (targetPanel == _homePanel) return;
@@ -174,9 +170,7 @@ namespace czu_sokoban
             targetPanel.Controls.Add(backToMenu);
             backToMenu.BringToFront();
         }
-        /// <summary>
         /// Initializes all panels for different screens.
-        /// </summary>
         private void InitializePanels()
         {
             _homePanel = new Panel
@@ -232,9 +226,7 @@ namespace czu_sokoban
             AddHeaderToPanel(_shopPanel);
             AddHeaderToPanel(_endLevelPanel);
         }
-        /// <summary>
         /// Initializes the home screen with all buttons and components.
-        /// </summary>
         private void InitializeHomeScreen()
         {
             Size buttonSize = new Size(_screenWidth / 5, _screenHeight / 10);
@@ -284,14 +276,9 @@ namespace czu_sokoban
             };
             exitButton.Click += (s, e) => this.Close();
 
-            _homePanel.Controls.Add(playButton);
-            _homePanel.Controls.Add(profileButton);
-            _homePanel.Controls.Add(shopButton);
-            _homePanel.Controls.Add(exitButton);
+            _homePanel.Controls.AddRange(new[] { playButton, profileButton, shopButton, exitButton });
         }
-        /// <summary>
         /// Adds a header panel with "SOKOBAN" label to the specified panel.
-        /// </summary>
         private void AddHeaderToPanel(Panel parentPanel)
         {
             Panel headerPanel = new Panel
@@ -317,9 +304,7 @@ namespace czu_sokoban
             parentPanel.Controls.Add(headerPanel);
             AddGlobalButtonToPanel(parentPanel);
         }
-        /// <summary>
         /// Initializes the levels screen with buttons for each level and displays best times/steps.
-        /// </summary>
         private void InitializeLevelsScreen()
         {
             _levelsPanel.Controls.Clear();
@@ -338,8 +323,9 @@ namespace czu_sokoban
                 string levelName = $"level{levelIndex + 1}";
                 var results = _database.GetLevelTimesAndStepsByPlayer(_gameState.CurrentSaveId, levelName);
                 
-                int bestSteps = results.Count > 0 ? results[0].Steps : 0;
-                double bestTime = results.Count > 0 ? results[0].Time : 0.0;
+                var result = results.FirstOrDefault();
+                int bestSteps = result != default ? result.Steps : 0;
+                double bestTime = result != default ? result.Time : 0.0;
 
                 int row = levelIndex < GameConstants.LevelsPerRow ? 0 : 1;
                 int column = levelIndex % GameConstants.LevelsPerRow + 1;
@@ -348,7 +334,6 @@ namespace czu_sokoban
                 CreateLevelLabels(levelButton, buttonSize, bestSteps, bestTime, levelName);
             }
         }
-
         private Button CreateLevelButton(int levelNumber, Size buttonSize, int startX, int spacing, int column, int yPosition)
         {
             Button levelButton = new Button
@@ -367,7 +352,6 @@ namespace czu_sokoban
             _levelsPanel.Controls.Add(levelButton);
             return levelButton;
         }
-
         private void CreateLevelLabels(Button levelButton, Size buttonSize, int bestSteps, double bestTime, string levelName)
         {
             Font labelFont = new Font("Segoe UI", 12, FontStyle.Bold);
@@ -392,9 +376,7 @@ namespace czu_sokoban
             };
             _levelsPanel.Controls.Add(timeLabel);
         }
-        /// <summary>
         /// Initializes the level screen for the specified level.
-        /// </summary>
         private void InitializeLevelScreen(string level)
         {
             _gameState.CurrentLevelName = level;
@@ -406,19 +388,13 @@ namespace czu_sokoban
             // Add restart button after level is loaded (since AddToControls clears all controls)
             AddRestartButtonToLevelPanel();
         }
-
-        /// <summary>
         /// Adds the header panel with "SOKOBAN" text to the level panel.
-        /// </summary>
         private void AddHeaderPanelToLevelPanel()
         {
             // Remove existing header panel if it exists
             var existingHeader = _levelPanel.Controls.OfType<Panel>()
                 .FirstOrDefault(p => p.Dock == DockStyle.Top && p.BackColor == Color.FromArgb(177, 240, 247));
-            if (existingHeader != null)
-            {
-                _levelPanel.Controls.Remove(existingHeader);
-            }
+            existingHeader?.Dispose();
 
             Panel headerPanel = new Panel
             {
@@ -443,10 +419,7 @@ namespace czu_sokoban
             _levelPanel.Controls.Add(headerPanel);
             headerPanel.BringToFront();
         }
-
-        /// <summary>
         /// Adds the restart button and back to levels button to the level panel.
-        /// </summary>
         private void AddRestartButtonToLevelPanel()
         {
             // Remove existing buttons if they exist
@@ -455,7 +428,7 @@ namespace czu_sokoban
                 .ToList();
             foreach (var button in existingButtons)
             {
-                _levelPanel.Controls.Remove(button);
+                button.Dispose();
             }
 
             // Add restart button to the right of level textures
@@ -496,9 +469,7 @@ namespace czu_sokoban
             _levelPanel.Controls.Add(backToLevelsButton);
             backToLevelsButton.BringToFront();
         }
-        /// <summary>
         /// Initializes labels for the end level screen.
-        /// </summary>
         private void InitializeLabels()
         {
             _endLevelStepsLabel = new Label
@@ -525,9 +496,7 @@ namespace czu_sokoban
             };
             _endLevelPanel.Controls.Add(_endLevelCongratulationLabel);
         }
-        /// <summary>
         /// Initializes the end level screen with final time, steps, and congratulation message.
-        /// </summary>
         private void InitializeEndLevelScreen(string levelName, double time, int stepsCount)
         {
             _endLevelStepsLabel.Text = $"Final steps count: {stepsCount}";
@@ -536,16 +505,13 @@ namespace czu_sokoban
 
             UpdateEndLevelLabelPositions();
         }
-
         private void UpdateEndLevelLabelPositions()
         {
             _endLevelStepsLabel.Location = new Point((_screenWidth - _endLevelStepsLabel.Width) / 2, _screenHeight / 3 + 2 * _endLevelStepsLabel.Height);
             _endLevelTimeLabel.Location = new Point((_screenWidth - _endLevelTimeLabel.Width) / 2, 2 * _screenHeight / 5 + 2 * _endLevelTimeLabel.Height);
             _endLevelCongratulationLabel.Location = new Point((_screenWidth - _endLevelCongratulationLabel.Width) / 2, _screenHeight / 5);
         }
-        /// <summary>
         /// Initializes the profile screen with save selection buttons.
-        /// </summary>
         private void InitializeProfileScreen()
         {
             for (int i = 0; i < GameConstants.NumberOfSaves; i++)
@@ -562,7 +528,6 @@ namespace czu_sokoban
             }
             UpdateButtonColors();
         }
-
         private Button CreateProfileButton(int saveId)
         {
             Button profileButton = new Button
@@ -583,10 +548,7 @@ namespace czu_sokoban
 
             return profileButton;
         }
-
-        /// <summary>
         /// Updates the colors of save buttons to indicate the current selection.
-        /// </summary>
         private void UpdateButtonColors()
         {
             foreach (Button button in _saveButtons)
@@ -597,9 +559,7 @@ namespace czu_sokoban
                     : _buttonColor;
             }
         }
-        /// <summary>
         /// Updates the colors of shop texture selection buttons to indicate current selections.
-        /// </summary>
         private void UpdateShopButtons()
         {
             const int selectedButtonAlpha = 200;
@@ -612,7 +572,6 @@ namespace czu_sokoban
             UpdateTextureButtonColors(_endPointTextureButtons, _currentEndPointSelected, selectedButtonColor, notSelectedButtonColor);
             UpdateTextureButtonColors(_textureButtons, _currentTextureSelected, selectedButtonColor, notSelectedButtonColor);
         }
-
         private void UpdateTextureButtonColors(List<Button> buttons, int selectedIndex, Color selectedColor, Color notSelectedColor)
         {
             foreach (Button button in buttons)
@@ -621,9 +580,7 @@ namespace czu_sokoban
                 button.BackColor = (buttonTextureId == selectedIndex) ? selectedColor : notSelectedColor;
             }
         }
-        /// <summary>
         /// Updates the preview picture box in the shop screen to show the selected texture.
-        /// </summary>
         private Image UpdatePreviewPictureBox(int size, string textureName, bool isRound = true)
         {
             if (isRound)
@@ -642,13 +599,10 @@ namespace czu_sokoban
                 return Storage.CreateColoredSquare(size, Color.Black);
             }
         }
-        /// <summary>
         /// Initializes the shop screen with texture selection panels for walls, crates, endpoints, and ground textures.
-        /// </summary>
         private void InitializeShopScreen()
         {
             Size panelSize = new Size(_screenWidth / 5, 4 * _screenHeight / 5);
-            int panelWidth = _screenWidth / 5;
             int spacingX = _screenWidth / 25;
             int panelStartY = _screenHeight / 8;
 
@@ -657,14 +611,10 @@ namespace czu_sokoban
             Panel endPointPanel = CreateEndPointPanel(panelSize, cratePanel.Right + spacingX, panelStartY);
             Panel texturePanel = CreateTexturePanel(panelSize, endPointPanel.Right + spacingX, panelStartY);
 
-            _shopPanel.Controls.Add(wallsPanel);
-            _shopPanel.Controls.Add(cratePanel);
-            _shopPanel.Controls.Add(endPointPanel);
-            _shopPanel.Controls.Add(texturePanel);
+            _shopPanel.Controls.AddRange(new[] { wallsPanel, cratePanel, endPointPanel, texturePanel });
 
             UpdateShopButtons();
         }
-
         private Panel CreateWallsPanel(Size panelSize, int startX, int startY)
         {
             Panel wallsPanel = new Panel
@@ -725,7 +675,6 @@ namespace czu_sokoban
             wallsPanel.Controls.Add(wallTexturePreview);
             return wallsPanel;
         }
-
         private Button CreateWallButton(int index, int buttonSize, Panel parentPanel)
         {
             int column = index % 2;
@@ -744,7 +693,6 @@ namespace czu_sokoban
                 FlatStyle = FlatStyle.Standard
             };
         }
-
         private Panel CreateCratePanel(Size panelSize, int startX, int startY)
         {
             Panel cratePanel = new Panel
@@ -795,7 +743,6 @@ namespace czu_sokoban
 
             return cratePanel;
         }
-
         private Panel CreateEndPointPanel(Size panelSize, int startX, int startY)
         {
             Panel endPointPanel = new Panel
@@ -840,7 +787,6 @@ namespace czu_sokoban
 
             return endPointPanel;
         }
-
         private Panel CreateTexturePanel(Size panelSize, int startX, int startY)
         {
             Panel texturePanel = new Panel
@@ -891,9 +837,7 @@ namespace czu_sokoban
 
             return texturePanel;
         }
-        /// <summary>
         /// Shows only the specified panel, hiding all others.
-        /// </summary>
         private void ShowPanel(Panel targetPanel)
         {
             foreach (Control control in this.Controls.OfType<Panel>())
@@ -902,9 +846,7 @@ namespace czu_sokoban
             }
             targetPanel.Visible = true;
         }
-        /// <summary>
         /// Handles key presses for player movement. Delegates game logic to GameController.
-        /// </summary>
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (_levelPanel.Visible && _gameController != null)
@@ -921,10 +863,7 @@ namespace czu_sokoban
                 _levelScreenPresenter?.UpdateLabels();
             }
         }
-
-        /// <summary>
         /// Resets game variables for a new level start or restart.
-        /// </summary>
         private void ResetVariables()
         {
             _gameController?.ResetGame();
